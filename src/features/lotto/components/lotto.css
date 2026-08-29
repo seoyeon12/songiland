@@ -6,16 +6,25 @@
   overflow: hidden;
 }
 
-/* The panel floats over the stage. It is click-through by default so empty-space
- * taps reach the stage; only real controls opt back into pointer events. */
+/* The HUD sits in a bottom bar so it never covers the ball-draw motion above.
+ * It is click-through by default so empty-space taps reach the stage; only real
+ * controls opt back into pointer events. */
 .lotto-game__panel {
-  position: relative;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
+  gap: 0.55rem;
+  padding: 0.75rem 1rem 1.25rem;
+  background: linear-gradient(
+    to top,
+    rgba(20, 16, 42, 0.95) 55%,
+    rgba(20, 16, 42, 0)
+  );
   pointer-events: none;
 }
 
@@ -97,23 +106,33 @@
 }
 
 /* --- HUD & slots --- */
+.game-hud {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .game-hud__title {
   margin: 0;
-  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-size: clamp(1rem, 2.6vw, 1.35rem);
   text-align: center;
+  opacity: 0.9;
 }
 
 .game-hud__status {
   text-align: center;
-  min-height: 1.5rem;
+  min-height: 1.3rem;
+  font-size: 0.95rem;
   opacity: 0.9;
+  margin: 0;
 }
 
 .game-hud__slots {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 0.4rem;
   list-style: none;
   padding: 0;
   margin: 0;
@@ -122,17 +141,17 @@
 .game-hud__bonus {
   display: flex;
   justify-content: center;
-  margin-top: 0.6rem;
 }
 
 .slot {
   display: grid;
   place-items: center;
-  width: 3rem;
-  height: 3rem;
+  width: 2.4rem;
+  height: 2.4rem;
   border-radius: 50%;
   border: 2px dashed rgba(245, 243, 255, 0.35);
   font-weight: 800;
+  font-size: 0.95rem;
 }
 
 .slot--filled {
