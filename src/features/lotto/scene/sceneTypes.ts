@@ -1,4 +1,5 @@
 import type { DrawPhase, DrawPlan } from '../domain/types';
+import type { StageProps } from '../input/useLottoControls';
 
 export type SceneQuality = 'high' | 'low';
 export type CameraMotion = 'travel' | 'cut';
@@ -20,4 +21,6 @@ export type LotterySceneProps = {
   quality: SceneQuality;
   reducedMotion: boolean;
   onStageActivate: () => void;
+  /** Keyboard/paw handlers from useLottoControls, attached to the stage shell. */
+  stageProps?: StageProps;
 };

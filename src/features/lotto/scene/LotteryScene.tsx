@@ -16,6 +16,7 @@ export function LotteryScene({
   quality,
   reducedMotion,
   onStageActivate,
+  stageProps,
 }: LotterySceneProps) {
   const profile = getSceneProfile(quality, reducedMotion);
   // Drive the front frame / key light from the same cue the reveal timeline uses,
@@ -24,7 +25,14 @@ export function LotteryScene({
   const bonusStage = cue.frame === 'gold';
 
   return (
-    <div className="lottery-scene" data-testid="lotto-stage">
+    <div
+      className="lottery-scene"
+      data-testid="lotto-stage"
+      role="application"
+      aria-label="송이의 행운 로또쇼 무대"
+      tabIndex={0}
+      {...stageProps}
+    >
       <Canvas
         shadows={profile.shadows}
         dpr={profile.dpr}
