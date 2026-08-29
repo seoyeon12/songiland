@@ -11,7 +11,12 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'chromium',
+      // Enable touch so the mobile paw-mode spec can use tap(); keyboard/mouse
+      // specs are unaffected.
+      use: { ...devices['Desktop Chrome'], hasTouch: true },
+    },
   ],
   webServer: {
     command: 'pnpm build && pnpm preview --port 4173',

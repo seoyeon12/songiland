@@ -19,6 +19,10 @@ export function drawReducer(state: DrawState, event: DrawEvent): DrawState {
       // A fresh draw plan resets progress and enters the mixing show.
       return { phase: 'mixing', plan: event.plan, revealedCount: 0 };
 
+    case 'RESET':
+      // "한 번 더 뽑기" returns to idle; history is untouched by the reducer.
+      return initialDrawState;
+
     case 'MIXING_FINISHED':
       return state.phase === 'mixing' ? { ...state, phase: 'ready' } : state;
 

@@ -19,6 +19,12 @@ it('permits exactly one completed reveal at a time and completes after the bonus
   expect(state.revealedCount).toBe(1);
 });
 
+it('resets to idle without depending on history', () => {
+  let state = drawReducer(initialDrawState, { type: 'START', plan });
+  state = drawReducer(state, { type: 'MIXING_FINISHED' });
+  expect(drawReducer(state, { type: 'RESET' })).toEqual(initialDrawState);
+});
+
 it('ignores events that are invalid for the current phase', () => {
   expect(drawReducer(initialDrawState, { type: 'REQUEST_REVEAL' })).toEqual(
     initialDrawState,

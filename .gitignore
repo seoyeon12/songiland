@@ -19,3 +19,8 @@ dist
 .claude/skills/shadcn
 skills-lock.json
 .claude/.headroom_wrap_marker.json
+
+# Playwright
+test-results
+playwright-report
+playwright/.cache

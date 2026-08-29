@@ -19,4 +19,5 @@ export type DrawEvent =
   | { type: 'START'; plan: DrawPlan }
   | { type: 'MIXING_FINISHED' }
   | { type: 'REQUEST_REVEAL' }
-  | { type: 'REVEAL_FINISHED' };
+  | { type: 'REVEAL_FINISHED' }
+  | { type: 'RESET' };

@@ -1,5 +1,48 @@
 /* Songiland lotto show — accessible, high-contrast UI over the 3D stage. */
 
+.lotto-game {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* The panel floats over the stage. It is click-through by default so empty-space
+ * taps reach the stage; only real controls opt back into pointer events. */
+.lotto-game__panel {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  pointer-events: none;
+}
+
+.lotto-game__panel button,
+.lotto-game__panel .result-card {
+  pointer-events: auto;
+}
+
+.lotto-game__storage-warning {
+  color: #fca5a5;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.lotto-stage-2d {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 35%, #241c4d 0%, #14102a 70%);
+}
+
+.lotto-stage-2d__paw {
+  font-size: clamp(4rem, 20vw, 8rem);
+  opacity: 0.35;
+}
+
 .lottery-scene {
   position: absolute;
   inset: 0;
