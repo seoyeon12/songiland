@@ -1,7 +1,10 @@
 import { Canvas } from '@react-three/fiber';
 import { BallMachine } from './BallMachine';
+import { getRevealCue } from './revealCue';
 import { getSceneProfile } from './sceneProfile';
 import type { LotterySceneProps } from './sceneTypes';
+
+const MAIN_COUNT = 6;
 
 /**
  * Visual-only 3D stage. It renders the machine and the already-decided reveal
@@ -15,7 +18,10 @@ export function LotteryScene({
   onStageActivate,
 }: LotterySceneProps) {
   const profile = getSceneProfile(quality, reducedMotion);
-  const bonusStage = revealedCount >= 6;
+  // Drive the front frame / key light from the same cue the reveal timeline uses,
+  // clamped so the bonus treatment persists through completion (revealedCount 7).
+  const cue = getRevealCue(Math.min(revealedCount, MAIN_COUNT), reducedMotion);
+  const bonusStage = cue.frame === 'gold';
 
   return (
     <div className="lottery-scene" data-testid="lotto-stage">
