@@ -1,0 +1,283 @@
+/* Songiland lotto show — accessible, high-contrast UI over the 3D stage. */
+
+.btn {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.7rem 1.3rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--songi-surface);
+  color: var(--songi-text);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--songi-accent);
+}
+
+.btn--primary:not(:disabled):hover,
+.btn:not(:disabled):focus-visible {
+  background: var(--songi-accent-strong);
+}
+
+.btn--paw {
+  font-size: 1.15rem;
+  padding: 0.95rem 1.8rem;
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: rgba(245, 243, 255, 0.3);
+}
+
+.btn--danger {
+  background: #b91c4b;
+}
+
+/* --- HUD & slots --- */
+.game-hud__title {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  text-align: center;
+}
+
+.game-hud__status {
+  text-align: center;
+  min-height: 1.5rem;
+  opacity: 0.9;
+}
+
+.game-hud__slots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.game-hud__bonus {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.6rem;
+}
+
+.slot {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: 2px dashed rgba(245, 243, 255, 0.35);
+  font-weight: 800;
+}
+
+.slot--filled {
+  border-style: solid;
+  background: #f8fafc;
+  color: #14102a;
+}
+
+.slot--bonus.slot--filled {
+  background: var(--songi-accent-strong);
+  color: var(--songi-text);
+}
+
+/* --- Balls (result card) --- */
+.result-card {
+  background: var(--songi-surface);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  max-width: 32rem;
+  margin: 0 auto;
+}
+
+.result-card__title {
+  margin: 0 0 0.25rem;
+  text-align: center;
+}
+
+.result-card__time {
+  text-align: center;
+  opacity: 0.75;
+  margin: 0 0 1rem;
+}
+
+.result-card__balls,
+.result-card__bonus ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ball {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 1.15rem;
+}
+
+.ball--main {
+  background: #f8fafc;
+  color: #14102a;
+}
+
+.ball--bonus {
+  background: var(--songi-accent-strong);
+  color: var(--songi-text);
+}
+
+.result-card__bonus {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.result-card__bonus-note {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.result-card__actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.lotto-notice {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  text-align: center;
+  margin: 0;
+}
+
+.lotto-controls {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+/* --- History panel: right drawer on desktop, bottom sheet on mobile --- */
+.history-panel {
+  position: fixed;
+  background: var(--songi-surface);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  overflow-y: auto;
+}
+
+/* Mobile-first: bottom sheet below 768px. */
+.history-panel {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 80vh;
+  border-radius: 1.25rem 1.25rem 0 0;
+}
+
+@media (min-width: 768px) {
+  .history-panel {
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: auto;
+    width: min(24rem, 90vw);
+    max-height: none;
+    border-radius: 0;
+  }
+}
+
+.history-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.history-panel__title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.history-panel__title:focus-visible {
+  outline: 2px solid var(--songi-accent-strong);
+  outline-offset: 4px;
+}
+
+.history-panel__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.history-panel__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.history-panel__item time {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.history-panel__empty {
+  opacity: 0.85;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.history-panel__privacy {
+  font-size: 0.78rem;
+  opacity: 0.7;
+  margin: 0;
+}
+
+.history-panel__confirm {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(10, 8, 24, 0.6);
+}
+
+.history-panel__confirm > * {
+  background: var(--songi-surface);
+}
+
+.history-panel__confirm h3 {
+  margin: 0 0 1rem;
+}
+
+.history-panel__confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  background: transparent;
+}
