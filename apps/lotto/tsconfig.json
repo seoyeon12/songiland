@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["vite/client", "vitest/globals", "@songiland/test-config"]
+  },
+  "include": ["src", "tests", "vite.config.ts", "playwright.config.ts"],
+  "exclude": ["node_modules", "dist"]
+}

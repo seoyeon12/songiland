@@ -1,0 +1,19 @@
+{
+	"name": "@songiland/test-config",
+	"private": true,
+	"type": "module",
+	"types": "./index.d.ts",
+	"exports": {
+		".": {
+			"types": "./index.d.ts",
+			"default": "./vitest.js"
+		},
+		"./setup": "./setup.ts"
+	},
+	"dependencies": {
+		"@testing-library/jest-dom": "^7.0.1"
+	},
+	"peerDependencies": {
+		"vitest": "^4.1.11"
+	}
+}

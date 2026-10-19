@@ -6,7 +6,9 @@ settings:
 
 importers:
 
-  .:
+  .: {}
+
+  apps/lotto:
     dependencies:
       '@react-three/drei':
         specifier: ^10.7.8
@@ -14,6 +16,15 @@ importers:
       '@react-three/fiber':
         specifier: ^9.7.0
         version: 9.7.0(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(three@0.185.1)
+      '@songiland/a11y':
+        specifier: workspace:*
+        version: link:../../packages/a11y
+      '@songiland/catalog':
+        specifier: workspace:*
+        version: link:../../packages/catalog
+      '@songiland/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       react:
         specifier: ^19.2.8
         version: 19.2.8
@@ -27,15 +38,15 @@ importers:
         specifier: ^0.185.1
         version: 0.185.1
     devDependencies:
-      '@eslint/js':
-        specifier: ^10.0.1
-        version: 10.0.1(eslint@10.9.1)
       '@playwright/test':
         specifier: ^1.62.1
         version: 1.62.1
-      '@testing-library/jest-dom':
-        specifier: ^7.0.1
-        version: 7.0.1(@testing-library/dom@10.4.1)(vitest@4.1.11(@types/node@26.3.0)(jsdom@30.0.1)(vite@8.2.2(@types/node@26.3.0)))
+      '@songiland/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@songiland/test-config':
+        specifier: workspace:*
+        version: link:../../packages/test-config
       '@testing-library/react':
         specifier: ^16.3.2
         version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -60,6 +71,115 @@ importers:
       eslint:
         specifier: ^10.9.1
         version: 10.9.1
+      jsdom:
+        specifier: ^30.0.1
+        version: 30.0.1
+      prettier:
+        specifier: ^3.9.6
+        version: 3.9.6
+      typescript:
+        specifier: ^6.0.0
+        version: 6.0.3
+      vite:
+        specifier: ^8.2.2
+        version: 8.2.2(@types/node@26.3.0)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@26.3.0)(jsdom@30.0.1)(vite@8.2.2(@types/node@26.3.0))
+
+  apps/portal:
+    dependencies:
+      '@songiland/catalog':
+        specifier: workspace:*
+        version: link:../../packages/catalog
+      '@songiland/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      react:
+        specifier: ^19.2.8
+        version: 19.2.8
+      react-dom:
+        specifier: ^19.2.8
+        version: 19.2.8(react@19.2.8)
+    devDependencies:
+      '@songiland/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@songiland/test-config':
+        specifier: workspace:*
+        version: link:../../packages/test-config
+      '@testing-library/react':
+        specifier: ^16.3.2
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@types/node':
+        specifier: ^26.3.0
+        version: 26.3.0
+      '@types/react':
+        specifier: ^19.2.18
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: ^19.2.5
+        version: 19.2.5(@types/react@19.2.18)
+      '@vitejs/plugin-react':
+        specifier: ^6.1.0
+        version: 6.1.0(vite@8.2.2(@types/node@26.3.0))
+      eslint:
+        specifier: ^10.9.1
+        version: 10.9.1
+      jsdom:
+        specifier: ^30.0.1
+        version: 30.0.1
+      typescript:
+        specifier: ^6.0.0
+        version: 6.0.3
+      vite:
+        specifier: ^8.2.2
+        version: 8.2.2(@types/node@26.3.0)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@26.3.0)(jsdom@30.0.1)(vite@8.2.2(@types/node@26.3.0))
+
+  packages/a11y:
+    devDependencies:
+      '@songiland/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@types/react':
+        specifier: ^19.2.18
+        version: 19.2.18
+      eslint:
+        specifier: ^10.9.1
+        version: 10.9.1
+      react:
+        specifier: ^19.2.8
+        version: 19.2.8
+      typescript:
+        specifier: ^6.0.0
+        version: 6.0.3
+
+  packages/catalog:
+    devDependencies:
+      '@songiland/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      eslint:
+        specifier: ^10.9.1
+        version: 10.9.1
+      typescript:
+        specifier: ^6.0.0
+        version: 6.0.3
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@26.3.0)(jsdom@30.0.1)(vite@8.2.2(@types/node@26.3.0))
+
+  packages/eslint-config:
+    dependencies:
+      '@eslint/js':
+        specifier: ^10.0.1
+        version: 10.0.1(eslint@10.9.1)
+      eslint:
+        specifier: ^10.9.1
+        version: 10.9.1
       eslint-config-prettier:
         specifier: ^10.1.8
         version: 10.1.8(eslint@10.9.1)
@@ -72,24 +192,23 @@ importers:
       globals:
         specifier: ^17.11.0
         version: 17.11.0
-      jsdom:
-        specifier: ^30.0.1
-        version: 30.0.1
-      prettier:
-        specifier: ^3.9.6
-        version: 3.9.6
       typescript:
         specifier: ^6.0.0
         version: 6.0.3
       typescript-eslint:
         specifier: ^8.68.0
         version: 8.68.0(eslint@10.9.1)(typescript@6.0.3)
-      vite:
-        specifier: ^8.2.2
-        version: 8.2.2(@types/node@26.3.0)
+
+  packages/test-config:
+    dependencies:
+      '@testing-library/jest-dom':
+        specifier: ^7.0.1
+        version: 7.0.1(@testing-library/dom@10.4.1)(vitest@4.1.11(@types/node@26.3.0)(jsdom@30.0.1)(vite@8.2.2(@types/node@26.3.0)))
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@26.3.0)(jsdom@30.0.1)(vite@8.2.2(@types/node@26.3.0))
+
+  packages/ui: {}
 
 packages:
 
