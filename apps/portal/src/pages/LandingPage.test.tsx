@@ -1,5 +1,5 @@
 import {
-  domainPath,
+  domainBase,
   domains,
   getDomain,
   type DomainKind,
@@ -13,7 +13,7 @@ it('introduces Songiland and links every catalog domain to its app path', () => 
   for (const domain of domains) {
     expect(
       screen.getByRole('link', { name: new RegExp(domain.title) }),
-    ).toHaveAttribute('href', domainPath(domain));
+    ).toHaveAttribute('href', domainBase(domain));
   }
 });
 
@@ -22,7 +22,7 @@ it('links the lotto show under /games', () => {
   const lotto = getDomain('lotto');
   expect(screen.getByRole('link', { name: new RegExp(lotto.title) })).toHaveAttribute(
     'href',
-    '/games/lotto',
+    '/games/lotto/',
   );
 });
 

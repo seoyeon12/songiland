@@ -30,6 +30,14 @@ export function domainPath(entry: Pick<DomainEntry, 'id' | 'kind'>): string {
   return `/${KIND_SEGMENT[entry.kind]}/${entry.id}`;
 }
 
+/**
+ * 도메인 앱이 배포되는 디렉터리 경로(끝에 `/`). Vite `base`, 라우터 basename, 포털 링크가
+ * 모두 이 값을 쓴다. 끝 `/`가 없으면 dev 서버는 404, Pages는 한 번 더 리다이렉트한다.
+ */
+export function domainBase(entry: Pick<DomainEntry, 'id' | 'kind'>): string {
+  return `${domainPath(entry)}/`;
+}
+
 export function getDomain(id: DomainId): DomainEntry {
   const entry = domains.find((domain) => domain.id === id);
   if (!entry) {
@@ -37,3 +45,15 @@ export function getDomain(id: DomainId): DomainEntry {
   }
   return entry;
 }
+
+/** 로컬 포트를 쓰는 앱. 포털은 사이트 루트, 나머지는 도메인 앱이다. */
+export type AppId = 'portal' | DomainId;
+
+/**
+ * 앱별 로컬 포트. dev는 `vite`, preview는 `vite preview`(e2e)용이다.
+ * 포털 dev 서버는 각 도메인 경로를 해당 앱 dev 서버로 프록시해 한 origin처럼 보이게 한다.
+ */
+export const appPorts = {
+  portal: { dev: 5173, preview: 4173 },
+  lotto: { dev: 5174, preview: 4174 },
+} as const satisfies Record<AppId, { dev: number; preview: number }>;

@@ -33,33 +33,67 @@ packages/test-config/      공통 Vitest 설정·jest-dom setup (@songiland/test
 tsconfig.base.json         공통 TypeScript 컴파일 옵션 (각 앱이 extends)
 ```
 
-루트 스크립트는 모든 워크스페이스 패키지에 같은 명령을 실행합니다. 포트는 앱마다
-하나씩 비켜 씁니다.
-
-| 앱     | dev                                   | preview (e2e)                         |
-| ------ | ------------------------------------- | ------------------------------------- |
-| portal | `http://localhost:5173/`              | `http://localhost:4173/`              |
-| lotto  | `http://localhost:5174/games/lotto/`  | `http://localhost:4174/games/lotto/`  |
-
-도메인 앱의 base(`/games/<id>/`)는 `@songiland/catalog`의 `domainPath`에서 가져오고,
-라우터 basename은 `import.meta.env.BASE_URL`로 같은 값을 읽습니다. 개발 서버가
-앱마다 따로 뜨는 동안에는 포털의 `/games/lotto` 링크가 다른 포트의 앱으로 이어지지
-않습니다. 한 origin으로 묶는 개발 프록시와 배포 구성은 다음 단계에서 다룹니다.
+루트 스크립트는 모든 워크스페이스 패키지에 같은 명령을 실행합니다.
 
 ```bash
 pnpm install                                       # 의존성 설치 (최초 1회)
 pnpm --filter lotto exec playwright install chromium  # e2e용 브라우저 (최초 1회)
 
-pnpm dev                               # 모든 앱 개발 서버를 동시에 실행 (Vite)
+pnpm dev                               # 모든 앱 개발 서버 동시 실행 → http://localhost:5173/
 pnpm --filter lotto dev                # 한 앱만 실행
 pnpm test                              # 단위·컴포넌트 테스트 (Vitest)
 pnpm typecheck                         # 타입 검사
 pnpm lint                              # ESLint
-pnpm build                             # 타입 검사 + 프로덕션 빌드
+pnpm build                             # 앱별 타입 검사·빌드 후 루트 dist/로 사이트 조립
+pnpm preview                           # 빌드 결과를 앱별 preview 서버로 실행 → http://localhost:4173/
 pnpm test:e2e                          # 브라우저 e2e (Playwright)
 ```
 
 특정 앱만 실행하려면 `pnpm --filter <앱 이름> <스크립트>`를 사용합니다.
+
+### 한 origin처럼 쓰는 로컬 개발
+
+앱마다 dev 서버가 따로 뜨지만, **포털 서버(5173/4173)가 도메인 경로를 해당 앱으로
+프록시**하므로 포털 주소 하나로 배포본처럼 돌아다닐 수 있습니다. 도메인 앱도 같은
+경로를 base로 쓰므로 경로를 고쳐 쓰지 않고 그대로 넘기며, HMR 웹소켓도 프록시를
+통과합니다.
+
+| 앱     | dev                                  | preview (e2e)                        |
+| ------ | ------------------------------------ | ------------------------------------ |
+| portal | `http://localhost:5173/`             | `http://localhost:4173/`             |
+| lotto  | `http://localhost:5174/games/lotto/` | `http://localhost:4174/games/lotto/` |
+
+포트는 `@songiland/catalog`의 `appPorts`, 앱 base(`/games/<id>/`)는 `domainBase`가
+정합니다. 새 도메인 앱을 붙일 때는 카탈로그에 도메인과 포트를 추가하고 앱 폴더를
+`apps/<id>`로 만들면 포털 카드·프록시·사이트 조립이 함께 따라옵니다.
+
+## 배포 (Cloudflare Pages)
+
+경로 기반으로 **Pages 프로젝트 하나**에 모든 앱을 올립니다. `pnpm build`가 앱별 빌드
+뒤 `scripts/assemble-site.ts`로 루트 `dist/`를 조립합니다.
+
+```text
+dist/                 apps/portal/dist  (사이트 루트 /)
+dist/games/lotto/     apps/lotto/dist   (/games/lotto/)
+dist/404.html         포털 화면 사본 — 없는 경로는 404 상태로 포털을 보여 줌
+dist/_headers         해시 자산 장기 캐시, nosniff·Referrer-Policy
+```
+
+조립 스크립트는 앱 index.html이 자기 base 밖 자산을 참조하면 실패합니다. 최상위
+`404.html`이 있으므로 Pages의 SPA 폴백(모든 경로에 루트 index.html)은 꺼집니다.
+`/games/lotto`처럼 끝 `/`가 없는 주소는 Pages가 `/games/lotto/`로 리다이렉트합니다.
+
+Pages 프로젝트 설정 (Git 연동):
+
+| 항목                  | 값                          |
+| --------------------- | --------------------------- |
+| Framework preset      | None                        |
+| Root directory        | `/` (저장소 루트)           |
+| Build command         | `pnpm build`                |
+| Build output directory| `dist`                      |
+| 환경 변수             | `NODE_VERSION=22.23.2`, `PNPM_VERSION=11.11.0` |
+
+조립 스크립트는 Node의 TypeScript 타입 제거 실행을 쓰므로 Node 22.18 이상이 필요합니다.
 
 ## 릴리스 검증
 

@@ -1,4 +1,4 @@
-import { domainPath, domains, type DomainKind } from '@songiland/catalog';
+import { domainBase, domains, type DomainKind } from '@songiland/catalog';
 
 const KIND_SECTIONS: ReadonlyArray<{ kind: DomainKind; title: string }> = [
   { kind: 'game', title: '게임' },
@@ -31,7 +31,7 @@ export function LandingPage() {
               {entries.map((domain) => (
                 // 도메인 앱은 별도 앱이므로 react-router Link가 아닌 일반 링크로 전체 탐색한다.
                 <li key={domain.id}>
-                  <a className="portal__card" href={domainPath(domain)}>
+                  <a className="portal__card" href={domainBase(domain)}>
                     <span className="portal__card-title">{domain.title}</span>
                     <span className="portal__card-description">
                       {domain.description}

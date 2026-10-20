@@ -1,4 +1,7 @@
+import { appPorts } from '@songiland/catalog';
 import { defineConfig, devices } from '@playwright/test';
+
+const origin = `http://localhost:${appPorts.lotto.preview}`;
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -7,7 +10,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:4174',
+    baseURL: origin,
     trace: 'on-first-retry',
   },
   projects: [
@@ -20,7 +23,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'pnpm build && pnpm preview',
-    url: 'http://localhost:4174/games/lotto/',
+    url: `${origin}/games/lotto/`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
