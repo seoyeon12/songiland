@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { App } from './app/App';
 import '@songiland/ui/base.css';
-import './styles/global.css';
 
 const container = document.getElementById('root');
 if (!container) {

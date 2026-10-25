@@ -36,7 +36,7 @@
 apps/portal/               송이랜드 소개와 도메인 카드 (songiland.arosys.kr)
 apps/lotto/                송이의 행운 로또쇼 (lotto.arosys.kr)
 packages/catalog/          도메인 목록, 앱별 서브도메인·포트(appHosts), 앱 주소(appUrl)
-packages/a11y/             모션 줄이기, WebGL 지원 감지 훅
+packages/a11y/             모션 줄이기 감지 훅 (현재 사용하는 앱 없음)
 packages/ui/               공통 디자인 토큰과 기본 스타일
 packages/eslint-config/    공통 ESLint 설정
 packages/test-config/      공통 Vitest 설정과 jest-dom setup
@@ -101,9 +101,16 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e
 - 변환 범위와 기능은 시작 전에 정한다.
 - 새 앱의 의존성을 연결하려면 설치가 한 번 필요하다.
 
+### 로또쇼 단순화 (2026-10-25)
+
+- 3D 연출(three.js, React Three Fiber, drei)과 WebGL 감지, 발바닥 모드, 단계별 공개
+  상태 기계를 모두 제거했다. Space 또는 버튼 한 번에 7개 번호가 짧은 CSS 등장
+  애니메이션과 함께 나온다.
+- 상단에 포털(`appUrl('portal')`)로 돌아가는 링크를 추가했다.
+- 의존성 제거는 `pnpm install`을 실행해야 잠금 파일에 반영된다.
+
 ### 계획 밖 후속 작업
 
-- 로또쇼 화면에서 포털로 돌아가는 링크를 추가한다. `appUrl('portal')`을 쓰면 된다.
 - 포털 카드에서 각 앱으로 넘어가는 흐름을 확인하는 e2e를 추가한다.
 
 ## 알아 둘 점

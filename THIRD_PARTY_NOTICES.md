@@ -12,9 +12,6 @@
 | react | 19.2.8 | MIT | https://github.com/facebook/react |
 | react-dom | 19.2.8 | MIT | https://github.com/facebook/react |
 | react-router-dom | 7.18.2 | MIT | https://github.com/remix-run/react-router |
-| three | 0.185.1 | MIT | https://github.com/mrdoob/three.js |
-| @react-three/fiber | 9.7.0 | MIT | https://github.com/pmndrs/react-three-fiber |
-| @react-three/drei | 10.7.8 | MIT | https://github.com/pmndrs/drei |
 
 ## MIT License
 
@@ -43,11 +40,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-- three.js: Copyright © 2010–present three.js authors —
-  https://github.com/mrdoob/three.js/blob/dev/LICENSE
 - React / React DOM: Copyright © Meta Platforms, Inc. and affiliates —
   https://github.com/facebook/react/blob/main/LICENSE
 - React Router: Copyright © Remix Software Inc. —
   https://github.com/remix-run/react-router/blob/main/LICENSE.md
-- @react-three/fiber, @react-three/drei: Copyright © Poimandres —
-  https://github.com/pmndrs/react-three-fiber/blob/master/LICENSE

@@ -1,13 +1,12 @@
-import type { DrawPlan, RandomInt } from './types';
+import type { LottoNumbers, MainNumbers, RandomInt } from './types';
 
 const POOL_MIN = 1;
 const POOL_MAX = 45;
 const MAIN_COUNT = 6;
-const DRAW_COUNT = 7;
 
 /**
  * Uniform integer in [0, upperExclusive) sampled from Web Crypto with rejection
- * sampling to avoid modulo bias. Never reads the clock or Three.js state.
+ * sampling to avoid modulo bias.
  */
 export function cryptoRandomInt(upperExclusive: number): number {
   if (upperExclusive <= 0) {
@@ -25,10 +24,10 @@ export function cryptoRandomInt(upperExclusive: number): number {
 }
 
 /**
- * Confirms the entire draw before any animation. Shuffles 1..45 with
- * Fisher–Yates, then takes seven distinct values: six main numbers and a bonus.
+ * Shuffles 1..45 with Fisher–Yates and takes seven distinct values: six main
+ * numbers (returned in ascending order) and one bonus number.
  */
-export function createDrawPlan(random: RandomInt = cryptoRandomInt): DrawPlan {
+export function drawNumbers(random: RandomInt = cryptoRandomInt): LottoNumbers {
   const pool: number[] = [];
   for (let value = POOL_MIN; value <= POOL_MAX; value += 1) {
     pool.push(value);
@@ -39,11 +38,6 @@ export function createDrawPlan(random: RandomInt = cryptoRandomInt): DrawPlan {
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
 
-  const drawn = pool.slice(0, DRAW_COUNT);
-  const main = drawn.slice(0, MAIN_COUNT) as DrawPlan['main'];
-  const bonus = drawn[MAIN_COUNT];
-  const revealOrder = drawn as DrawPlan['revealOrder'];
-  const sortedMain = [...main].sort((a, b) => a - b) as DrawPlan['sortedMain'];
-
-  return { main, bonus, revealOrder, sortedMain };
+  const main = pool.slice(0, MAIN_COUNT).sort((a, b) => a - b) as MainNumbers;
+  return { main, bonus: pool[MAIN_COUNT] };
 }

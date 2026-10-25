@@ -15,7 +15,7 @@ export const domains = [
     id: 'lotto',
     kind: 'game',
     title: '송이의 행운 로또쇼',
-    description: '1~45 중 6개 번호를 재미로 뽑는 3D 게임쇼',
+    description: '1~45 중 6개 번호를 재미로 골라 주는 번호 추천',
   },
 ] as const satisfies readonly DomainEntry[];
 
