@@ -15,6 +15,6 @@ it('ages small dogs slower than large dogs', () => {
 it('maps happiness to moods', () => {
   expect(moodFor(90)).toBe('great');
   expect(moodFor(60)).toBe('good');
-  expect(moodFor(40)).toBe('okay');
-  expect(moodFor(10)).toBe('low');
+  expect(moodFor(48)).toBe('okay');
+  expect(moodFor(30)).toBe('low');
 });

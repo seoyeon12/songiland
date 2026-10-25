@@ -38,14 +38,18 @@ export function stageStart(size: Size, stage: Stage): number {
   return index === 0 ? 0 : STAGE_STARTS[size][index - 1];
 }
 
+/**
+ * 견생 지도 한 칸의 색. 기준은 2단계 사건까지 넣은 행복 분포(중간값 약 59)에 맞춰,
+ * 대략 아주 좋음 15% · 좋음 70% · 보통 12% · 시무룩 3%가 되게 잡았다.
+ */
 export function moodFor(happiness: number): Mood {
-  if (happiness >= 75) {
+  if (happiness >= 65) {
     return 'great';
   }
-  if (happiness >= 55) {
+  if (happiness >= 53) {
     return 'good';
   }
-  if (happiness >= 35) {
+  if (happiness >= 45) {
     return 'okay';
   }
   return 'low';

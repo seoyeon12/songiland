@@ -91,6 +91,8 @@ export type Stats = {
   sociability: number;
 };
 
+export type StatKey = keyof Stats;
+
 export type Meeting = {
   breedId: string;
   nickname: string | null;
@@ -124,15 +126,44 @@ export type Dog = {
   stats: Stats;
   stage: Stage;
   passedMonth: number | null;
+  /** 사건이 남긴 이 강아지의 표시(예: 'neutered', 'terminal-illness'). */
+  flags: string[];
+  /** 사건 id → 마지막으로 일어난 달. 한 번만·재등장 대기 판단에 쓴다. */
+  seen: Record<string, number>;
 };
 
-export type LogKind = 'meet' | 'stage' | 'birthday' | 'passed';
+export type LogKind = 'meet' | 'stage' | 'birthday' | 'event' | 'choice' | 'passed';
 
 export type LogEntry = {
   month: number;
   dogId: string;
   kind: LogKind;
   text: string;
+  /** 선택 사건이면 고른 선택지 문구. */
+  choice?: string;
+  eventId?: string;
+  tone?: Tone;
+  /** 결말 카드의 "기억에 남는 순간" 후보. */
+  memorable?: boolean;
+};
+
+/** 플레이어의 선택을 기다리는 사건. 화면에 그대로 보여 줄 문장을 담는다. */
+export type PendingChoice = {
+  eventId: string;
+  dogId: string;
+  month: number;
+  tone: Tone;
+  text: string;
+  choices: { id: string; label: string }[];
+  /** 자동 결정이 켜져 있어도 반드시 플레이어에게 묻는 사건. */
+  alwaysAsk: boolean;
+};
+
+/** 나중에 이어지는 사건(예: "1년 더 지켜보고 결정하기"). */
+export type ScheduledEvent = {
+  eventId: string;
+  dogId: string;
+  month: number;
 };
 
 export type Mood = 'great' | 'good' | 'okay' | 'low';
@@ -154,8 +185,12 @@ export type RunState = {
   month: number;
   arc: Arc;
   dogs: Dog[];
-  household: { ease: number };
+  household: { ease: number; flags: string[] };
   log: LogEntry[];
   timeline: TimelineCell[];
   status: RunStatus;
+  pendingChoice: PendingChoice | null;
+  scheduled: ScheduledEvent[];
+  /** 마지막 선택 사건이 나온 달. 선택 카드가 너무 자주 뜨지 않게 한다. */
+  lastChoiceMonth: number;
 };

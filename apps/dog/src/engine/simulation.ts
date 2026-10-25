@@ -1,17 +1,39 @@
 import { ARC_IDS, ARCS } from './data/arcs';
 import { getBreed } from './data/breeds';
 import { TRAITS } from './data/traits';
+import { EVENTS } from './events/catalog';
+import { getEvent, isAvailable, outcomeWeight, pickByTone } from './events/picker';
+import { render } from './events/template';
+import type { Choice, Effects, EventCard } from './events/types';
 import { drawMeeting, MIN_MONTHS_TOGETHER } from './meeting';
 import { createRng, type Rng } from './rng';
 import { moodFor, stageFor } from './stages';
 import { josa } from './text/josa';
-import type { Arc, Dog, LogEntry, Meeting, RunState, Size, Stage, Stats, TraitId } from './types';
+import type {
+  Arc,
+  Dog,
+  Meeting,
+  PendingChoice,
+  RunState,
+  Size,
+  Stage,
+  Stats,
+  StatKey,
+  TraitId,
+  Tone,
+} from './types';
 
 /** 기본 속도에서 한 달이 흐르는 시간(ms). 1년 ≈ 1분. 화면(3단계)이 쓴다. */
 export const MS_PER_MONTH = 5000;
 
 /** 안전장치: 이보다 길게 이어지는 판은 없다(40년). */
 const MAX_MONTHS = 480;
+
+/** 일상 사건이 일어날 확률(달마다). */
+const DAILY_CHANCE = 0.35;
+/** 선택 사건 사이 최소 간격(개월)과, 간격이 지난 뒤 달마다 일어날 확률. */
+const CHOICE_GAP = 6;
+const CHOICE_CHANCE = 0.3;
 
 const clamp = (value: number) => Math.min(100, Math.max(0, value));
 const round2 = (value: number) => Math.round(value * 100) / 100;
@@ -93,6 +115,8 @@ export function startRun({ seed, name }: { seed: number; name: string }): RunSta
     stats: startingStats(rng, meeting, stage),
     stage,
     passedMonth: null,
+    flags: [],
+    seen: {},
   };
 
   return {
@@ -102,10 +126,15 @@ export function startRun({ seed, name }: { seed: number; name: string }): RunSta
     month: 0,
     arc,
     dogs: [dog],
-    household: { ease: round2(60 + rng.range(-5, 5)) },
-    log: [{ month: 0, dogId: dog.id, kind: 'meet', text: `${josa(trimmed, '과/와')} 가족이 됐어요.` }],
+    household: { ease: round2(60 + rng.range(-5, 5)), flags: [] },
+    log: [
+      { month: 0, dogId: dog.id, kind: 'meet', text: `${josa(trimmed, '과/와')} 가족이 됐어요.` },
+    ],
     timeline: [{ month: 0, stage, mood: moodFor(dog.stats.happiness) }],
     status: 'running',
+    pendingChoice: null,
+    scheduled: [],
+    lastChoiceMonth: 0,
   };
 }
 
@@ -136,25 +165,28 @@ const HEALTH_TARGET: Record<Stage, number> = {
   elderly: 48,
 };
 
-/** 사건이 없는 한 달 동안의 자연스러운 변화. 2단계에서 사건 효과가 그 위에 더해진다. */
+/** 사건이 없는 한 달 동안의 자연스러운 변화. 사건 효과는 그 위에 더해진다. */
 function driftStats(rng: Rng, dog: Dog, ease: number, size: Size): Stats {
   const { stats, stage, traits } = dog;
   const has = (trait: TraitId) => traits.includes(trait);
 
   const healthTarget =
     HEALTH_TARGET[stage] -
-    (size === 'large' && (stage === 'senior' || stage === 'elderly') ? 6 : 0) +
+    (size === 'large' && (stage === 'senior' || stage === 'elderly') ? 6 : 0) -
+    (dog.flags.includes('terminal-illness') ? 25 : 0) +
     (has('easygoing') ? 2 : 0);
   const health = stats.health + (healthTarget - stats.health) * 0.08 + rng.range(-1.5, 1.5);
 
   const happinessTarget =
-    55 +
+    50 +
     (ease - 50) * 0.3 +
     (stats.bond - 50) * 0.15 +
-    (stats.health < 40 ? -12 : 0) +
+    (stats.health < 40 ? -12 : 0) -
+    (stage === 'elderly' ? 4 : 0) +
     (has('foodie') || has('easygoing') ? 5 : 0);
+  // 천천히 돌아가게 해서 사건의 기쁨·서운함이 몇 달 동안 견생 지도에 남게 한다.
   const happiness =
-    stats.happiness + (happinessTarget - stats.happiness) * 0.15 + rng.range(-2, 2);
+    stats.happiness + (happinessTarget - stats.happiness) * 0.1 + rng.range(-2.5, 2.5);
 
   const bond = stats.bond + (stats.bond < 70 ? 1.2 : 0.3) + (has('clingy') ? 0.3 : 0);
 
@@ -176,84 +208,324 @@ function driftStats(rng: Rng, dog: Dog, ease: number, size: Size): Stats {
   };
 }
 
+function lifespanBounds(dog: Dog): [number, number] {
+  const breed = getBreed(dog.breedId);
+  const min = Math.max(breed.lifespanYears[0] * 12 - 24, dog.metAgeMonths + MIN_MONTHS_TOGETHER);
+  const max = breed.lifespanYears[1] * 12 + 18;
+  return [min, max];
+}
+
 /** 건강이 계속 나쁘면 수명이 조금씩 줄고, 노년에 건강하면 조금 는다. */
 function adjustLifespan(dog: Dog): number {
-  const breed = getBreed(dog.breedId);
   let lifespan = dog.lifespanMonths;
   if (dog.stats.health < 35) {
     lifespan -= 0.5;
   } else if (dog.stats.health > 75 && (dog.stage === 'senior' || dog.stage === 'elderly')) {
     lifespan += 0.25;
   }
-  const min = Math.max(breed.lifespanYears[0] * 12 - 24, dog.metAgeMonths + MIN_MONTHS_TOGETHER);
-  const max = breed.lifespanYears[1] * 12 + 18;
+  const [min, max] = lifespanBounds(dog);
   return round2(Math.min(max, Math.max(min, lifespan)));
 }
 
-/** 한 달을 진행한다. 입력 상태는 바꾸지 않고 새 상태를 돌려준다. */
-export function advanceMonth(state: RunState): RunState {
-  if (state.status === 'ended') {
-    return state;
-  }
-  const rng = createRng(state.rngState);
-  const month = state.month + 1;
-  const log: LogEntry[] = [...state.log];
-  const ease = round2(
-    clamp(state.household.ease + (60 - state.household.ease) * 0.05 + rng.range(-2, 2)),
-  );
-
-  const dogs = state.dogs.map((dog): Dog => {
-    if (dog.passedMonth !== null) {
-      return dog;
-    }
-    const breed = getBreed(dog.breedId);
-    const ageMonths = dog.ageMonths + 1;
-    const stage = stageFor(breed.size, ageMonths);
-    let next: Dog = { ...dog, ageMonths, stage };
-    next = { ...next, stats: driftStats(rng, next, ease, breed.size) };
-    next = { ...next, lifespanMonths: adjustLifespan(next) };
-
-    if (stage !== dog.stage && stage !== 'puppy') {
-      log.push({ month, dogId: dog.id, kind: 'stage', text: STAGE_TEXT[stage](dog.name) });
-    }
-    const passing = ageMonths >= next.lifespanMonths;
-    // 떠나는 달에는 생일 문장을 남기지 않는다(같은 달에 "생일 축하해"와 이별이 겹치지 않게).
-    if (ageMonths % 12 === 0 && !passing) {
-      log.push({
-        month,
-        dogId: dog.id,
-        kind: 'birthday',
-        text: `${josa(dog.name, '이/가')} ${ageMonths / 12}살이 됐어요. 생일 축하해!`,
-      });
-    }
-    if (passing) {
-      next = { ...next, passedMonth: month };
-      log.push({ month, dogId: dog.id, kind: 'passed', text: PASSED_TEXT[state.arc](dog.name) });
-    }
-    return next;
-  });
-
-  const first = dogs[0];
-  // 판은 첫째의 견생을 기준으로 끝난다(다견가정이어도 10~15분을 지키기 위해).
-  const ended = first.passedMonth !== null;
-
+/** 같은 달 안에서 고쳐 쓰는 작업용 사본. 입력 상태는 건드리지 않는다. */
+function workingCopy(state: RunState): RunState {
   return {
     ...state,
+    dogs: state.dogs.map((dog) => ({
+      ...dog,
+      stats: { ...dog.stats },
+      flags: [...dog.flags],
+      seen: { ...dog.seen },
+    })),
+    household: { ...state.household, flags: [...state.household.flags] },
+    log: [...state.log],
+    timeline: [...state.timeline],
+    scheduled: [...state.scheduled],
+  };
+}
+
+const STAT_KEYS: readonly StatKey[] = ['health', 'happiness', 'bond', 'sociability'];
+
+function applyEffects(rng: Rng, work: RunState, dog: Dog, effects: Effects | undefined): void {
+  if (!effects) {
+    return;
+  }
+  for (const key of STAT_KEYS) {
+    const delta = effects[key];
+    if (delta) {
+      dog.stats[key] = round2(clamp(dog.stats[key] + delta));
+    }
+  }
+  if (effects.ease) {
+    work.household.ease = round2(clamp(work.household.ease + effects.ease));
+  }
+  if (effects.lifespan) {
+    const [min, max] = lifespanBounds(dog);
+    dog.lifespanMonths = round2(Math.min(max, Math.max(min, dog.lifespanMonths + effects.lifespan)));
+  }
+  for (const flag of effects.flags ?? []) {
+    if (!dog.flags.includes(flag)) {
+      dog.flags.push(flag);
+    }
+  }
+  for (const flag of effects.householdFlags ?? []) {
+    if (!work.household.flags.includes(flag)) {
+      work.household.flags.push(flag);
+    }
+  }
+  if (effects.terminal) {
+    if (!dog.flags.includes('terminal-illness')) {
+      dog.flags.push('terminal-illness');
+    }
+    const [from, to] = effects.terminal;
+    dog.lifespanMonths = Math.min(dog.lifespanMonths, dog.ageMonths + rng.intRange(from, to));
+  }
+  if (effects.pass) {
+    dog.passedMonth = work.month;
+  }
+}
+
+function fireEvent(rng: Rng, work: RunState, event: EventCard, dog: Dog, tone: Tone): void {
+  dog.seen[event.id] = work.month;
+  const text = render(rng.pick(event.text), dog.name);
+  if (event.choices) {
+    const pending: PendingChoice = {
+      eventId: event.id,
+      dogId: dog.id,
+      month: work.month,
+      tone,
+      text,
+      choices: event.choices.map((choice) => ({
+        id: choice.id,
+        label: render(choice.label, dog.name),
+      })),
+      alwaysAsk: event.alwaysAsk ?? false,
+    };
+    work.pendingChoice = pending;
+    work.lastChoiceMonth = work.month;
+    return;
+  }
+  applyEffects(rng, work, dog, event.effects);
+  work.log.push({
+    month: work.month,
+    dogId: dog.id,
+    kind: 'event',
+    text,
+    eventId: event.id,
+    tone,
+    memorable: event.memorable,
+  });
+}
+
+/** 한 달에 사건은 많아야 하나. 이어지는 사건 → 급한 사건 → 선택 사건 → 일상 사건 순서로 본다. */
+function eventPhase(rng: Rng, work: RunState): void {
+  const alive = work.dogs.filter((dog) => dog.passedMonth === null);
+  if (alive.length === 0) {
+    return;
+  }
+
+  const dueIndex = work.scheduled.findIndex((entry) => entry.month <= work.month);
+  if (dueIndex >= 0) {
+    const [due] = work.scheduled.splice(dueIndex, 1);
+    const dog = alive.find((entry) => entry.id === due.dogId);
+    const event = getEvent(due.eventId);
+    if (dog && event.stages.includes(dog.stage) && isAvailable(event, dog, work)) {
+      fireEvent(rng, work, event, dog, event.tones[0]);
+      return;
+    }
+  }
+
+  const dog = rng.pick(alive);
+
+  for (const event of EVENTS) {
+    if (event.urgent && isAvailable(event, dog, work) && rng.chance(event.urgent.chance)) {
+      fireEvent(rng, work, event, dog, event.tones[0]);
+      return;
+    }
+  }
+
+  if (work.month - work.lastChoiceMonth >= CHOICE_GAP && rng.chance(CHOICE_CHANCE)) {
+    const candidates = EVENTS.filter(
+      (event) => event.choices && !event.urgent && isAvailable(event, dog, work),
+    );
+    const picked = pickByTone(rng, candidates, dog, work.arc);
+    if (picked) {
+      fireEvent(rng, work, picked.event, dog, picked.tone);
+      return;
+    }
+  }
+
+  if (rng.chance(DAILY_CHANCE)) {
+    const candidates = EVENTS.filter(
+      (event) => !event.choices && !event.urgent && isAvailable(event, dog, work),
+    );
+    const picked = pickByTone(rng, candidates, dog, work.arc);
+    if (picked) {
+      fireEvent(rng, work, picked.event, dog, picked.tone);
+    }
+  }
+}
+
+function finishMonth(rng: Rng, work: RunState): RunState {
+  const first = work.dogs[0];
+  // 판은 첫째의 견생을 기준으로 끝난다(다견가정이어도 10~15분을 지키기 위해).
+  const ended = first.passedMonth !== null;
+  return {
+    ...work,
     rngState: rng.state(),
-    month,
-    dogs,
-    household: { ease },
-    log,
-    timeline: [...state.timeline, { month, stage: first.stage, mood: moodFor(first.stats.happiness) }],
     status: ended ? 'ended' : 'running',
   };
 }
 
-/** 끝까지 한 번에 진행한다(테스트·미리보기·자동 진행 마무리용). */
+/**
+ * 한 달을 진행한다. 입력 상태는 바꾸지 않고 새 상태를 돌려준다.
+ * 선택을 기다리는 사건이 있으면 진행하지 않는다(choose 또는 autoChoose가 먼저).
+ */
+export function advanceMonth(state: RunState): RunState {
+  if (state.status === 'ended' || state.pendingChoice) {
+    return state;
+  }
+  const rng = createRng(state.rngState);
+  const work = workingCopy(state);
+  work.month += 1;
+  work.household.ease = round2(
+    clamp(work.household.ease + (60 - work.household.ease) * 0.05 + rng.range(-2, 2)),
+  );
+
+  for (const dog of work.dogs) {
+    if (dog.passedMonth !== null) {
+      continue;
+    }
+    const breed = getBreed(dog.breedId);
+    const previousStage = dog.stage;
+    dog.ageMonths += 1;
+    dog.stage = stageFor(breed.size, dog.ageMonths);
+    dog.stats = driftStats(rng, dog, work.household.ease, breed.size);
+    dog.lifespanMonths = adjustLifespan(dog);
+
+    if (dog.stage !== previousStage && dog.stage !== 'puppy') {
+      work.log.push({
+        month: work.month,
+        dogId: dog.id,
+        kind: 'stage',
+        text: STAGE_TEXT[dog.stage](dog.name),
+      });
+    }
+    // 떠나는 달에는 생일 문장을 남기지 않는다(같은 달에 "생일 축하해"와 이별이 겹치지 않게).
+    if (dog.ageMonths % 12 === 0 && dog.ageMonths < dog.lifespanMonths) {
+      work.log.push({
+        month: work.month,
+        dogId: dog.id,
+        kind: 'birthday',
+        text: `${josa(dog.name, '이/가')} ${dog.ageMonths / 12}살이 됐어요. 생일 축하해!`,
+      });
+    }
+  }
+
+  eventPhase(rng, work);
+
+  // 선택을 기다리는 달에는 이별을 미룬다. 선택 결과를 본 다음 달에 판단한다.
+  if (!work.pendingChoice) {
+    for (const dog of work.dogs) {
+      if (dog.passedMonth === null && dog.ageMonths >= dog.lifespanMonths) {
+        dog.passedMonth = work.month;
+        work.log.push({
+          month: work.month,
+          dogId: dog.id,
+          kind: 'passed',
+          text: PASSED_TEXT[work.arc](dog.name),
+        });
+      }
+    }
+  }
+
+  const first = work.dogs[0];
+  work.timeline.push({
+    month: work.month,
+    stage: first.stage,
+    mood: moodFor(first.stats.happiness),
+  });
+  return finishMonth(rng, work);
+}
+
+function resolveChoice(rng: Rng, state: RunState, choice: Choice): RunState {
+  const pending = state.pendingChoice!;
+  const event = getEvent(pending.eventId);
+  const work = workingCopy(state);
+  const dog = work.dogs.find((entry) => entry.id === pending.dogId)!;
+  const outcome = rng.weighted(choice.outcomes, (entry) => outcomeWeight(entry, dog));
+  const label = pending.choices.find((entry) => entry.id === choice.id)!.label;
+
+  applyEffects(rng, work, dog, outcome.effects);
+  if (outcome.follow) {
+    work.scheduled.push({
+      eventId: outcome.follow.event,
+      dogId: dog.id,
+      month: work.month + outcome.follow.inMonths,
+    });
+  }
+  work.log.push({
+    month: work.month,
+    dogId: dog.id,
+    kind: outcome.effects?.pass ? 'passed' : 'choice',
+    text: render(outcome.text, dog.name),
+    choice: label,
+    eventId: event.id,
+    tone: pending.tone,
+    memorable: outcome.memorable ?? event.memorable,
+  });
+  work.pendingChoice = null;
+  return finishMonth(rng, work);
+}
+
+/** 플레이어가 고른 선택지로 기다리던 사건을 마무리한다. */
+export function choose(state: RunState, choiceId: string): RunState {
+  const pending = state.pendingChoice;
+  if (!pending) {
+    throw new Error('선택을 기다리는 사건이 없습니다.');
+  }
+  const choice = getEvent(pending.eventId).choices?.find((entry) => entry.id === choiceId);
+  if (!choice) {
+    throw new Error(`이 사건에 없는 선택지입니다: ${choiceId}`);
+  }
+  return resolveChoice(createRng(state.rngState), state, choice);
+}
+
+/**
+ * 자동 결정. 선택지의 autoWeight(기본 1)로 고른다. 0인 선택지(편안하게 보내 주기)는
+ * 자동으로 고르지 않는다. 화면은 alwaysAsk 사건이면 자동 결정 중에도 플레이어에게 묻는다.
+ */
+export function autoChoose(state: RunState): RunState {
+  const pending = state.pendingChoice;
+  if (!pending) {
+    throw new Error('선택을 기다리는 사건이 없습니다.');
+  }
+  const rng = createRng(state.rngState);
+  const options = (getEvent(pending.eventId).choices ?? []).filter(
+    (choice) => (choice.autoWeight ?? 1) > 0,
+  );
+  const choice = rng.weighted(options, (entry) => entry.autoWeight ?? 1);
+  return resolveChoice(rng, state, choice);
+}
+
+/** 선택 사건이 나오거나 판이 끝날 때까지 진행한다. */
+export function advanceUntilChoice(state: RunState): RunState {
+  let current = state;
+  while (
+    current.status === 'running' &&
+    !current.pendingChoice &&
+    current.month < MAX_MONTHS
+  ) {
+    current = advanceMonth(current);
+  }
+  return current;
+}
+
+/** 끝까지 한 번에 진행한다. 선택은 자동 결정으로 고른다(테스트·미리보기용). */
 export function simulateToEnd(state: RunState): RunState {
   let current = state;
   while (current.status === 'running' && current.month < MAX_MONTHS) {
-    current = advanceMonth(current);
+    current = current.pendingChoice ? autoChoose(current) : advanceMonth(current);
   }
   return current;
 }

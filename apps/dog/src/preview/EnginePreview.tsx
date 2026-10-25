@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import {
+  advanceUntilChoice,
+  choose,
   formatAge,
   formatMonths,
   getBreed,
@@ -13,6 +15,7 @@ import {
   summarize,
   traitLabel,
   type RunState,
+  type StatKey,
 } from '../engine';
 import './preview.css';
 
@@ -20,8 +23,15 @@ function randomSeed(): number {
   return crypto.getRandomValues(new Uint32Array(1))[0];
 }
 
+const STAT_LABELS: Record<StatKey, string> = {
+  health: '건강',
+  happiness: '행복',
+  bond: '유대',
+  sociability: '사회성',
+};
+
 /**
- * 1단계 엔진 미리보기. 만남 뽑기와 견생 전체를 한 번에 돌려 결과를 확인한다.
+ * 1·2단계 엔진 미리보기. 선택 카드마다 멈추며 진행하거나, 끝까지 자동으로 돌려 본다.
  * 3단계에서 실제 게임 화면(시작·만남·진행·선택·결말)으로 바뀐다.
  */
 export function EnginePreview({ initialSeed }: { initialSeed?: number }) {
@@ -45,11 +55,11 @@ export function EnginePreview({ initialSeed }: { initialSeed?: number }) {
       <main className="app__main">
         <header className="app__header">
           <span className="app__eyebrow">
-            <span aria-hidden>🎬</span> 1단계 엔진 미리보기
+            <span aria-hidden>🎬</span> 엔진 미리보기 (1·2단계)
           </span>
           <h1 className="app__title">견생극장</h1>
           <p className="app__subtitle">
-            만남 뽑기와 견생 전체를 한 번에 돌려 보는 개발용 화면이에요.
+            사건과 선택 카드 문장을 검수하는 개발용 화면이에요. 3단계에서 실제 화면으로 바뀝니다.
           </p>
         </header>
 
@@ -115,9 +125,16 @@ export function EnginePreview({ initialSeed }: { initialSeed?: number }) {
             <button
               type="button"
               className="btn btn--primary"
+              onClick={() => setRun(advanceUntilChoice(startRun({ seed, name })))}
+            >
+              선택하며 진행하기
+            </button>
+            <button
+              type="button"
+              className="btn"
               onClick={() => setRun(simulateToEnd(startRun({ seed, name })))}
             >
-              견생 끝까지 보기
+              끝까지 자동으로 보기
             </button>
             <button type="button" className="btn" onClick={meetAnother}>
               다른 아이 만나기
@@ -125,14 +142,68 @@ export function EnginePreview({ initialSeed }: { initialSeed?: number }) {
           </div>
         </section>
 
-        {run && record && (
+        {run && run.status === 'running' && (
+          <section className="app__card preview__card" aria-label="진행 중">
+            <p className="preview__kicker">
+              함께한 지 {formatMonths(run.month)} · {formatAge(run.dogs[0].ageMonths)} ·{' '}
+              {STAGE_LABELS[run.dogs[0].stage]}
+            </p>
+            <dl className="preview__stats">
+              {(Object.keys(STAT_LABELS) as StatKey[]).map((key) => (
+                <div key={key}>
+                  <dt>{STAT_LABELS[key]}</dt>
+                  <dd>
+                    <meter min={0} max={100} value={run.dogs[0].stats[key]} />
+                    {Math.round(run.dogs[0].stats[key])}
+                  </dd>
+                </div>
+              ))}
+              <div>
+                <dt>여유</dt>
+                <dd>
+                  <meter min={0} max={100} value={run.household.ease} />
+                  {Math.round(run.household.ease)}
+                </dd>
+              </div>
+            </dl>
+            {run.pendingChoice && (
+              <div className="preview__choice" role="group" aria-label="선택 카드">
+                <p className="preview__choice-text">{run.pendingChoice.text}</p>
+                <div className="preview__actions">
+                  {run.pendingChoice.choices.map((choice) => (
+                    <button
+                      key={choice.id}
+                      type="button"
+                      className="btn"
+                      onClick={() => setRun(advanceUntilChoice(choose(run, choice.id)))}
+                    >
+                      {choice.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <button type="button" className="btn btn--ghost" onClick={() => setRun(simulateToEnd(run))}>
+              남은 견생 자동으로 보기
+            </button>
+          </section>
+        )}
+
+        {run && record && run.status === 'ended' && (
           <section className="app__card preview__card" aria-label="견생 기록">
             <p className="preview__kicker">이번 상영작 · {record.arcTitle}</p>
             <h2 className="preview__breed">{record.dog.name}의 견생</h2>
             <p>
               함께한 시간 {formatMonths(record.dog.monthsTogether)} · 마지막 나이{' '}
-              {formatAge(record.dog.ageAtEndMonths)}
+              {formatAge(record.dog.ageAtEndMonths)} · 선택 {record.choicesMade}번
             </p>
+            {record.highlights.length > 0 && (
+              <ol className="preview__highlights" aria-label="기억에 남는 순간">
+                {record.highlights.map((moment) => (
+                  <li key={`${moment.month}-${moment.text}`}>{moment.text}</li>
+                ))}
+              </ol>
+            )}
             <ol className="preview__map" aria-label="견생 지도 (한 칸이 한 달)">
               {record.timeline.map((cell) => (
                 <li
@@ -142,12 +213,18 @@ export function EnginePreview({ initialSeed }: { initialSeed?: number }) {
                 />
               ))}
             </ol>
+          </section>
+        )}
+
+        {run && (
+          <section className="app__card preview__card" aria-label="견생 로그">
             <ol className="preview__log">
-              {run.log.map((entry) => (
-                <li key={`${entry.month}-${entry.kind}-${entry.text}`}>
+              {run.log.map((entry, index) => (
+                <li key={`${index}-${entry.month}-${entry.kind}`}>
                   <span className="preview__log-month">
                     {entry.month === 0 ? '첫날' : `${formatMonths(entry.month)}째`}
                   </span>
+                  {entry.choice && <span className="preview__log-choice">[{entry.choice}] </span>}
                   {entry.text}
                 </li>
               ))}

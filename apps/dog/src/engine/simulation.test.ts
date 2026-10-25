@@ -1,6 +1,15 @@
 import { getBreed } from './data/breeds';
 import { MIN_MONTHS_TOGETHER } from './meeting';
-import { advanceMonth, previewMeeting, simulateToEnd, startRun } from './simulation';
+import { EVENTS } from './events/catalog';
+import {
+  advanceMonth,
+  advanceUntilChoice,
+  autoChoose,
+  choose,
+  previewMeeting,
+  simulateToEnd,
+  startRun,
+} from './simulation';
 import type { RunState } from './types';
 
 function runFor(seed: number): RunState {
@@ -121,5 +130,103 @@ describe('a whole life', () => {
   it('stops advancing once the run has ended', () => {
     const ended = runFor(9);
     expect(advanceMonth(ended)).toBe(ended);
+  });
+});
+
+describe('choice cards', () => {
+  it('pauses the clock until a choice is made', () => {
+    const waiting = advanceUntilChoice(startRun({ seed: 12, name: '보리' }));
+    expect(waiting.pendingChoice).not.toBeNull();
+    expect(advanceMonth(waiting)).toBe(waiting);
+    const pending = waiting.pendingChoice!;
+    expect(pending.choices.length).toBeGreaterThanOrEqual(2);
+    expect(pending.text).not.toMatch(/[{}]/);
+
+    const chosen = choose(waiting, pending.choices[0].id);
+    expect(chosen.pendingChoice).toBeNull();
+    const entry = chosen.log.at(-1)!;
+    expect(entry.kind).toBe('choice');
+    expect(entry.choice).toBe(pending.choices[0].label);
+    expect(entry.eventId).toBe(pending.eventId);
+    expect(() => choose(chosen, 'nope')).toThrow();
+    expect(() => choose(waiting, 'nope')).toThrow();
+  });
+
+  it('resumes identically from JSON while a choice is waiting', () => {
+    const waiting = advanceUntilChoice(startRun({ seed: 21, name: '보리' }));
+    const restored = JSON.parse(JSON.stringify(waiting)) as RunState;
+    expect(simulateToEnd(restored)).toEqual(simulateToEnd(waiting));
+  });
+});
+
+describe('events over many lives', () => {
+  const runs = Array.from({ length: 600 }, (_, i) =>
+    simulateToEnd(startRun({ seed: 7000 + i, name: '보리' })),
+  );
+
+  it('shows a choice card every so often, not every minute', () => {
+    const counts = runs
+      .map((run) => run.log.filter((entry) => entry.kind === 'choice').length)
+      .sort((a, b) => a - b);
+    const median = counts[Math.floor(counts.length / 2)];
+    expect(median).toBeGreaterThanOrEqual(6);
+    expect(median).toBeLessThanOrEqual(20);
+  });
+
+  it('lets most events happen somewhere across many lives', () => {
+    const seen = new Set(runs.flatMap((run) => run.log.map((entry) => entry.eventId)));
+    const randomEvents = EVENTS.filter((event) => (event.weight ?? 1) > 0);
+    const missing = randomEvents.filter((event) => !seen.has(event.id)).map((e) => e.id);
+    expect(missing.length, missing.join(', ')).toBeLessThanOrEqual(
+      Math.floor(randomEvents.length * 0.1),
+    );
+  });
+
+  it('tells sadder stories in touching arcs than in cheerful ones', () => {
+    const touchingShare = (arc: RunState['arc']) => {
+      const entries = runs
+        .filter((run) => run.arc === arc)
+        .flatMap((run) => run.log.filter((entry) => entry.tone));
+      return entries.filter((entry) => entry.tone === 'touching').length / entries.length;
+    };
+    expect(touchingShare('cheerful')).toBeLessThan(touchingShare('calmTouching'));
+    expect(touchingShare('cheerful')).toBeLessThan(touchingShare('laughThenTears'));
+  });
+
+  it('never lets auto-decide choose to say goodbye', () => {
+    for (const run of runs) {
+      expect(run.log.some((entry) => entry.choice?.includes('편안하게 보내 주기'))).toBe(false);
+    }
+  });
+});
+
+describe('saying goodbye', () => {
+  it('only asks when an elderly dog has an incurable illness and is very weak', () => {
+    let asked = 0;
+    for (let i = 0; i < 400 && asked < 5; i += 1) {
+      let run = startRun({ seed: 90000 + i, name: '보리' });
+      while (run.status === 'running') {
+        run = advanceUntilChoice(run);
+        const pending = run.pendingChoice;
+        if (!pending) {
+          break;
+        }
+        if (pending.eventId === 'farewell') {
+          const dog = run.dogs[0];
+          expect(dog.stage).toBe('elderly');
+          expect(dog.flags).toContain('terminal-illness');
+          expect(dog.stats.health).toBeLessThanOrEqual(35);
+          expect(pending.alwaysAsk).toBe(true);
+          asked += 1;
+          const after = choose(run, 'peaceful');
+          expect(after.status).toBe('ended');
+          expect(after.dogs[0].passedMonth).toBe(after.month);
+          expect(after.log.at(-1)).toMatchObject({ kind: 'passed', memorable: true });
+          break;
+        }
+        run = autoChoose(run);
+      }
+    }
+    expect(asked).toBeGreaterThan(0);
   });
 });

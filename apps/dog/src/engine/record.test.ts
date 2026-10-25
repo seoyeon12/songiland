@@ -22,4 +22,7 @@ it('summarizes a finished life for the ending card', () => {
   expect(record.dog.monthsTogether).toBe(run.dogs[0].ageMonths - run.dogs[0].metAgeMonths);
   expect(record.arcTitle).not.toBe('');
   expect(record.timeline.length).toBe(run.month + 1);
+  expect(record.highlights.length).toBeGreaterThan(0);
+  expect(record.highlights.length).toBeLessThanOrEqual(3);
+  expect(record.choicesMade).toBeGreaterThan(0);
 });

@@ -2,7 +2,7 @@ import { getBreed, getCoat } from './data/breeds';
 import { traitLabel } from './data/traits';
 import { arcTitle } from './simulation';
 import { ROUTE_LABELS } from './meeting';
-import type { RunState, TimelineCell } from './types';
+import type { LogEntry, RunState, TimelineCell } from './types';
 
 /** 결말 카드(견생 기록)에 필요한 요약. */
 export type RunRecord = {
@@ -20,8 +20,37 @@ export type RunRecord = {
     monthsTogether: number;
   };
   timeline: TimelineCell[];
+  /** 가장 기억에 남는 순간(최대 3개). */
+  highlights: { month: number; text: string }[];
+  choicesMade: number;
   ended: boolean;
 };
+
+/** 고르게 퍼진 순간을 고른다: 처음·가운데·끝. */
+function spread<T>(items: readonly T[], count: number): T[] {
+  if (items.length <= count) {
+    return [...items];
+  }
+  const picked: T[] = [];
+  for (let i = 0; i < count; i += 1) {
+    picked.push(items[Math.round((i * (items.length - 1)) / (count - 1))]);
+  }
+  return picked;
+}
+
+/** 기억에 남는 순간 3개. 표시된 순간이 모자라면 선택의 순간으로 채운다. 이별 문장은 뺀다. */
+export function pickHighlights(log: readonly LogEntry[], dogId: string): LogEntry[] {
+  const mine = log.filter((entry) => entry.dogId === dogId && entry.kind !== 'passed');
+  const memorable = mine.filter((entry) => entry.memorable);
+  if (memorable.length >= 3) {
+    return spread(memorable, 3);
+  }
+  const extra = spread(
+    mine.filter((entry) => entry.kind === 'choice' && !entry.memorable),
+    3 - memorable.length,
+  );
+  return [...memorable, ...extra].sort((a, b) => a.month - b.month);
+}
 
 export function summarize(state: RunState): RunRecord {
   const dog = state.dogs[0];
@@ -41,6 +70,8 @@ export function summarize(state: RunState): RunRecord {
       monthsTogether: dog.ageMonths - dog.metAgeMonths,
     },
     timeline: state.timeline,
+    highlights: pickHighlights(state.log, dog.id).map(({ month, text }) => ({ month, text })),
+    choicesMade: state.log.filter((entry) => entry.dogId === dog.id && entry.choice).length,
     ended: state.status === 'ended',
   };
 }
