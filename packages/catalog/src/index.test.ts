@@ -10,6 +10,14 @@ describe('catalog', () => {
     }
   });
 
+  it('gives every domain a title, description and emoji icon', () => {
+    for (const domain of domains) {
+      expect(domain.title).not.toBe('');
+      expect(domain.description).not.toBe('');
+      expect(domain.emoji).not.toBe('');
+    }
+  });
+
   it('looks up the lotto game', () => {
     expect(getDomain('lotto')).toMatchObject({ kind: 'game' });
   });

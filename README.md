@@ -30,7 +30,7 @@ apps/portal/               송이랜드 소개·도메인 목록 (songiland.aros
 apps/lotto/                송이의 행운 로또쇼 (lotto.arosys.kr)
 apps/ko-en/                한영타 변환기 (ko-en.arosys.kr)
 packages/catalog/          도메인 목록, 앱별 서브도메인·포트, 앱 주소 appUrl (@songiland/catalog)
-packages/ui/               공통 디자인 토큰·기본 스타일 (@songiland/ui/base.css)
+packages/ui/               공통 디자인 시스템: 색 토큰, 앱 레이아웃, 버튼 (@songiland/ui/base.css)
 packages/eslint-config/    공통 ESLint 설정 (@songiland/eslint-config)
 packages/test-config/      공통 Vitest 설정·jest-dom setup (@songiland/test-config)
 tsconfig.base.json         공통 TypeScript 컴파일 옵션 (각 앱이 extends)

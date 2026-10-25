@@ -7,6 +7,8 @@ export interface DomainEntry {
   kind: DomainKind;
   title: string;
   description: string;
+  /** 포털 카드에 쓰는 이모지 아이콘 하나. */
+  emoji: string;
 }
 
 /** 송이랜드 도메인 목록. 포털 카드와 앱 간 링크가 이 목록을 기준으로 만들어진다. */
@@ -16,12 +18,14 @@ export const domains = [
     kind: 'game',
     title: '송이의 행운 로또쇼',
     description: '1~45 중 6개 번호를 재미로 골라 주는 번호 추천',
+    emoji: '🍀',
   },
   {
     id: 'ko-en',
     kind: 'tool',
     title: '한영타 변환기',
     description: '한/영 키를 잘못 누른 채 친 글자를 바로 되돌려 주는 도구',
+    emoji: '⌨️',
   },
 ] as const satisfies readonly DomainEntry[];
 

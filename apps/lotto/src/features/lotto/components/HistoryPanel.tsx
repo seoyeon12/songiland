@@ -103,7 +103,7 @@ export function HistoryPanel({
 
           <button
             type="button"
-            className="btn btn--danger"
+            className="btn btn--small btn--danger-outline history-panel__clear"
             onClick={() => setConfirming(true)}
           >
             기록 모두 지우기
@@ -118,25 +118,27 @@ export function HistoryPanel({
           aria-modal="true"
           aria-labelledby="history-confirm-title"
         >
-          <h3 id="history-confirm-title">기록을 모두 지울까요?</h3>
-          <div className="history-panel__confirm-actions">
-            <button
-              type="button"
-              className="btn btn--danger"
-              onClick={() => {
-                onClear();
-                setConfirming(false);
-              }}
-            >
-              지우기
-            </button>
-            <button
-              type="button"
-              className="btn btn--ghost"
-              onClick={() => setConfirming(false)}
-            >
-              취소
-            </button>
+          <div className="history-panel__dialog">
+            <h3 id="history-confirm-title">기록을 모두 지울까요?</h3>
+            <div className="history-panel__confirm-actions">
+              <button
+                type="button"
+                className="btn btn--danger"
+                onClick={() => {
+                  onClear();
+                  setConfirming(false);
+                }}
+              >
+                지우기
+              </button>
+              <button
+                type="button"
+                className="btn btn--ghost"
+                onClick={() => setConfirming(false)}
+              >
+                취소
+              </button>
+            </div>
           </div>
         </div>
       )}

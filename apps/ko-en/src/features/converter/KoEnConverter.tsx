@@ -56,22 +56,25 @@ export function KoEnConverter() {
   }
 
   return (
-    <div className="koen">
-      <nav className="koen__topbar" aria-label="송이랜드">
-        <a className="koen__home" href={PORTAL_URL}>
+    <div className="app koen">
+      <nav className="app__topbar" aria-label="송이랜드">
+        <a className="app__home" href={PORTAL_URL}>
           <span aria-hidden>←</span> 송이랜드
         </a>
       </nav>
 
-      <main className="koen__main">
-        <header className="koen__header">
-          <h1 className="koen__title">한영타 변환기</h1>
-          <p className="koen__subtitle">
+      <main className="app__main">
+        <header className="app__header">
+          <span className="app__eyebrow">
+            <span aria-hidden>⌨️</span> 한/영 키 실수 되돌리기
+          </span>
+          <h1 className="app__title">한영타 변환기</h1>
+          <p className="app__subtitle">
             한/영 키를 잘못 누른 채 친 글자를 두벌식 자판 기준으로 바로 되돌려 드려요.
           </p>
         </header>
 
-        <section className="koen__card" aria-label="변환">
+        <section className="app__card koen__card" aria-label="변환">
           <fieldset className="koen__modes">
             <legend className="visually-hidden">변환 방향</legend>
             {MODES.map((option) => (
@@ -139,7 +142,7 @@ export function KoEnConverter() {
             </button>
             <button
               type="button"
-              className="btn btn--ghost"
+              className="btn"
               onClick={clear}
               disabled={text === ''}
             >
@@ -154,7 +157,7 @@ export function KoEnConverter() {
         </section>
       </main>
 
-      <footer className="koen__footer">
+      <footer className="app__footer">
         <p>입력한 글자는 이 브라우저 안에서만 바뀌며, 어디에도 저장하거나 전송하지 않아요.</p>
       </footer>
     </div>

@@ -86,9 +86,9 @@ export function LottoGame({ random, historyRepository }: LottoGameProps) {
   }
 
   return (
-    <div className="lotto">
-      <nav className="lotto__topbar" aria-label="송이랜드">
-        <a className="lotto__home" href={PORTAL_URL}>
+    <div className="app lotto">
+      <nav className="app__topbar" aria-label="송이랜드">
+        <a className="app__home" href={PORTAL_URL}>
           <span aria-hidden>←</span> 송이랜드
         </a>
         <button
@@ -100,15 +100,18 @@ export function LottoGame({ random, historyRepository }: LottoGameProps) {
         </button>
       </nav>
 
-      <main className="lotto__main">
-        <header className="lotto__header">
-          <h1 className="lotto__title">송이의 행운 로또쇼</h1>
-          <p className="lotto__subtitle">
+      <main className="app__main lotto__main">
+        <header className="app__header">
+          <span className="app__eyebrow">
+            <span aria-hidden>🍀</span> 오늘의 행운 번호
+          </span>
+          <h1 className="app__title">송이의 행운 로또쇼</h1>
+          <p className="app__subtitle">
             1부터 45까지, 송이가 오늘의 번호 6개를 골라 드려요.
           </p>
         </header>
 
-        <section className="lotto__stage" aria-label="추천 번호">
+        <section className="app__card lotto__stage" aria-label="추천 번호">
           <NumberBoard numbers={current?.numbers ?? null} drawKey={current?.id} />
           <p className="lotto__meta">
             {current ? `추첨 시각 · ${formatDrawnAt(current.drawnAt)}` : null}
@@ -122,7 +125,11 @@ export function LottoGame({ random, historyRepository }: LottoGameProps) {
         </section>
 
         <div className="lotto__actions">
-          <button type="button" className="btn btn--primary btn--draw" onClick={draw}>
+          <button
+            type="button"
+            className="btn btn--primary btn--large"
+            onClick={draw}
+          >
             {current ? '다시 뽑기' : '번호 뽑기'}
           </button>
           <p className="lotto__hint">
@@ -139,7 +146,7 @@ export function LottoGame({ random, historyRepository }: LottoGameProps) {
         )}
       </main>
 
-      <footer className="lotto__footer">
+      <footer className="app__footer">
         <EntertainmentNotice />
       </footer>
 

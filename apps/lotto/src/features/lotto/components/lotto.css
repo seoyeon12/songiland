@@ -1,99 +1,34 @@
-/* 송이의 행운 로또쇼 — 한 화면, 한 번의 동작으로 번호를 뽑는 단정한 레이아웃. */
-
-.lotto {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background:
-    radial-gradient(60rem 30rem at 50% -10%, rgba(139, 92, 246, 0.22), transparent 70%),
-    var(--songi-bg);
-}
-
-.lotto__topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  width: min(100%, 44rem);
-  margin: 0 auto;
-  padding: 1rem 1rem 0;
-}
-
-.lotto__home {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.2rem;
-  color: var(--songi-text);
-  font-weight: 600;
-  text-decoration: none;
-  opacity: 0.8;
-}
-
-.lotto__home:hover,
-.lotto__home:focus-visible {
-  opacity: 1;
-}
+/* 송이의 행운 로또쇼. 공통 레이아웃·버튼은 @songiland/ui/base.css에 있다. */
 
 .lotto__main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.75rem;
-  width: min(100%, 44rem);
-  margin: 0 auto;
-  padding: 2rem 1rem;
-  text-align: center;
-}
-
-.lotto__header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.lotto__title {
-  margin: 0;
-  font-size: clamp(1.75rem, 5vw, 2.5rem);
-  letter-spacing: -0.02em;
-}
-
-.lotto__subtitle {
-  margin: 0;
-  opacity: 0.75;
+  align-items: stretch;
 }
 
 .lotto__stage {
   /* 공 크기를 카드 너비에 맞춰 7개가 320px 화면에서도 한 줄에 들어가게 한다. */
   container-type: inline-size;
-  width: 100%;
-  padding: clamp(1.25rem, 4vw, 2rem) clamp(0.75rem, 3vw, 1.5rem);
-  border: 1px solid rgba(245, 243, 255, 0.08);
-  border-radius: 1.5rem;
-  background: rgba(30, 24, 64, 0.7);
-  box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.25);
+  padding-block: clamp(1.75rem, 6vw, 2.75rem) 1.25rem;
+  text-align: center;
 }
 
 .lotto__meta {
   min-height: 1.4em;
-  margin: 1rem 0 0;
-  font-size: 0.85rem;
-  opacity: 0.6;
+  margin: 1.25rem 0 0;
+  color: var(--songi-text-muted);
+  font-size: 0.8125rem;
 }
 
 .lotto__actions {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
 }
 
 .lotto__hint {
   margin: 0;
-  font-size: 0.85rem;
-  opacity: 0.6;
+  color: var(--songi-text-muted);
+  font-size: 0.8125rem;
 }
 
 /* 키보드가 없는 터치 기기에서는 Space 안내를 숨긴다. */
@@ -103,55 +38,29 @@
   }
 }
 
-.lotto__hint kbd {
-  padding: 0.1rem 0.45rem;
-  border: 1px solid rgba(245, 243, 255, 0.3);
-  border-bottom-width: 2px;
-  border-radius: 0.35rem;
-  font: inherit;
-  font-size: 0.8rem;
-}
-
 .lotto__bonus-note {
   margin: 0;
-  font-size: 0.9rem;
-  opacity: 0.85;
+  padding: 0.75rem 1rem;
+  border-radius: var(--songi-radius);
+  background: var(--songi-surface-muted);
+  font-size: 0.875rem;
+  text-align: center;
 }
 
 .lotto__storage-warning {
   margin: 0;
-  color: #fca5a5;
-  font-size: 0.85rem;
-}
-
-.lotto__footer {
-  width: min(100%, 44rem);
-  margin: 0 auto;
-  padding: 0 1rem 1.5rem;
+  color: var(--songi-danger);
+  font-size: 0.8125rem;
+  text-align: center;
 }
 
 .lotto-notice {
   margin: 0;
-  font-size: 0.8rem;
-  text-align: center;
-  opacity: 0.6;
-}
-
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-  border: 0;
 }
 
 /* --- Number board --- */
 .board {
-  --board-gap: min(0.6rem, 1.6cqi);
+  --board-gap: min(0.625rem, 1.8cqi);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -168,45 +77,45 @@
 }
 
 .board__plus {
+  color: var(--songi-border-strong);
   font-size: 1.25rem;
-  font-weight: 300;
-  opacity: 0.5;
+  font-weight: 500;
 }
 
 .ball {
+  flex: none;
   display: grid;
   place-items: center;
-  flex: none;
   width: min(3.5rem, 11.5cqi);
   aspect-ratio: 1;
   border-radius: 50%;
   font-size: min(1.3rem, 5cqi);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
 .ball--empty {
-  border: 2px dashed rgba(245, 243, 255, 0.2);
+  border: 2px dashed var(--songi-border-strong);
+  background: var(--songi-surface-muted);
 }
 
 .ball--main,
 .ball--bonus {
-  animation: ball-in 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: ball-in 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   animation-delay: calc(var(--i, 0) * 55ms);
 }
 
 .ball--main {
-  background: linear-gradient(160deg, #ffffff, #e9e5ff);
-  color: #14102a;
-  box-shadow:
-    inset 0 -3px 0 rgba(20, 16, 42, 0.08),
-    0 0.4rem 1rem rgba(0, 0, 0, 0.25);
+  background: var(--songi-primary);
+  color: var(--songi-on-primary);
+  box-shadow: var(--songi-shadow-sm);
 }
 
 .ball--bonus {
-  background: linear-gradient(160deg, var(--songi-accent-strong), var(--songi-accent));
-  color: var(--songi-text);
-  box-shadow: 0 0.4rem 1rem rgba(139, 92, 246, 0.35);
+  background: var(--songi-accent);
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(240, 83, 46, 0.3);
 }
 
 @keyframes ball-in {
@@ -220,83 +129,18 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ball--main,
-  .ball--bonus {
-    animation: none;
-  }
-}
-
-/* --- Buttons --- */
-.btn {
-  appearance: none;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  padding: 0.7rem 1.3rem;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  background: var(--songi-surface);
-  color: var(--songi-text);
-  transition: background 150ms ease, transform 150ms ease;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn:focus-visible {
-  outline: 2px solid var(--songi-accent-strong);
-  outline-offset: 3px;
-}
-
-.btn--primary {
-  background: var(--songi-accent);
-}
-
-.btn--primary:not(:disabled):hover {
-  background: var(--songi-accent-strong);
-}
-
-.btn--primary:not(:disabled):active {
-  transform: scale(0.98);
-}
-
-.btn--draw {
-  min-width: 12rem;
-  padding: 0.95rem 2rem;
-  font-size: 1.1rem;
-}
-
-.btn--ghost {
-  background: transparent;
-  border-color: rgba(245, 243, 255, 0.25);
-}
-
-.btn--ghost:not(:disabled):hover {
-  background: rgba(245, 243, 255, 0.06);
-}
-
-.btn--small {
-  padding: 0.45rem 0.95rem;
-  font-size: 0.9rem;
-}
-
-.btn--danger {
-  background: #b91c4b;
-}
-
 /* --- History panel: right drawer on desktop, bottom sheet on mobile --- */
 .history-panel {
   position: fixed;
-  background: var(--songi-surface);
   z-index: 20;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
   padding: 1.25rem;
   overflow-y: auto;
+  border: 1px solid var(--songi-border);
+  background: var(--songi-surface);
+  box-shadow: var(--songi-shadow-lg);
 }
 
 /* Mobile-first: bottom sheet below 768px. */
@@ -305,18 +149,18 @@
   right: 0;
   bottom: 0;
   max-height: 80vh;
-  border-radius: 1.25rem 1.25rem 0 0;
+  border-radius: var(--songi-radius-lg) var(--songi-radius-lg) 0 0;
 }
 
 @media (min-width: 768px) {
   .history-panel {
-    top: 0;
-    bottom: 0;
-    right: 0;
+    top: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.75rem;
     left: auto;
     width: min(24rem, 90vw);
     max-height: none;
-    border-radius: 0;
+    border-radius: var(--songi-radius-lg);
   }
 }
 
@@ -329,47 +173,61 @@
 
 .history-panel__title {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.0625rem;
 }
 
 .history-panel__title:focus-visible {
-  outline: 2px solid var(--songi-accent-strong);
-  outline-offset: 4px;
+  outline: none;
+  border-radius: 0.25rem;
+  box-shadow: var(--songi-focus);
 }
 
 .history-panel__list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .history-panel__item {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
+  gap: 0.125rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: var(--songi-radius);
+  background: var(--songi-surface-muted);
 }
 
 .history-panel__item time {
-  font-size: 0.8rem;
-  opacity: 0.7;
+  color: var(--songi-text-muted);
+  font-size: 0.75rem;
+}
+
+.history-panel__numbers {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.history-panel__numbers strong {
+  color: var(--songi-accent-text);
 }
 
 .history-panel__empty {
-  opacity: 0.85;
-  text-align: center;
   padding: 2rem 0;
+  color: var(--songi-text-muted);
+  text-align: center;
+}
+
+.history-panel__clear {
+  align-self: flex-start;
 }
 
 .history-panel__privacy {
-  font-size: 0.78rem;
-  opacity: 0.7;
   margin: 0;
+  color: var(--songi-text-muted);
+  font-size: 0.75rem;
 }
 
 .history-panel__confirm {
@@ -379,20 +237,25 @@
   display: grid;
   place-items: center;
   padding: 1.5rem;
-  background: rgba(10, 8, 24, 0.6);
+  background: rgba(28, 27, 25, 0.35);
 }
 
-.history-panel__confirm > * {
+.history-panel__dialog {
+  width: min(100%, 20rem);
+  padding: 1.5rem;
+  border-radius: var(--songi-radius-lg);
   background: var(--songi-surface);
+  box-shadow: var(--songi-shadow-lg);
+  text-align: center;
 }
 
-.history-panel__confirm h3 {
-  margin: 0 0 1rem;
+.history-panel__dialog h3 {
+  margin: 0 0 1.25rem;
+  font-size: 1.0625rem;
 }
 
 .history-panel__confirm-actions {
   display: flex;
-  gap: 0.75rem;
   justify-content: center;
-  background: transparent;
+  gap: 0.5rem;
 }

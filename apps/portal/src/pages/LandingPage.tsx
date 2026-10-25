@@ -17,49 +17,65 @@ export function LandingPage({
   linkTarget = import.meta.env.DEV ? 'local' : 'production',
 }: LandingPageProps) {
   return (
-    <main className="portal">
-      <header className="portal__hero">
-        <h1>송이랜드</h1>
-        <p className="portal__intro">
-          보송한 비숑 송이가 진행하는 오락용 미니게임 랜드입니다.
-        </p>
-      </header>
+    <div className="app portal">
+      <main className="app__main portal__main">
+        <header className="portal__hero">
+          <span className="portal__mascot" aria-hidden>
+            🐶
+          </span>
+          <h1 className="app__title">송이랜드</h1>
+          <p className="app__subtitle">
+            보송한 비숑 송이가 진행하는 작은 놀이터예요. 가볍게 즐기는 게임과
+            쓸모 있는 도구를 모아 두었어요.
+          </p>
+        </header>
 
-      {KIND_SECTIONS.map(({ kind, title }) => {
-        const entries = domains.filter((domain) => domain.kind === kind);
-        if (entries.length === 0) {
-          return null;
-        }
-        return (
-          <section
-            key={kind}
-            className="portal__section"
-            aria-labelledby={`portal-${kind}`}
-          >
-            <h2 id={`portal-${kind}`}>{title}</h2>
-            <ul className="portal__cards">
-              {entries.map((domain) => (
-                // 도메인 앱은 다른 서브도메인의 별도 앱이므로 일반 링크로 전체 탐색한다.
-                <li key={domain.id}>
-                  <a className="portal__card" href={appUrl(domain.id, linkTarget)}>
-                    <span className="portal__card-title">{domain.title}</span>
-                    <span className="portal__card-description">
-                      {domain.description}
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        );
-      })}
+        {KIND_SECTIONS.map(({ kind, title }) => {
+          const entries = domains.filter((domain) => domain.kind === kind);
+          if (entries.length === 0) {
+            return null;
+          }
+          return (
+            <section
+              key={kind}
+              className="portal__section"
+              aria-labelledby={`portal-${kind}`}
+            >
+              <h2 id={`portal-${kind}`} className="portal__section-title">
+                {title}
+              </h2>
+              <ul className="portal__cards">
+                {entries.map((domain) => (
+                  // 도메인 앱은 다른 서브도메인의 별도 앱이므로 일반 링크로 전체 탐색한다.
+                  <li key={domain.id}>
+                    <a className="portal__card" href={appUrl(domain.id, linkTarget)}>
+                      <span className="portal__card-icon" aria-hidden>
+                        {domain.emoji}
+                      </span>
+                      <span className="portal__card-body">
+                        <span className="portal__card-title">{domain.title}</span>
+                        <span className="portal__card-description">
+                          {domain.description}
+                        </span>
+                      </span>
+                      <span className="portal__card-arrow" aria-hidden>
+                        →
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+      </main>
 
-      <footer className="portal__footer">
+      <footer className="app__footer">
         <p>
           송이랜드의 모든 게임은 오락용입니다. 실제 복권 발행·판매·당첨 확인
           서비스가 아니며, 당첨을 보장하지 않습니다.
         </p>
       </footer>
-    </main>
+    </div>
   );
 }

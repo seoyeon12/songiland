@@ -17,6 +17,8 @@
   구분은 포털 카드 분류에만 남는다.
 - 로또쇼는 3D 연출 없이 스페이스바나 클릭 한 번에 번호를 뽑는 단순한 화면으로 간다
   (2026-10-25).
+- 디자인은 밝은 오프화이트 바탕, 흰 카드, 검정 주 버튼, 코랄 강조색 하나로 간다
+  (2026-10-25). 토큰과 공통 레이아웃·버튼은 `packages/ui/base.css` 한곳에 둔다.
 - 한영타 변환기는 두벌식 자판 기준으로 양방향 변환하고 방향은 자동 감지한다
   (2026-10-25). 강화게임은 예시였을 뿐이므로 만들지 않는다.
 
@@ -29,7 +31,8 @@
 | 5b | 서브도메인 방식 전환: 앱마다 Pages 프로젝트 | e8da819 |
 | — | 로또쇼 단순화: 3D·WebGL·발바닥 모드·단계별 공개 제거, 포털 링크 추가 | 6dca716, 4e4ceae |
 | — | 정리: `packages/a11y`와 로또 앱 라우터 제거, 자동 설치 금지 설정, 옛 설계 문서 보관 표시 | 89ec286 |
-| 6 | 한영타 변환기 `apps/ko-en` (`ko-en.arosys.kr`) | 커밋 전 |
+| 6 | 한영타 변환기 `apps/ko-en` (`ko-en.arosys.kr`) | 87a219f |
+| — | 디자인 개편: 어두운 보라 테마를 밝은 오프화이트·검정·코랄 테마로 교체, 공통 스타일을 `packages/ui`로 통합 | 커밋 전 |
 
 ## 현재 구조
 
@@ -38,7 +41,7 @@ apps/portal/               송이랜드 소개와 도메인 카드 (songiland.ar
 apps/lotto/                송이의 행운 로또쇼 (lotto.arosys.kr)
 apps/ko-en/                한영타 변환기 (ko-en.arosys.kr)
 packages/catalog/          도메인 목록, 앱별 서브도메인·포트(appHosts), 앱 주소(appUrl)
-packages/ui/               공통 디자인 토큰과 기본 스타일
+packages/ui/               공통 디자인 시스템: 색 토큰, 앱 레이아웃(.app__*), 버튼(.btn*)
 packages/eslint-config/    공통 ESLint 설정
 packages/test-config/      공통 Vitest 설정과 jest-dom setup
 tsconfig.base.json         공통 TypeScript 옵션
