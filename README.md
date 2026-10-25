@@ -29,6 +29,7 @@
 apps/portal/               송이랜드 소개·도메인 목록 (songiland.arosys.kr)
 apps/lotto/                송이의 행운 로또쇼 (lotto.arosys.kr)
 apps/ko-en/                한영타 변환기 (ko-en.arosys.kr)
+apps/dog/                  견생극장 (개발 중, 공개 전. dog.arosys.kr 예정)
 packages/catalog/          도메인 목록, 앱별 서브도메인·포트, 앱 주소 appUrl (@songiland/catalog)
 packages/ui/               공통 디자인 시스템: 색 토큰, 앱 레이아웃, 버튼 (@songiland/ui/base.css)
 packages/eslint-config/    공통 ESLint 설정 (@songiland/eslint-config)
@@ -68,6 +69,7 @@ pnpm test:e2e                          # 브라우저 e2e (Playwright)
 | portal | `https://songiland.arosys.kr/` | `http://localhost:5173/` | `http://localhost:4173/` |
 | lotto  | `https://lotto.arosys.kr/`     | `http://localhost:5174/` | `http://localhost:4174/` |
 | ko-en  | `https://ko-en.arosys.kr/`     | `http://localhost:5175/` | `http://localhost:4175/` |
+| dog    | 공개 전 (`dog.arosys.kr` 예정) | `http://localhost:5176/` | `http://localhost:4176/` |
 
 서브도메인과 포트는 `@songiland/catalog`의 `appHosts`가 정하고, `appUrl`이 앱 주소를
 만듭니다. 포털 카드는 dev 서버에서는 localhost 포트로, 빌드 결과에서는 배포 주소로
