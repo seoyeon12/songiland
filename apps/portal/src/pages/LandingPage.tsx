@@ -69,13 +69,6 @@ export function LandingPage({
           );
         })}
       </main>
-
-      <footer className="app__footer">
-        <p>
-          송이랜드의 모든 게임은 오락용입니다. 실제 복권 발행·판매·당첨 확인
-          서비스가 아니며, 당첨을 보장하지 않습니다.
-        </p>
-      </footer>
     </div>
   );
 }

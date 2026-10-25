@@ -34,6 +34,11 @@ it('links to local dev servers during development', () => {
   ).toHaveAttribute('href', 'http://localhost:5174/');
 });
 
+it('leaves lotto-specific disclaimers to the lotto app', () => {
+  render(<LandingPage />);
+  expect(screen.queryByText(/복권/)).toBeNull();
+});
+
 it('groups domains by kind and hides empty sections', () => {
   render(<LandingPage />);
   const kinds = new Set<DomainKind>(domains.map((domain) => domain.kind));
