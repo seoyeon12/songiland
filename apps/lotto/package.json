@@ -16,8 +16,7 @@
 		"@songiland/catalog": "workspace:*",
 		"@songiland/ui": "workspace:*",
 		"react": "^19.2.8",
-		"react-dom": "^19.2.8",
-		"react-router-dom": "^7.18.2"
+		"react-dom": "^19.2.8"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.62.1",

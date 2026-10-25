@@ -25,7 +25,6 @@
 ```text
 apps/portal/               송이랜드 소개·도메인 목록 (songiland.arosys.kr)
 apps/lotto/                송이의 행운 로또쇼 (lotto.arosys.kr)
-packages/a11y/             접근성 훅: 모션 줄이기 감지 (@songiland/a11y, 현재 사용하는 앱 없음)
 packages/catalog/          도메인 목록, 앱별 서브도메인·포트, 앱 주소 appUrl (@songiland/catalog)
 packages/ui/               공통 디자인 토큰·기본 스타일 (@songiland/ui/base.css)
 packages/eslint-config/    공통 ESLint 설정 (@songiland/eslint-config)
@@ -50,6 +49,10 @@ pnpm test:e2e                          # 브라우저 e2e (Playwright)
 ```
 
 특정 앱만 실행하려면 `pnpm --filter <앱 이름> <스크립트>`를 사용합니다.
+
+`pnpm-workspace.yaml`에 `verifyDepsBeforeRun: error`가 있어서, package.json을 바꾼 뒤에는
+`pnpm install`을 먼저 실행해야 다른 pnpm 스크립트가 돌아갑니다. pnpm이 스크립트를
+실행하면서 몰래 설치하는 일은 없습니다.
 
 ### 앱 주소와 로컬 포트
 

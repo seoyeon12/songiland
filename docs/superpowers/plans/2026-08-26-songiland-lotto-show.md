@@ -1,5 +1,11 @@
 # Songiland Lotto Show Implementation Plan
 
+> **ARCHIVED — do not execute (marked 2026-10-25).** This plan built the first release
+> as a 3D show with React Three Fiber, a step-by-step reveal, paw mode, and the
+> `/games/lotto` route. All of that has since been removed: the lotto app is a one-press
+> draw served at `lotto.arosys.kr`. See `README.md` and
+> `docs/migration/2026-10-20-monorepo-migration-status.md` for the current structure.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build Songiland’s first web mini-game: a free, accessible 3D lotto-show number recommender that reveals six main numbers and one show bonus number.

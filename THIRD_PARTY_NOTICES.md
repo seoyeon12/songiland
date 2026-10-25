@@ -11,7 +11,6 @@
 | --- | --- | --- | --- |
 | react | 19.2.8 | MIT | https://github.com/facebook/react |
 | react-dom | 19.2.8 | MIT | https://github.com/facebook/react |
-| react-router-dom | 7.18.2 | MIT | https://github.com/remix-run/react-router |
 
 ## MIT License
 
@@ -42,5 +41,3 @@ SOFTWARE.
 
 - React / React DOM: Copyright © Meta Platforms, Inc. and affiliates —
   https://github.com/facebook/react/blob/main/LICENSE
-- React Router: Copyright © Remix Software Inc. —
-  https://github.com/remix-run/react-router/blob/main/LICENSE.md
