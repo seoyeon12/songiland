@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import '@songiland/ui/base.css';
-import { EnginePreview } from './preview/EnginePreview';
+import { App } from './app/App';
 
 const container = document.getElementById('root');
 if (!container) {
@@ -10,6 +10,6 @@ if (!container) {
 
 createRoot(container).render(
   <StrictMode>
-    <EnginePreview />
+    <App />
   </StrictMode>,
 );

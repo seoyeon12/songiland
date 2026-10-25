@@ -1,0 +1,114 @@
+import { useState } from 'react';
+import { DogPortrait } from '../components/DogPortrait';
+import { breedLabel, portraitLabel } from '../components/labels';
+import { LifeMap } from '../components/LifeMap';
+import { PortalLink } from '../components/PortalLink';
+import { formatAge, formatMonths, summarize, type RunState } from '../engine';
+
+export type EndingScreenProps = {
+  run: RunState;
+  onAgain: () => void;
+};
+
+/** 견생 기록 카드. 공유 이미지 저장은 5단계에서 붙는다. */
+export function EndingScreen({ run, onAgain }: EndingScreenProps) {
+  const [showStory, setShowStory] = useState(false);
+  const record = summarize(run);
+  const dog = run.dogs[0];
+
+  return (
+    <div className="app">
+      <nav className="app__topbar" aria-label="송이랜드">
+        <PortalLink />
+      </nav>
+      <main className="app__main">
+        <section className="app__card ending" aria-labelledby="ending-title">
+          <p className="ending__kicker">이번 상영작 · {record.arcTitle}</p>
+          <DogPortrait
+            className="ending__dog"
+            breedId={dog.breedId}
+            coatId={dog.coatId}
+            look={dog.look}
+            stage={dog.stage}
+            mood="good"
+            label={portraitLabel(dog, dog.name)}
+          />
+          <h1 id="ending-title" className="ending__title">
+            {record.dog.name}의 견생
+          </h1>
+          <p className="ending__meta">
+            {breedLabel(dog)} · {record.dog.coatLabel} · {record.dog.traits.join(', ')}
+          </p>
+          <dl className="facts facts--center">
+            <div>
+              <dt>함께한 시간</dt>
+              <dd>{formatMonths(record.dog.monthsTogether)}</dd>
+            </div>
+            <div>
+              <dt>만난 곳</dt>
+              <dd>{record.dog.route}</dd>
+            </div>
+            <div>
+              <dt>나이</dt>
+              <dd>
+                {formatAge(record.dog.metAgeMonths)} → {formatAge(record.dog.ageAtEndMonths)}
+              </dd>
+            </div>
+            <div>
+              <dt>선택</dt>
+              <dd>{record.choicesMade}번</dd>
+            </div>
+          </dl>
+
+          {record.highlights.length > 0 && (
+            <div className="ending__moments">
+              <h2 className="section-title">기억에 남는 순간</h2>
+              <ol>
+                {record.highlights.map((moment) => (
+                  <li key={`${moment.month}-${moment.text}`}>
+                    <span className="story__when">
+                      {moment.month === 0 ? '첫날' : `${formatMonths(moment.month)}째`}
+                    </span>
+                    {moment.text}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          <div className="ending__map">
+            <h2 className="section-title">견생 지도</h2>
+            <LifeMap cells={record.timeline} compact />
+          </div>
+
+          <div className="ending__actions">
+            <button type="button" className="btn btn--primary btn--large" onClick={onAgain}>
+              한 번 더 상영하기
+            </button>
+            <button type="button" className="btn btn--ghost" onClick={() => setShowStory(!showStory)}>
+              {showStory ? '이야기 접기' : '이야기 전체 보기'}
+            </button>
+          </div>
+        </section>
+
+        {showStory && (
+          <section className="app__card" aria-label="이야기 전체">
+            <ol className="story">
+              {run.log.map((entry, index) => (
+                <li key={index} className={`story__entry story__entry--${entry.kind}`}>
+                  <span className="story__when">
+                    {entry.month === 0 ? '첫날' : `${formatMonths(entry.month)}째`}
+                  </span>
+                  <span className="story__text">
+                    {entry.choice && <strong className="story__choice">{entry.choice}</strong>}
+                    {entry.text}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+      </main>
+    </div>
+  );
+}

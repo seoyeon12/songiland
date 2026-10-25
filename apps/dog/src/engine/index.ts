@@ -19,6 +19,6 @@ export {
   simulateToEnd,
   startRun,
 } from './simulation';
-export { STAGE_LABELS, stageFor } from './stages';
+export { moodFor, STAGE_LABELS, stageFor } from './stages';
 export { josa } from './text/josa';
 export type * from './types';

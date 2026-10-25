@@ -1,0 +1,636 @@
+/* 견생극장. 공통 레이아웃·버튼·토큰은 @songiland/ui/base.css에 있다. */
+
+.section-title {
+  margin: 0 0 0.875rem;
+  color: var(--songi-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* 강아지 뒤 둥근 조명. 흰 털 강아지도 흰 카드 위에서 또렷하게 보인다. */
+.meeting__dog,
+.play__dog,
+.ending__dog {
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 58%,
+    var(--songi-accent-soft) 0 52%,
+    transparent 53%
+  );
+}
+
+/* --- 시작 --- */
+.start {
+  align-items: center;
+  text-align: center;
+}
+
+.start__cast {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: -0.5rem;
+}
+
+.start__dog {
+  width: clamp(5.5rem, 22vw, 8rem);
+  height: auto;
+}
+
+.start__dog:nth-child(2) {
+  width: clamp(6.5rem, 26vw, 9.5rem);
+}
+
+.start__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.start__note {
+  max-width: 22rem;
+  margin: 0;
+  color: var(--songi-text-muted);
+  font-size: 0.8125rem;
+}
+
+/* --- 만남 --- */
+.meeting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.meeting__dog {
+  width: min(14rem, 60vw);
+  height: auto;
+}
+
+.meeting__title {
+  margin: 0;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+}
+
+.meeting__intro p {
+  margin: 0.25rem 0;
+}
+
+.meeting__name {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.625rem;
+  width: 100%;
+  max-width: 26rem;
+  text-align: left;
+}
+
+.meeting__name label {
+  color: var(--songi-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.meeting__name input {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--songi-border-strong);
+  border-radius: var(--songi-radius);
+  background: var(--songi-surface);
+  color: var(--songi-text);
+  font: inherit;
+  font-size: 1.0625rem;
+}
+
+.meeting__name input:focus-visible {
+  outline: none;
+  border-color: var(--songi-accent);
+  box-shadow: var(--songi-focus);
+}
+
+.meeting__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+}
+
+/* --- 사실 목록 --- */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.75rem 1rem;
+  width: 100%;
+  margin: 0;
+  padding: 1rem;
+  border-radius: var(--songi-radius);
+  background: var(--songi-surface-muted);
+  text-align: left;
+}
+
+.facts--center {
+  text-align: center;
+}
+
+.facts dt {
+  color: var(--songi-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.facts dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* --- 칩 --- */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  appearance: none;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--songi-border-strong);
+  border-radius: 999px;
+  background: var(--songi-surface);
+  color: var(--songi-text);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+button.chip {
+  cursor: pointer;
+}
+
+button.chip[aria-pressed='true'] {
+  border-color: var(--songi-primary);
+  background: var(--songi-primary);
+  color: var(--songi-on-primary);
+}
+
+button.chip:focus-visible {
+  outline: none;
+  box-shadow: var(--songi-focus);
+}
+
+.chips--static .chip {
+  border-color: transparent;
+  background: var(--songi-accent-soft);
+  color: var(--songi-accent-text);
+  font-size: 0.8125rem;
+}
+
+/* --- 진행 --- */
+.play__clock {
+  color: var(--songi-text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.play__hero {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.play__dog {
+  flex: none;
+  width: clamp(7rem, 28vw, 10rem);
+  height: auto;
+}
+
+.play__who {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.play__name {
+  margin: 0;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+}
+
+.play__meta {
+  margin: 0;
+  color: var(--songi-text-muted);
+}
+
+.play__warning {
+  margin: 0.75rem 0 0;
+  color: var(--songi-danger);
+  font-size: 0.8125rem;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+}
+
+.segmented {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.25rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--songi-surface-muted);
+}
+
+.segmented__option {
+  position: relative;
+}
+
+.segmented__option input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.segmented__option span {
+  display: block;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  color: var(--songi-text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.segmented__option input:checked + span {
+  background: var(--songi-surface);
+  color: var(--songi-text);
+  box-shadow: var(--songi-shadow-sm), 0 0 0 1px var(--songi-border);
+}
+
+.segmented__option input:focus-visible + span,
+.toggle input:focus-visible + span {
+  box-shadow: var(--songi-focus);
+}
+
+
+.toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.toggle input {
+  position: absolute;
+  opacity: 0;
+}
+
+.toggle span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.375rem 0.25rem 0.25rem;
+  border-radius: 999px;
+}
+
+/* 스위치 트랙과 손잡이 */
+.toggle span::before {
+  content: '';
+  width: 2.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 0.625rem 50%, #ffffff 0.45rem, transparent 0.5rem),
+    var(--songi-border-strong);
+  transition: background 150ms ease;
+}
+
+.toggle input:checked + span::before {
+  background:
+    radial-gradient(circle at 1.625rem 50%, #ffffff 0.45rem, transparent 0.5rem),
+    var(--songi-accent);
+}
+
+/* --- 능력치 --- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.625rem 1.5rem;
+  margin: 0;
+}
+
+.stats__row {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr;
+  align-items: center;
+}
+
+.stats__row dt {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.stats__row--household dt {
+  color: var(--songi-text-muted);
+}
+
+.stats__row dd {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.stats__bar {
+  flex: 1;
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--songi-surface-muted);
+}
+
+.stats__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--songi-primary);
+  transition: width 400ms ease;
+}
+
+.stats__row--household .stats__fill {
+  background: var(--songi-border-strong);
+}
+
+.stats__value {
+  width: 2rem;
+  color: var(--songi-text-muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* --- 견생 지도 --- */
+.lifemap__cells {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lifemap__cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.lifemap__cells--compact .lifemap__cell {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+.lifemap__cell--great {
+  background: var(--songi-accent);
+}
+
+.lifemap__cell--good {
+  background: #f7b19c;
+}
+
+.lifemap__cell--okay {
+  background: var(--songi-border);
+}
+
+.lifemap__cell--low {
+  background: #a8a49d;
+}
+
+.lifemap__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 0.875rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--songi-text-muted);
+  font-size: 0.75rem;
+}
+
+.lifemap__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.lifemap__swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+/* --- 이야기 --- */
+.story {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.story__entry {
+  display: grid;
+  grid-template-columns: 6.25rem 1fr;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.story__when {
+  color: var(--songi-text-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.story__choice {
+  display: block;
+  margin-bottom: 0.125rem;
+  color: var(--songi-accent-text);
+  font-size: 0.8125rem;
+}
+
+.story__entry--stage .story__text,
+.story__entry--birthday .story__text {
+  color: var(--songi-text-muted);
+}
+
+.story__entry--passed .story__text {
+  font-weight: 700;
+}
+
+/* --- 선택 카드 --- */
+.choice__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(28, 27, 25, 0.35);
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: min(100%, 28rem);
+  padding: 1.5rem;
+  border-radius: var(--songi-radius-lg);
+  background: var(--songi-surface);
+  box-shadow: var(--songi-shadow-lg);
+  animation: choice-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.choice__kicker {
+  margin: 0;
+  color: var(--songi-accent-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.choice__text {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.choice__options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.choice__option {
+  justify-content: flex-start;
+  min-height: 3rem;
+  border-radius: var(--songi-radius);
+  text-align: left;
+}
+
+.choice__auto {
+  margin: 0;
+  color: var(--songi-text-muted);
+  font-size: 0.8125rem;
+}
+
+@keyframes choice-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- 결말 --- */
+.ending {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.ending__kicker {
+  margin: 0;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: var(--songi-accent-soft);
+  color: var(--songi-accent-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.ending__dog {
+  width: min(12rem, 52vw);
+  height: auto;
+}
+
+.ending__title {
+  margin: 0;
+  font-size: clamp(1.75rem, 6vw, 2.25rem);
+}
+
+.ending__meta {
+  margin: 0;
+  color: var(--songi-text-muted);
+}
+
+.ending__moments,
+.ending__map {
+  width: 100%;
+  text-align: left;
+}
+
+.ending__moments ol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ending__moments li {
+  display: grid;
+  grid-template-columns: 6.25rem 1fr;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: var(--songi-radius);
+  background: var(--songi-surface-muted);
+}
+
+.ending__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 30rem) {
+  .play__hero {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .play__who {
+    align-items: center;
+  }
+
+  .story__entry,
+  .ending__moments li {
+    grid-template-columns: 1fr;
+    gap: 0.125rem;
+  }
+}
