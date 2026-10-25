@@ -1,11 +1,21 @@
-import { domainBase, domains, type DomainKind } from '@songiland/catalog';
+import { appUrl, domains, type DomainKind } from '@songiland/catalog';
 
 const KIND_SECTIONS: ReadonlyArray<{ kind: DomainKind; title: string }> = [
   { kind: 'game', title: '게임' },
   { kind: 'tool', title: '도구' },
 ];
 
-export function LandingPage() {
+export type LandingPageProps = {
+  /**
+   * 카드 링크가 가리킬 곳. 배포본은 각 앱의 서브도메인(https://<이름>.arosys.kr/),
+   * 로컬 dev 서버는 각 앱의 localhost 포트로 보낸다.
+   */
+  linkTarget?: 'production' | 'local';
+};
+
+export function LandingPage({
+  linkTarget = import.meta.env.DEV ? 'local' : 'production',
+}: LandingPageProps) {
   return (
     <main className="portal">
       <header className="portal__hero">
@@ -29,9 +39,9 @@ export function LandingPage() {
             <h2 id={`portal-${kind}`}>{title}</h2>
             <ul className="portal__cards">
               {entries.map((domain) => (
-                // 도메인 앱은 별도 앱이므로 react-router Link가 아닌 일반 링크로 전체 탐색한다.
+                // 도메인 앱은 다른 서브도메인의 별도 앱이므로 일반 링크로 전체 탐색한다.
                 <li key={domain.id}>
-                  <a className="portal__card" href={domainBase(domain)}>
+                  <a className="portal__card" href={appUrl(domain.id, linkTarget)}>
                     <span className="portal__card-title">{domain.title}</span>
                     <span className="portal__card-description">
                       {domain.description}

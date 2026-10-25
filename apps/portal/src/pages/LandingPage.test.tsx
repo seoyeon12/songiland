@@ -1,29 +1,29 @@
-import {
-  domainBase,
-  domains,
-  getDomain,
-  type DomainKind,
-} from '@songiland/catalog';
+import { appUrl, domains, type DomainKind } from '@songiland/catalog';
 import { render, screen } from '@testing-library/react';
 import { LandingPage } from './LandingPage';
 
-it('introduces Songiland and links every catalog domain to its app path', () => {
-  render(<LandingPage />);
+it('introduces Songiland and links every catalog domain to its subdomain', () => {
+  render(<LandingPage linkTarget="production" />);
   expect(screen.getByRole('heading', { name: '송이랜드' })).toBeVisible();
   for (const domain of domains) {
     expect(
       screen.getByRole('link', { name: new RegExp(domain.title) }),
-    ).toHaveAttribute('href', domainBase(domain));
+    ).toHaveAttribute('href', appUrl(domain.id));
   }
 });
 
-it('links the lotto show under /games', () => {
-  render(<LandingPage />);
-  const lotto = getDomain('lotto');
-  expect(screen.getByRole('link', { name: new RegExp(lotto.title) })).toHaveAttribute(
-    'href',
-    '/games/lotto/',
-  );
+it('links the lotto show to lotto.arosys.kr in production', () => {
+  render(<LandingPage linkTarget="production" />);
+  expect(
+    screen.getByRole('link', { name: /송이의 행운 로또쇼/ }),
+  ).toHaveAttribute('href', 'https://lotto.arosys.kr/');
+});
+
+it('links to local dev servers during development', () => {
+  render(<LandingPage linkTarget="local" />);
+  expect(
+    screen.getByRole('link', { name: /송이의 행운 로또쇼/ }),
+  ).toHaveAttribute('href', 'http://localhost:5174/');
 });
 
 it('groups domains by kind and hides empty sections', () => {

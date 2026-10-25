@@ -9,8 +9,8 @@
 
 ## 범위 (첫 출시)
 
-- 공개 라우트는 `/`(소개)와 `/games/lotto`(로또쇼) 둘뿐입니다. 각각 별도 앱
-  (`apps/portal`, `apps/lotto`)이 맡습니다.
+- 공개 주소는 `https://songiland.arosys.kr/`(소개)와 `https://lotto.arosys.kr/`(로또쇼)
+  둘뿐입니다. 각각 별도 앱(`apps/portal`, `apps/lotto`)이 맡습니다.
 - 무료 서비스이며 결제·상금·포인트·경품·계정·서버 저장·사운드가 없습니다.
 - 추첨 결과는 이 브라우저의 `localStorage`에만 최대 24시간·최신 20건 저장되며
   서버로 전송되지 않습니다.
@@ -23,10 +23,10 @@
 공유 코드는 `packages/*`에 둡니다.
 
 ```text
-apps/portal/               송이랜드 소개·도메인 목록 (사이트 루트 `/`)
-apps/lotto/                송이의 행운 로또쇼 (`/games/lotto/` base)
+apps/portal/               송이랜드 소개·도메인 목록 (songiland.arosys.kr)
+apps/lotto/                송이의 행운 로또쇼 (lotto.arosys.kr)
 packages/a11y/             접근성 훅: 모션 줄이기·WebGL 지원 감지 (@songiland/a11y)
-packages/catalog/          도메인 목록과 URL 규칙 /games/<id>, /tools/<id> (@songiland/catalog)
+packages/catalog/          도메인 목록, 앱별 서브도메인·포트, 앱 주소 appUrl (@songiland/catalog)
 packages/ui/               공통 디자인 토큰·기본 스타일 (@songiland/ui/base.css)
 packages/eslint-config/    공통 ESLint 설정 (@songiland/eslint-config)
 packages/test-config/      공통 Vitest 설정·jest-dom setup (@songiland/test-config)
@@ -39,61 +39,65 @@ tsconfig.base.json         공통 TypeScript 컴파일 옵션 (각 앱이 extend
 pnpm install                                       # 의존성 설치 (최초 1회)
 pnpm --filter lotto exec playwright install chromium  # e2e용 브라우저 (최초 1회)
 
-pnpm dev                               # 모든 앱 개발 서버 동시 실행 → http://localhost:5173/
+pnpm dev                               # 모든 앱 개발 서버 동시 실행 (포털 http://localhost:5173/)
 pnpm --filter lotto dev                # 한 앱만 실행
 pnpm test                              # 단위·컴포넌트 테스트 (Vitest)
 pnpm typecheck                         # 타입 검사
 pnpm lint                              # ESLint
-pnpm build                             # 앱별 타입 검사·빌드 후 루트 dist/로 사이트 조립
-pnpm preview                           # 빌드 결과를 앱별 preview 서버로 실행 → http://localhost:4173/
+pnpm build                             # 앱별 타입 검사·빌드 → apps/<앱>/dist
+pnpm preview                           # 빌드 결과를 앱별 preview 서버로 실행
 pnpm test:e2e                          # 브라우저 e2e (Playwright)
 ```
 
 특정 앱만 실행하려면 `pnpm --filter <앱 이름> <스크립트>`를 사용합니다.
 
-### 한 origin처럼 쓰는 로컬 개발
+### 앱 주소와 로컬 포트
 
-앱마다 dev 서버가 따로 뜨지만, **포털 서버(5173/4173)가 도메인 경로를 해당 앱으로
-프록시**하므로 포털 주소 하나로 배포본처럼 돌아다닐 수 있습니다. 도메인 앱도 같은
-경로를 base로 쓰므로 경로를 고쳐 쓰지 않고 그대로 넘기며, HMR 웹소켓도 프록시를
-통과합니다.
+모든 앱은 자기 서브도메인의 루트(`/`)에서 동작합니다. 로컬에서도 앱마다 자기 포트로
+따로 뜹니다.
 
-| 앱     | dev                                  | preview (e2e)                        |
-| ------ | ------------------------------------ | ------------------------------------ |
-| portal | `http://localhost:5173/`             | `http://localhost:4173/`             |
-| lotto  | `http://localhost:5174/games/lotto/` | `http://localhost:4174/games/lotto/` |
+| 앱     | 배포                           | dev                      | preview (e2e)            |
+| ------ | ------------------------------ | ------------------------ | ------------------------ |
+| portal | `https://songiland.arosys.kr/` | `http://localhost:5173/` | `http://localhost:4173/` |
+| lotto  | `https://lotto.arosys.kr/`     | `http://localhost:5174/` | `http://localhost:4174/` |
 
-포트는 `@songiland/catalog`의 `appPorts`, 앱 base(`/games/<id>/`)는 `domainBase`가
-정합니다. 새 도메인 앱을 붙일 때는 카탈로그에 도메인과 포트를 추가하고 앱 폴더를
-`apps/<id>`로 만들면 포털 카드·프록시·사이트 조립이 함께 따라옵니다.
+서브도메인과 포트는 `@songiland/catalog`의 `appHosts`가 정하고, `appUrl`이 앱 주소를
+만듭니다. 포털 카드는 dev 서버에서는 localhost 포트로, 빌드 결과에서는 배포 주소로
+링크합니다. 그래서 `pnpm preview`로 띄운 포털의 카드는 배포된 사이트로 이어집니다.
+
+새 도메인 앱을 붙일 때는 카탈로그의 `domains`와 `appHosts`에 항목을 추가하고 앱 폴더를
+`apps/<id>`로 만듭니다. 포털 카드는 자동으로 따라오고, Cloudflare Pages 프로젝트는
+아래 설정대로 하나 더 만듭니다.
 
 ## 배포 (Cloudflare Pages)
 
-경로 기반으로 **Pages 프로젝트 하나**에 모든 앱을 올립니다. `pnpm build`가 앱별 빌드
-뒤 `scripts/assemble-site.ts`로 루트 `dist/`를 조립합니다.
+**앱마다 Pages 프로젝트 하나**를 만들고 서브도메인을 붙입니다. 모든 프로젝트가 이
+저장소에 Git으로 연결되며, 저장소 루트에서 의존성을 설치한 뒤 한 앱만 빌드합니다.
+앱들이 `packages/`의 공유 코드와 루트 `pnpm-lock.yaml`을 쓰기 때문입니다.
 
-```text
-dist/                 apps/portal/dist  (사이트 루트 /)
-dist/games/lotto/     apps/lotto/dist   (/games/lotto/)
-dist/404.html         포털 화면 사본 — 없는 경로는 404 상태로 포털을 보여 줌
-dist/_headers         해시 자산 장기 캐시, nosniff·Referrer-Policy
-```
+| 항목                   | portal                                  | lotto                                   |
+| ---------------------- | --------------------------------------- | --------------------------------------- |
+| Project name           | `songiland`                             | `lotto`                                 |
+| Production branch      | `main`                                  | `main`                                  |
+| Framework preset       | None                                    | None                                    |
+| Root directory         | `/` (저장소 루트)                       | `/` (저장소 루트)                       |
+| Build command          | `pnpm --filter portal build`            | `pnpm --filter lotto build`             |
+| Build output directory | `apps/portal/dist`                      | `apps/lotto/dist`                       |
+| Build watch paths      | `apps/portal/*`, `packages/*`, `pnpm-lock.yaml`, `tsconfig.base.json` | `apps/lotto/*`, `packages/*`, `pnpm-lock.yaml`, `tsconfig.base.json` |
+| 환경 변수              | `NODE_VERSION=22.23.2`, `PNPM_VERSION=11.11.0` | 같음                              |
+| Custom domain          | `songiland.arosys.kr`                   | `lotto.arosys.kr`                       |
 
-조립 스크립트는 앱 index.html이 자기 base 밖 자산을 참조하면 실패합니다. 최상위
-`404.html`이 있으므로 Pages의 SPA 폴백(모든 경로에 루트 index.html)은 꺼집니다.
-`/games/lotto`처럼 끝 `/`가 없는 주소는 Pages가 `/games/lotto/`로 리다이렉트합니다.
+- Build watch paths를 지정하면 다른 앱만 바뀐 커밋에서는 이 프로젝트가 다시 빌드되지
+  않습니다.
+- 각 앱의 `public/_headers`가 빌드 결과에 복사되어 해시 자산 장기 캐시와
+  nosniff·Referrer-Policy 헤더를 붙입니다.
+- 앱에 `404.html`이 없으므로 Pages가 SPA 폴백을 켭니다. 없는 경로도 그 앱의
+  index.html을 받고, lotto는 알 수 없는 경로를 `/`로 돌려보냅니다.
+- Custom domain은 프로젝트의 Custom domains 탭에서 추가합니다. arosys.kr DNS가
+  Cloudflare에 있으면 CNAME 레코드가 자동으로 생기고 HTTPS 인증서도 자동 발급됩니다.
 
-Pages 프로젝트 설정 (Git 연동):
-
-| 항목                  | 값                          |
-| --------------------- | --------------------------- |
-| Framework preset      | None                        |
-| Root directory        | `/` (저장소 루트)           |
-| Build command         | `pnpm build`                |
-| Build output directory| `dist`                      |
-| 환경 변수             | `NODE_VERSION=22.23.2`, `PNPM_VERSION=11.11.0` |
-
-조립 스크립트는 Node의 TypeScript 타입 제거 실행을 쓰므로 Node 22.18 이상이 필요합니다.
+첫 배포 때는 빌드 로그에서 Node·pnpm 버전과 설치 단계를 확인하고, 두 주소가 열리는지,
+포털 카드가 `https://lotto.arosys.kr/`로 이어지는지 확인합니다.
 
 ## 릴리스 검증
 

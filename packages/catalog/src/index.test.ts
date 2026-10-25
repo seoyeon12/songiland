@@ -1,19 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import {
-  appPorts,
-  domainBase,
-  domainPath,
-  domains,
-  getDomain,
-} from './index';
+import { appHosts, appUrl, domains, getDomain } from './index';
 
 describe('catalog', () => {
-  it('maps games and tools to their URL segments', () => {
-    expect(domainPath({ id: 'lotto', kind: 'game' })).toBe('/games/lotto');
-    expect(domainPath({ id: 'ko-en', kind: 'tool' })).toBe('/tools/ko-en');
-    expect(domainBase({ id: 'lotto', kind: 'game' })).toBe('/games/lotto/');
-  });
-
   it('keeps domain ids unique and URL-safe', () => {
     const ids = domains.map((domain) => domain.id);
     expect(new Set(ids).size).toBe(ids.length);
@@ -26,14 +14,33 @@ describe('catalog', () => {
     expect(getDomain('lotto')).toMatchObject({ kind: 'game' });
   });
 
-  it('gives every app its own dev and preview port', () => {
+  it('gives every app a host entry', () => {
     for (const domain of domains) {
-      expect(appPorts).toHaveProperty(domain.id);
+      expect(appHosts).toHaveProperty(domain.id);
     }
-    const ports = Object.values(appPorts).flatMap(({ dev, preview }) => [
-      dev,
-      preview,
+    expect(appHosts).toHaveProperty('portal');
+  });
+
+  it('uses unique, DNS-safe subdomains', () => {
+    const subdomains = Object.values(appHosts).map((host) => host.subdomain);
+    expect(new Set(subdomains).size).toBe(subdomains.length);
+    for (const subdomain of subdomains) {
+      expect(subdomain).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+      expect(subdomain.length).toBeLessThanOrEqual(63);
+    }
+  });
+
+  it('gives every app its own dev and preview port', () => {
+    const ports = Object.values(appHosts).flatMap((host) => [
+      host.devPort,
+      host.previewPort,
     ]);
     expect(new Set(ports).size).toBe(ports.length);
+  });
+
+  it('builds production and local app URLs', () => {
+    expect(appUrl('portal')).toBe('https://songiland.arosys.kr/');
+    expect(appUrl('lotto')).toBe('https://lotto.arosys.kr/');
+    expect(appUrl('lotto', 'local')).toBe('http://localhost:5174/');
   });
 });

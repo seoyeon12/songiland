@@ -4,8 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "pnpm -r --parallel --if-present dev",
-		"build": "pnpm -r --if-present build && pnpm assemble",
-		"assemble": "node scripts/assemble-site.ts",
+		"build": "pnpm -r --if-present build",
 		"preview": "pnpm -r --parallel --if-present preview",
 		"typecheck": "pnpm -r --if-present typecheck",
 		"test": "pnpm -r --if-present test",
