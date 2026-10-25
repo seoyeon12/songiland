@@ -9,8 +9,11 @@
 
 ## 범위 (첫 출시)
 
-- 공개 주소는 `https://songiland.arosys.kr/`(소개)와 `https://lotto.arosys.kr/`(로또쇼)
-  둘뿐입니다. 각각 별도 앱(`apps/portal`, `apps/lotto`)이 맡습니다.
+- 공개 주소는 `https://songiland.arosys.kr/`(소개), `https://lotto.arosys.kr/`(로또쇼),
+  `https://ko-en.arosys.kr/`(한영타 변환기) 세 곳입니다. 각각 별도 앱
+  (`apps/portal`, `apps/lotto`, `apps/ko-en`)이 맡습니다.
+- 한영타 변환기는 입력한 글자를 브라우저 안에서만 바꾸며 저장하거나 전송하지
+  않습니다.
 - 무료 서비스이며 결제·상금·포인트·경품·계정·서버 저장·사운드가 없습니다.
 - 추첨 결과는 이 브라우저의 `localStorage`에만 최대 24시간·최신 20건 저장되며
   서버로 전송되지 않습니다.
@@ -25,6 +28,7 @@
 ```text
 apps/portal/               송이랜드 소개·도메인 목록 (songiland.arosys.kr)
 apps/lotto/                송이의 행운 로또쇼 (lotto.arosys.kr)
+apps/ko-en/                한영타 변환기 (ko-en.arosys.kr)
 packages/catalog/          도메인 목록, 앱별 서브도메인·포트, 앱 주소 appUrl (@songiland/catalog)
 packages/ui/               공통 디자인 토큰·기본 스타일 (@songiland/ui/base.css)
 packages/eslint-config/    공통 ESLint 설정 (@songiland/eslint-config)
@@ -63,6 +67,7 @@ pnpm test:e2e                          # 브라우저 e2e (Playwright)
 | ------ | ------------------------------ | ------------------------ | ------------------------ |
 | portal | `https://songiland.arosys.kr/` | `http://localhost:5173/` | `http://localhost:4173/` |
 | lotto  | `https://lotto.arosys.kr/`     | `http://localhost:5174/` | `http://localhost:4174/` |
+| ko-en  | `https://ko-en.arosys.kr/`     | `http://localhost:5175/` | `http://localhost:4175/` |
 
 서브도메인과 포트는 `@songiland/catalog`의 `appHosts`가 정하고, `appUrl`이 앱 주소를
 만듭니다. 포털 카드는 dev 서버에서는 localhost 포트로, 빌드 결과에서는 배포 주소로
@@ -78,29 +83,35 @@ pnpm test:e2e                          # 브라우저 e2e (Playwright)
 저장소에 Git으로 연결되며, 저장소 루트에서 의존성을 설치한 뒤 한 앱만 빌드합니다.
 앱들이 `packages/`의 공유 코드와 루트 `pnpm-lock.yaml`을 쓰기 때문입니다.
 
-| 항목                   | portal                                  | lotto                                   |
-| ---------------------- | --------------------------------------- | --------------------------------------- |
-| Project name           | `songiland`                             | `lotto`                                 |
-| Production branch      | `main`                                  | `main`                                  |
-| Framework preset       | None                                    | None                                    |
-| Root directory         | `/` (저장소 루트)                       | `/` (저장소 루트)                       |
-| Build command          | `pnpm --filter portal build`            | `pnpm --filter lotto build`             |
-| Build output directory | `apps/portal/dist`                      | `apps/lotto/dist`                       |
-| Build watch paths      | `apps/portal/*`, `packages/*`, `pnpm-lock.yaml`, `tsconfig.base.json` | `apps/lotto/*`, `packages/*`, `pnpm-lock.yaml`, `tsconfig.base.json` |
-| 환경 변수              | `NODE_VERSION=22.23.2`, `PNPM_VERSION=11.11.0` | 같음                              |
-| Custom domain          | `songiland.arosys.kr`                   | `lotto.arosys.kr`                       |
+모든 프로젝트에 공통인 설정입니다.
+
+| 항목              | 값                                             |
+| ----------------- | ---------------------------------------------- |
+| Production branch | `main`                                         |
+| Framework preset  | None                                           |
+| Root directory    | `/` (저장소 루트)                              |
+| 환경 변수         | `NODE_VERSION=22.23.2`, `PNPM_VERSION=11.11.0` |
+
+프로젝트마다 다른 설정입니다. Build watch paths에는 표의 앱 폴더와 함께 공통으로
+`packages/*`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `tsconfig.base.json`을 넣습니다.
+
+| Pages 프로젝트 | Build command                | Build output       | Watch path(앱) | Custom domain         |
+| -------------- | ---------------------------- | ------------------ | -------------- | --------------------- |
+| `songiland`    | `pnpm --filter portal build` | `apps/portal/dist` | `apps/portal/*` | `songiland.arosys.kr` |
+| `lotto`        | `pnpm --filter lotto build`  | `apps/lotto/dist`  | `apps/lotto/*`  | `lotto.arosys.kr`     |
+| `ko-en`        | `pnpm --filter ko-en build`  | `apps/ko-en/dist`  | `apps/ko-en/*`  | `ko-en.arosys.kr`     |
 
 - Build watch paths를 지정하면 다른 앱만 바뀐 커밋에서는 이 프로젝트가 다시 빌드되지
   않습니다.
 - 각 앱의 `public/_headers`가 빌드 결과에 복사되어 해시 자산 장기 캐시와
   nosniff·Referrer-Policy 헤더를 붙입니다.
-- 앱에 `404.html`이 없으므로 Pages가 SPA 폴백을 켭니다. 없는 경로도 그 앱의
-  index.html을 받고, lotto는 알 수 없는 경로를 `/`로 돌려보냅니다.
+- 앱에 `404.html`이 없으므로 Pages가 SPA 폴백을 켭니다. 없는 경로로 들어와도 그 앱의
+  index.html을 받아 같은 화면이 열립니다.
 - Custom domain은 프로젝트의 Custom domains 탭에서 추가합니다. arosys.kr DNS가
   Cloudflare에 있으면 CNAME 레코드가 자동으로 생기고 HTTPS 인증서도 자동 발급됩니다.
 
-첫 배포 때는 빌드 로그에서 Node·pnpm 버전과 설치 단계를 확인하고, 두 주소가 열리는지,
-포털 카드가 `https://lotto.arosys.kr/`로 이어지는지 확인합니다.
+첫 배포 때는 빌드 로그에서 Node·pnpm 버전과 설치 단계를 확인하고, 세 주소가 열리는지,
+포털 카드와 각 앱의 `← 송이랜드` 링크가 서로 이어지는지 확인합니다.
 
 ## 릴리스 검증
 
@@ -120,6 +131,9 @@ git status --short
   나오고 기록이 1건씩 쌓이는지, 버튼·링크에 포커스가 있거나 기록 패널이 열려 있을 때
   Space로 뽑히지 않는지, `← 송이랜드` 링크가 포털로 가는지 확인. 모바일 에뮬레이션:
   버튼 탭으로 뽑히는지, Space 안내가 숨겨지는지, 기록 서랍이 바텀시트로 뜨는지 확인.
+- **한영타 변환기** — `dkssudgktpdy`가 `안녕하세요`로, `한글`이 `gksrmf`로
+  자동 변환되는지, 방향을 직접 고르면 그 방향으로만 바뀌는지, 결과 복사와 지우기가
+  동작하는지, 네트워크 탭에 입력 내용을 보내는 요청이 없는지 확인.
 - **비기능** — 320px 화면에서도 공 7개가 한 줄에 들어가는지, OS `모션 줄이기`를
   켜면 공 등장 애니메이션이 꺼지는지, 사운드/오디오 요청이 전혀 없는지 확인.
 - **법적·데이터 경계** — DOM·자산·의존성·네트워크 탭에 공식 복권 로고/영상,

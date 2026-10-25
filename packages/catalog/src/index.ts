@@ -17,6 +17,12 @@ export const domains = [
     title: '송이의 행운 로또쇼',
     description: '1~45 중 6개 번호를 재미로 골라 주는 번호 추천',
   },
+  {
+    id: 'ko-en',
+    kind: 'tool',
+    title: '한영타 변환기',
+    description: '한/영 키를 잘못 누른 채 친 글자를 바로 되돌려 주는 도구',
+  },
 ] as const satisfies readonly DomainEntry[];
 
 export type DomainId = (typeof domains)[number]['id'];
@@ -48,6 +54,7 @@ export interface AppHost {
 export const appHosts = {
   portal: { subdomain: 'songiland', devPort: 5173, previewPort: 4173 },
   lotto: { subdomain: 'lotto', devPort: 5174, previewPort: 4174 },
+  'ko-en': { subdomain: 'ko-en', devPort: 5175, previewPort: 4175 },
 } as const satisfies Record<AppId, AppHost>;
 
 /**

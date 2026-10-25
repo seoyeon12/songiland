@@ -42,5 +42,6 @@ describe('catalog', () => {
     expect(appUrl('portal')).toBe('https://songiland.arosys.kr/');
     expect(appUrl('lotto')).toBe('https://lotto.arosys.kr/');
     expect(appUrl('lotto', 'local')).toBe('http://localhost:5174/');
+    expect(appUrl('ko-en')).toBe('https://ko-en.arosys.kr/');
   });
 });

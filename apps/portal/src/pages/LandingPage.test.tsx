@@ -19,6 +19,14 @@ it('links the lotto show to lotto.arosys.kr in production', () => {
   ).toHaveAttribute('href', 'https://lotto.arosys.kr/');
 });
 
+it('lists the ko-en converter under tools', () => {
+  render(<LandingPage linkTarget="production" />);
+  expect(screen.getByRole('heading', { name: '도구' })).toBeVisible();
+  expect(
+    screen.getByRole('link', { name: /한영타 변환기/ }),
+  ).toHaveAttribute('href', 'https://ko-en.arosys.kr/');
+});
+
 it('links to local dev servers during development', () => {
   render(<LandingPage linkTarget="local" />);
   expect(
