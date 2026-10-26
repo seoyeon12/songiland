@@ -44,9 +44,11 @@ describe('event catalog', () => {
       expect(event.text.length).toBeGreaterThan(0);
       for (const text of allTexts(event)) {
         expect(text.trim()).not.toBe('');
+        // 짝 이름({other})은 두 아이 사건에만 있다. 다른 사건에서 쓰면 render가 실패한다.
+        const other = event.pair ? '두부' : undefined;
         for (const name of ['보리', '콩', 'Coco']) {
-          expect(() => render(text, name)).not.toThrow();
-          expect(render(text, name)).not.toMatch(/[{}]/);
+          expect(() => render(text, name, other), `${event.id}: ${text}`).not.toThrow();
+          expect(render(text, name, other)).not.toMatch(/[{}]/);
         }
       }
     }
@@ -102,7 +104,8 @@ describe('event catalog', () => {
   });
 
   it('only requires flags that some event can set', () => {
-    const dogFlags = new Set<string>(['terminal-illness']);
+    // 엔진이 직접 다는 표시: 불치병, 나이 지긋해서 가족이 된 아이.
+    const dogFlags = new Set<string>(['terminal-illness', 'senior-adopted']);
     const householdFlags = new Set<string>();
     for (const event of EVENTS) {
       const effects = [
@@ -124,6 +127,33 @@ describe('event catalog', () => {
       ]) {
         expect(householdFlags.has(flag), `${event.id}: ${flag}`).toBe(true);
       }
+    }
+  });
+
+  it('keeps two-dog events off the urgent list', () => {
+    for (const event of EVENTS.filter((entry) => entry.pair)) {
+      expect(event.urgent, event.id).toBeUndefined();
+    }
+  });
+
+  it('offers a new family member only as a choice after a year, with a way to wait', () => {
+    const adopting = EVENTS.filter((event) =>
+      event.choices?.some((choice) => choice.outcomes.some((outcome) => outcome.effects?.adopt)),
+    );
+    expect(adopting.length).toBeGreaterThan(0);
+    for (const event of EVENTS) {
+      expect(event.effects?.adopt, event.id).toBeUndefined();
+    }
+    for (const event of adopting) {
+      expect(event.urgent, event.id).toBeUndefined();
+      expect(event.household, event.id).toBe(true);
+      expect(event.stages, event.id).not.toContain('puppy');
+      expect(event.when?.minTogether, event.id).toBeGreaterThanOrEqual(12);
+      expect(event.when?.min?.ease, event.id).toBeGreaterThanOrEqual(50);
+      const waits = event.choices!.filter(
+        (choice) => !choice.outcomes.some((outcome) => outcome.effects?.adopt),
+      );
+      expect(waits.length, event.id).toBeGreaterThan(0);
     }
   });
 });

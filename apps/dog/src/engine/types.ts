@@ -137,6 +137,8 @@ export type LogKind = 'meet' | 'stage' | 'birthday' | 'event' | 'choice' | 'pass
 export type LogEntry = {
   month: number;
   dogId: string;
+  /** 두 아이가 함께한 순간이면 다른 한 아이. */
+  partnerId?: string;
   kind: LogKind;
   text: string;
   /** 선택 사건이면 고른 선택지 문구. */
@@ -151,6 +153,8 @@ export type LogEntry = {
 export type PendingChoice = {
   eventId: string;
   dogId: string;
+  /** 두 아이가 함께하는 사건이면 다른 한 아이. */
+  partnerId?: string;
   month: number;
   tone: Tone;
   text: string;
@@ -163,7 +167,30 @@ export type PendingChoice = {
 export type ScheduledEvent = {
   eventId: string;
   dogId: string;
+  partnerId?: string;
   month: number;
+};
+
+/** 새 식구를 만나 이름 짓기를 기다리는 상태. 이름을 지으면 가족이 된다. */
+export type PendingMeeting = {
+  month: number;
+  eventId: string;
+  /** 새 식구를 들이게 된 사건의 주인공. 다음 달 첫 대면의 상대가 된다. */
+  hostId: string;
+  meeting: Meeting;
+};
+
+/** 함께 사는 두 아이 사이(0~100). */
+export type Pair = {
+  dogIds: readonly [string, string];
+  rapport: number;
+};
+
+/** 첫째가 떠난 뒤 남은 아이들의 견생을 빠르게 이어 본 이야기. */
+export type Epilogue = {
+  /** 남은 아이들의 마지막 모습 */
+  dogs: Dog[];
+  log: LogEntry[];
 };
 
 export type Mood = 'great' | 'good' | 'okay' | 'low';
@@ -179,18 +206,23 @@ export type RunStatus = 'running' | 'ended';
 
 /** 한 판의 전체 상태. 그대로 JSON으로 저장하고 다시 불러올 수 있다. */
 export type RunState = {
-  version: 1;
+  version: 2;
   seed: number;
   rngState: number;
   month: number;
   arc: Arc;
+  /** 첫째가 맨 앞. 새 식구는 판마다 두 번까지 늘어난다(최대 3마리). */
   dogs: Dog[];
+  pairs: Pair[];
   household: { ease: number; flags: string[] };
   log: LogEntry[];
   timeline: TimelineCell[];
   status: RunStatus;
   pendingChoice: PendingChoice | null;
+  pendingMeeting: PendingMeeting | null;
   scheduled: ScheduledEvent[];
   /** 마지막 선택 사건이 나온 달. 선택 카드가 너무 자주 뜨지 않게 한다. */
   lastChoiceMonth: number;
+  /** 판이 끝났을 때 남은 아이가 있으면 채운다. */
+  epilogue: Epilogue | null;
 };

@@ -4,17 +4,23 @@ import { ChoiceDialog } from '../components/ChoiceDialog';
 import { DogPortrait } from '../components/DogPortrait';
 import { breedLabel, portraitLabel } from '../components/labels';
 import { LifeMap } from '../components/LifeMap';
+import { NewcomerDialog } from '../components/NewcomerDialog';
 import { PortalLink } from '../components/PortalLink';
-import { StatBars } from '../components/StatBars';
+import { StatBars, type RapportRow } from '../components/StatBars';
 import {
   advanceMonth,
   autoChoose,
+  autoWelcome,
   choose,
   formatAge,
   formatMonths,
+  isAlive,
+  livingDogs,
   moodFor,
+  rapportBetween,
   STAGE_LABELS,
   traitLabel,
+  welcome,
   type RunState,
 } from '../engine';
 
@@ -30,17 +36,30 @@ export type PlayScreenProps = {
 
 const SPEEDS: readonly Speed[] = [1, 2, 4];
 const AUTO_DECIDE_DELAY_MS = 2400;
+/** 새 식구 카드는 읽을 거리가 많아 조금 더 오래 보여 준다. */
+const AUTO_WELCOME_DELAY_MS = 4000;
 const RECENT_LOG = 8;
+
+/** 지금 보고 있는 아이와 함께 사는 다른 아이들의 사이. */
+function rapportRows(run: RunState, dogId: string): RapportRow[] {
+  return livingDogs(run).flatMap((other) => {
+    const rapport = other.id === dogId ? undefined : rapportBetween(run, dogId, other.id);
+    return rapport === undefined ? [] : [{ id: other.id, name: other.name, rapport }];
+  });
+}
 
 export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProps) {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = usePreference<Speed>('speed', 1);
   const [autoDecide, setAutoDecide] = usePreference<boolean>('auto-decide', false);
   const [showAllLog, setShowAllLog] = useState(false);
+  const [selectedId, setSelectedId] = useState(run.dogs[0].id);
 
-  const dog = run.dogs[0];
+  // 고른 아이가 무지개다리를 건너면 첫째를 보여 준다.
+  const dog = run.dogs.find((entry) => entry.id === selectedId && isAlive(entry)) ?? run.dogs[0];
   const pending = run.pendingChoice;
-  const running = !paused && run.status === 'running' && !pending;
+  const newcomer = run.pendingMeeting;
+  const running = !paused && run.status === 'running' && !pending && !newcomer;
 
   useRunClock({ running, speed, onTick: () => onChange(advanceMonth) });
   useOnPageHidden(() => setPaused(true));
@@ -61,6 +80,36 @@ export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProp
       </nav>
 
       <main className="app__main">
+        {run.dogs.length > 1 && (
+          <div className="family-tabs" role="group" aria-label="우리 가족">
+            {run.dogs.map((member) => {
+              const gone = !isAlive(member);
+              return (
+                <button
+                  key={member.id}
+                  type="button"
+                  className="family-tab"
+                  aria-pressed={member.id === dog.id}
+                  disabled={gone}
+                  onClick={() => setSelectedId(member.id)}
+                >
+                  <DogPortrait
+                    className="family-tab__dog"
+                    framing="face"
+                    breedId={member.breedId}
+                    coatId={member.coatId}
+                    look={member.look}
+                    stage={member.stage}
+                    mood={moodFor(member.stats.happiness)}
+                  />
+                  <span className="family-tab__name">{member.name}</span>
+                  {gone && <span className="family-tab__note">강아지별</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         <section className="app__card play__hero" aria-labelledby="dog-name">
           <DogPortrait
             className="play__dog"
@@ -125,7 +174,11 @@ export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProp
           <h2 id="stats-title" className="section-title">
             지금 {dog.name}
           </h2>
-          <StatBars stats={dog.stats} ease={run.household.ease} />
+          <StatBars
+            stats={dog.stats}
+            ease={run.household.ease}
+            rapport={rapportRows(run, dog.id)}
+          />
         </section>
 
         <section className="app__card" aria-labelledby="map-title">
@@ -164,6 +217,22 @@ export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProp
           )}
         </section>
       </main>
+
+      {newcomer && (
+        <NewcomerDialog
+          pending={newcomer}
+          hostName={run.dogs.find((entry) => entry.id === newcomer.hostId)?.name ?? dog.name}
+          taken={run.dogs.map((entry) => entry.name)}
+          autoDeciding={autoDecide}
+          delayMs={AUTO_WELCOME_DELAY_MS / speed}
+          onWelcome={(name) =>
+            onChange((current) => (current.pendingMeeting ? welcome(current, name) : current))
+          }
+          onAuto={() =>
+            onChange((current) => (current.pendingMeeting ? autoWelcome(current) : current))
+          }
+        />
+      )}
 
       {pending && (
         <ChoiceDialog

@@ -887,6 +887,7 @@ export const EVENTS: readonly EventCard[] = [
   {
     id: 'move-house',
     category: 'family',
+    household: true,
     tones: ['calm', 'cheerful'],
     stages: ['adult'],
     when: { householdExcludes: ['yard', 'stayed'] },
@@ -920,6 +921,7 @@ export const EVENTS: readonly EventCard[] = [
   {
     id: 'new-job',
     category: 'family',
+    household: true,
     tones: ['calm'],
     stages: ['young', 'adult', 'senior'],
     text: ['새 일을 시작하게 됐어요. 집을 비우는 시간이 길어져요.'],
@@ -958,6 +960,7 @@ export const EVENTS: readonly EventCard[] = [
   {
     id: 'new-baby',
     category: 'family',
+    household: true,
     tones: ['cheerful', 'touching'],
     stages: ['adult', 'senior'],
     text: ['집에 아기가 태어났어요! {name:은/는} 낯선 울음소리에 귀를 쫑긋 세웠어요.'],
@@ -997,6 +1000,7 @@ export const EVENTS: readonly EventCard[] = [
   {
     id: 'trip',
     category: 'family',
+    household: true,
     tones: ['cheerful'],
     stages: ['young', 'adult', 'senior'],
     when: { min: { ease: 45 } },
@@ -1033,6 +1037,357 @@ export const EVENTS: readonly EventCard[] = [
         ],
       },
     ],
+  },
+
+  // ─── 다견가정 ─────────────────────────────────────────────────
+  // 새 식구 사건은 판이 진행 중이고 가족이 셋보다 적을 때만 나온다(엔진이 막는다).
+  // 첫째가 1살이 넘고 여유가 있을 때 열리며, 언제나 들이지 않는 선택지도 있다.
+  {
+    id: 'new-family',
+    category: 'multi',
+    household: true,
+    tones: ['cheerful', 'touching'],
+    stages: ['young', 'adult', 'senior'],
+    when: { minTogether: 12, min: { ease: 50 } },
+    weight: 0.5,
+    text: ['{name:이/가} 산책길 친구들을 유난히 반가워해요. 새 식구를 들여 볼까요?'],
+    choices: [
+      {
+        id: 'senior',
+        label: '보호소에서 오래 기다린 나이 지긋한 아이 입양하기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '보호소 구석에서 조용히 기다리던 아이와 눈이 마주쳤어요.',
+            effects: { ease: -10, adopt: { route: 'shelter', senior: true } },
+          },
+        ],
+      },
+      {
+        id: 'rural',
+        label: '시골 마당에서 태어난 새끼 데려오기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '할머니 댁 마당에서 꼬물거리던 아기 하나가 졸졸 따라왔어요.',
+            effects: { ease: -10, adopt: { route: 'rural' } },
+          },
+        ],
+      },
+      {
+        id: 'focus',
+        label: '지금은 {name}에게 집중하기',
+        autoWeight: 2,
+        outcomes: [
+          {
+            weight: 1,
+            text: '{name:과/와} 보내는 시간을 더 늘리기로 했어요. 오늘은 산책을 한 바퀴 더 돌았어요.',
+            effects: { bond: 4, happiness: 2 },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'found-stray',
+    category: 'multi',
+    household: true,
+    tones: ['touching', 'calm'],
+    stages: ['young', 'adult', 'senior'],
+    when: { minTogether: 12, min: { ease: 50 } },
+    weight: 0.35,
+    text: ['비 오는 날, {name:이/가} 혼자 떨고 있는 강아지를 먼저 알아봤어요.'],
+    choices: [
+      {
+        id: 'family',
+        label: '주인을 찾아보고, 소식이 없으면 가족으로 맞기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '전단지를 붙이고 기다렸지만 소식이 없었어요. 이제 이 아이도 우리 식구예요.',
+            effects: { ease: -10, adopt: { route: 'rescue' } },
+          },
+          {
+            weight: 1,
+            text: '며칠 뒤 주인이 한달음에 찾아왔어요. {name:이/가} 찾아낸 덕분이에요.',
+            effects: { happiness: 3, bond: 2 },
+            memorable: true,
+          },
+        ],
+      },
+      {
+        id: 'rescue-group',
+        label: '구조 단체와 함께 좋은 가족 찾아 주기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '임시 보호를 거쳐 좋은 가족을 만났대요. 가끔 오는 사진 속 얼굴이 환해요.',
+            effects: { happiness: 2, ease: -2 },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'litter-news',
+    category: 'multi',
+    household: true,
+    tones: ['cheerful'],
+    stages: ['young', 'adult', 'senior'],
+    when: { minTogether: 12, min: { ease: 55 } },
+    weight: 0.35,
+    text: ['아는 분 댁에 아기 강아지들이 태어났대요. 한 마리 데려가지 않겠냐고 물어 왔어요.'],
+    choices: [
+      {
+        id: 'bring',
+        label: '{name:과/와} 잘 지낼지 먼저 만나 보고 데려오기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '{name:이/가} 아기 냄새를 한참 맡더니 꼬리를 흔들었어요. 그날 바로 데려왔어요.',
+            effects: { ease: -10, adopt: { route: 'acquaintance' } },
+          },
+        ],
+      },
+      {
+        id: 'congrats',
+        label: '축하 간식만 보내고 사진으로 지켜보기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '꼬물이 사진이 매주 도착해요. {name:은/는} 화면 속 아기들 냄새를 맡으려 해요.',
+            effects: { happiness: 1 },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    // 새 식구가 온 다음 달, 새 식구를 들이게 된 아이와 처음 인사한다(일정으로만 온다).
+    id: 'first-meeting',
+    category: 'multi',
+    tones: ['cheerful', 'touching'],
+    stages: ['puppy', 'young', 'adult', 'senior', 'elderly'],
+    pair: true,
+    weight: 0,
+    once: false,
+    cooldown: 1,
+    memorable: true,
+    text: ['{name:과/와} {other:이/가} 처음 인사하는 날이에요. 어떻게 만나게 할까요?'],
+    choices: [
+      {
+        id: 'park',
+        label: '동네 공원에서 나란히 걸으며 인사시키기',
+        outcomes: [
+          {
+            weight: 2,
+            favoredBy: 'sociability',
+            text: '나란히 걷다 보니 어느새 코를 맞대고 있었어요. 첫인사 성공!',
+            effects: { rapport: 10, happiness: 2, shared: true },
+          },
+          {
+            weight: 1,
+            hinderedBy: 'sociability',
+            text: '{name:은/는} 한동안 {other:을/를} 못 본 척했어요. 그래도 같은 길을 끝까지 함께 걸었어요.',
+            effects: { rapport: 4 },
+          },
+        ],
+      },
+      {
+        id: 'slow',
+        label: '울타리 너머로 냄새부터 천천히 익히게 하기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '며칠 동안 냄새만 맡더니, 어느 날 {name:이/가} 먼저 장난감을 {other}에게 밀어 줬어요.',
+            effects: { rapport: 7, bond: 1 },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'food-rank',
+    category: 'multi',
+    tones: ['cheerful', 'calm'],
+    stages: ['puppy', 'young', 'adult', 'senior'],
+    pair: true,
+    when: { firstInHouse: true },
+    text: ['밥그릇 앞에서 {name:과/와} {other}의 신경전이 시작됐어요. 서로 상대 그릇이 더 맛있어 보이나 봐요.'],
+    choices: [
+      {
+        id: 'apart',
+        label: '밥 먹는 자리를 멀찍이 나눠 주기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '각자 자리에서 먹으니 평화가 찾아왔어요. 다 먹으면 서로 그릇 검사를 하러 가요.',
+            effects: { rapport: 5, happiness: 1, shared: true },
+          },
+        ],
+      },
+      {
+        id: 'order',
+        label: '먼저 온 아이부터 차례로 챙겨 주기',
+        outcomes: [
+          {
+            weight: 2,
+            favoredBy: 'rapport',
+            text: '순서가 생기자 둘 다 얌전히 기다려요. 이 집만의 규칙이 생겼어요.',
+            effects: { rapport: 4, bond: 2, shared: true },
+          },
+          {
+            weight: 1,
+            hinderedBy: 'rapport',
+            text: '{other:이/가} 조금 서운했나 봐요. 대신 간식 시간엔 {other}부터 챙겼어요.',
+            effects: { rapport: 1, happiness: 1 },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'walk-pace',
+    category: 'multi',
+    tones: ['calm', 'touching'],
+    stages: ['senior', 'elderly'],
+    pair: true,
+    when: { partnerStages: ['puppy', 'young', 'adult'] },
+    text: ['{name}의 걸음이 느려졌어요. {other:은/는} 아직 한참 더 뛰고 싶어 해요.'],
+    choices: [
+      {
+        id: 'together',
+        label: '{name}의 속도에 맞춰 다 같이 천천히 걷기',
+        outcomes: [
+          {
+            weight: 2,
+            favoredBy: 'rapport',
+            text: '{other:이/가} 앞서가다 돌아와 {name:을/를} 기다려 줘요. 다 같이 같은 속도로 걸어요.',
+            effects: { rapport: 4, happiness: 2, bond: 1 },
+            memorable: true,
+          },
+          {
+            weight: 1,
+            hinderedBy: 'rapport',
+            text: '{other:은/는} 조금 답답해했지만, 돌아오는 길엔 {name} 옆에 붙어 걸었어요.',
+            effects: { rapport: 2, happiness: 1 },
+          },
+        ],
+      },
+      {
+        id: 'separate',
+        label: '한 번씩 따로 나가 각자 속도로 걷기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '{name:은/는} 느긋한 냄새 산책을, {other:은/는} 신나는 달리기를 했어요.',
+            effects: { happiness: 3, ease: -3, shared: true },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'partner-mischief',
+    category: 'multi',
+    tones: ['cheerful'],
+    stages: ['puppy', 'young', 'adult'],
+    pair: true,
+    weight: 2.5,
+    boostTraits: ['mischief'],
+    text: [
+      '{name:과/와} {other:이/가} 힘을 합쳐 휴지 한 통을 눈밭으로 만들었어요. 범인은 둘 다예요.',
+      '{name:이/가} 망을 보고 {other:이/가} 식탁 위 빵을 노렸어요. 작전은 반쯤 성공했어요.',
+    ],
+    effects: { rapport: 3, happiness: 2, ease: -1, shared: true },
+  },
+  {
+    id: 'tug-of-war',
+    category: 'multi',
+    tones: ['cheerful'],
+    stages: ['puppy', 'young', 'adult', 'senior'],
+    pair: true,
+    weight: 2.5,
+    text: ['인형 하나를 두고 {name:과/와} {other}의 줄다리기가 한참이에요. 결국 인형이 둘로 나뉘었어요.'],
+    effects: { rapport: 1, happiness: 2, shared: true },
+  },
+  {
+    id: 'nap-pile',
+    category: 'multi',
+    tones: ['calm'],
+    stages: ['puppy', 'young', 'adult', 'senior', 'elderly'],
+    pair: true,
+    weight: 2.5,
+    when: { min: { rapport: 55 } },
+    text: [
+      '{name:과/와} {other:이/가} 등을 맞대고 낮잠을 자요. 숨소리 박자까지 똑같아요.',
+      '햇볕 드는 자리에 {name:과/와} {other:이/가} 포개져 잠들었어요.',
+    ],
+    effects: { rapport: 2, happiness: 2, shared: true },
+  },
+  {
+    id: 'jealous',
+    category: 'multi',
+    tones: ['calm'],
+    stages: ['young', 'adult', 'senior', 'elderly'],
+    pair: true,
+    weight: 2,
+    when: { max: { rapport: 50 } },
+    boostTraits: ['clingy'],
+    text: ['{other:이/가} 쓰다듬을 받자 {name:이/가} 그 사이로 쏙 끼어들었어요. 손은 두 개니까 괜찮아요.'],
+    effects: { bond: 1, rapport: -2 },
+  },
+  {
+    id: 'guide-walk',
+    category: 'multi',
+    tones: ['calm', 'touching'],
+    stages: ['young', 'adult', 'senior'],
+    pair: true,
+    weight: 2,
+    when: { min: { rapport: 50 }, firstInHouse: true },
+    text: ['{name:이/가} {other}에게 동네 냄새 명소를 하나하나 알려 줘요.'],
+    effects: { rapport: 3, sociability: 2, shared: true },
+  },
+  {
+    id: 'look-after',
+    category: 'multi',
+    tones: ['touching'],
+    stages: ['senior', 'elderly'],
+    pair: true,
+    weight: 2,
+    when: { min: { rapport: 55 } },
+    once: true,
+    memorable: true,
+    text: ['낮잠이 길어진 {name} 곁을 {other:이/가} 하루 종일 지켜요. 가끔 코로 살짝 쿡 찔러 봐요.'],
+    effects: { rapport: 3, happiness: 3, bond: 1 },
+  },
+  {
+    // 먼저 떠난 아이({other})를 남은 아이가 그리워한다(일정으로만 온다).
+    id: 'missing-friend',
+    category: 'multi',
+    tones: ['touching'],
+    stages: ['puppy', 'young', 'adult', 'senior', 'elderly'],
+    pair: true,
+    weight: 0,
+    cooldown: 1,
+    memorable: true,
+    text: [
+      '{name:이/가} 한동안 {other}의 방석 냄새를 맡고 다녀요. 그 자리에 {other}의 담요를 깔아 줬어요.',
+      '{name:이/가} 현관 앞에서 {other:을/를} 기다리는 날이 많아졌어요. 산책을 조금 더 길게 하기로 했어요.',
+    ],
+    effects: { happiness: -4, bond: 3 },
+  },
+  {
+    id: 'late-bloom',
+    category: 'senior',
+    tones: ['touching'],
+    stages: ['senior', 'elderly'],
+    when: { requires: ['senior-adopted'], minTogether: 3, maxTogether: 18 },
+    weight: 2,
+    once: true,
+    memorable: true,
+    text: ['{name:이/가} 우리 집에 온 뒤 처음으로 배를 보이고 잠들었어요. 늦게 만났지만 늦지 않았어요.'],
+    effects: { happiness: 4, bond: 4 },
   },
 
   // ─── 노견 ─────────────────────────────────────────────────────

@@ -27,12 +27,13 @@ export function isRunState(value: unknown): value is RunState {
   }
   const run = value as Partial<RunState>;
   return (
-    run.version === 1 &&
+    run.version === 2 &&
     typeof run.seed === 'number' &&
     typeof run.rngState === 'number' &&
     typeof run.month === 'number' &&
     Array.isArray(run.dogs) &&
     run.dogs.length > 0 &&
+    Array.isArray(run.pairs) &&
     Array.isArray(run.log) &&
     Array.isArray(run.timeline) &&
     Array.isArray(run.scheduled) &&

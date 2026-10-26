@@ -1,14 +1,19 @@
+import { runAwaitingNewcomer } from '../test/runs';
 import { getBreed } from './data/breeds';
 import { MIN_MONTHS_TOGETHER } from './meeting';
 import { EVENTS } from './events/catalog';
+import { NEWCOMER_GAP } from './events/picker';
+import { MAX_DOGS } from './family';
 import {
   advanceMonth,
   advanceUntilChoice,
   autoChoose,
+  autoWelcome,
   choose,
   previewMeeting,
   simulateToEnd,
   startRun,
+  welcome,
 } from './simulation';
 import type { RunState } from './types';
 
@@ -101,7 +106,9 @@ describe('a whole life', () => {
   it('logs life stages in order and yearly birthdays', () => {
     const order = ['young', 'adult', 'senior', 'elderly'];
     for (const run of runs.slice(0, 50)) {
-      const stageTexts = run.log.filter((entry) => entry.kind === 'stage');
+      const stageTexts = run.log.filter(
+        (entry) => entry.kind === 'stage' && entry.dogId === run.dogs[0].id,
+      );
       const seen = stageTexts.map((entry) =>
         order.findIndex((stage) =>
           entry.text.includes(
@@ -116,10 +123,16 @@ describe('a whole life', () => {
 
   it('never logs a birthday in the month a dog passes', () => {
     for (const run of runs) {
-      const passedMonth = run.dogs[0].passedMonth;
-      expect(
-        run.log.some((entry) => entry.kind === 'birthday' && entry.month === passedMonth),
-      ).toBe(false);
+      for (const dog of run.dogs) {
+        expect(
+          run.log.some(
+            (entry) =>
+              entry.kind === 'birthday' &&
+              entry.dogId === dog.id &&
+              entry.month === dog.passedMonth,
+          ),
+        ).toBe(false);
+      }
     }
   });
 
@@ -228,5 +241,144 @@ describe('saying goodbye', () => {
       }
     }
     expect(asked).toBeGreaterThan(0);
+  });
+});
+
+describe('a family of dogs', () => {
+  const runs = Array.from({ length: 400 }, (_, i) =>
+    simulateToEnd(startRun({ seed: 3000 + i, name: '보리' })),
+  );
+  const families = runs.filter((run) => run.dogs.length > 1);
+
+  it('welcomes new family members now and then, never more than three dogs', () => {
+    expect(families.length / runs.length).toBeGreaterThan(0.3);
+    expect(families.length / runs.length).toBeLessThan(0.85);
+    expect(runs.some((run) => run.dogs.length === MAX_DOGS)).toBe(true);
+    for (const run of runs) {
+      expect(run.dogs.length).toBeLessThanOrEqual(MAX_DOGS);
+      expect(new Set(run.dogs.map((dog) => dog.name)).size).toBe(run.dogs.length);
+    }
+  });
+
+  it('only after the first dog has been home a year, and two years apart', () => {
+    for (const run of families) {
+      const joined = run.dogs.slice(1).map((dog) => dog.joinedMonth);
+      expect(joined[0]).toBeGreaterThanOrEqual(12);
+      if (joined.length === 2) {
+        expect(joined[1] - joined[0]).toBeGreaterThanOrEqual(NEWCOMER_GAP);
+      }
+    }
+  });
+
+  it('keeps how close every two dogs are between 0 and 100', () => {
+    for (const run of families) {
+      // 새 식구는 그때 집에 있던 아이들과만 사이가 생긴다(첫째는 판 내내 집에 있다).
+      const dogs = run.dogs.length;
+      expect(run.pairs.length).toBeGreaterThanOrEqual(dogs - 1);
+      expect(run.pairs.length).toBeLessThanOrEqual((dogs * (dogs - 1)) / 2);
+      for (const pair of run.pairs) {
+        expect(pair.rapport).toBeGreaterThanOrEqual(0);
+        expect(pair.rapport).toBeLessThanOrEqual(100);
+      }
+    }
+    expect(families.some((run) => run.log.some((entry) => entry.partnerId))).toBe(true);
+  });
+
+  it("ends with the first dog's life and tells the rest of the others' lives", () => {
+    for (const run of runs) {
+      expect(run.status).toBe('ended');
+      expect(run.dogs[0].passedMonth).toBe(run.month);
+      const remaining = run.dogs.filter((dog) => dog.passedMonth === null);
+      if (remaining.length === 0) {
+        expect(run.epilogue).toBeNull();
+        continue;
+      }
+      const epilogue = run.epilogue!;
+      expect(epilogue.dogs.map((dog) => dog.id)).toEqual(remaining.map((dog) => dog.id));
+      for (const dog of epilogue.dogs) {
+        expect(dog.passedMonth).toBeGreaterThan(run.month);
+        // 첫째를 그리워하는 이야기는 다음 달부터 한 아이씩 온다(그 전에 떠나는 아이는 빼고).
+        if (dog.passedMonth! > run.month + epilogue.dogs.length) {
+          expect(
+            epilogue.log.some(
+              (entry) =>
+                entry.eventId === 'missing-friend' &&
+                entry.dogId === dog.id &&
+                entry.partnerId === run.dogs[0].id,
+            ),
+          ).toBe(true);
+        }
+      }
+      expect(epilogue.log.every((entry) => entry.month > run.month)).toBe(true);
+      expect(run.timeline).toHaveLength(run.month + 1);
+    }
+    expect(runs.some((run) => run.epilogue)).toBe(true);
+  });
+
+  it('lets the others remember a dog that leaves before the first', () => {
+    const leftEarly = (run: RunState) =>
+      run.dogs.find(
+        (dog, i) => i > 0 && dog.passedMonth !== null && dog.passedMonth < run.month,
+      );
+    const early = families.filter(leftEarly);
+    expect(early.length).toBeGreaterThan(0);
+    for (const run of early) {
+      const gone = leftEarly(run)!;
+      expect(run.log.some((entry) => entry.kind === 'passed' && entry.dogId === gone.id)).toBe(
+        true,
+      );
+    }
+    expect(
+      early.some((run) =>
+        run.log.some((entry) => entry.eventId === 'missing-friend' && entry.partnerId),
+      ),
+    ).toBe(true);
+  });
+});
+
+describe('welcoming a newcomer', () => {
+  const waiting = runAwaitingNewcomer();
+  const pending = waiting.pendingMeeting!;
+
+  it('waits for a name before time moves on', () => {
+    expect(advanceMonth(waiting)).toBe(waiting);
+    expect(advanceUntilChoice(waiting)).toBe(waiting);
+    expect(pending.meeting.suggestedNames).not.toContain('보리');
+    const restored = JSON.parse(JSON.stringify(waiting)) as RunState;
+    expect(simulateToEnd(restored)).toEqual(simulateToEnd(waiting));
+  });
+
+  it('adds the named dog, a rapport with each dog at home and a first meeting', () => {
+    const after = welcome(waiting, '  두부 ');
+    const newcomer = after.dogs.at(-1)!;
+    expect(after.pendingMeeting).toBeNull();
+    expect(after.dogs).toHaveLength(waiting.dogs.length + 1);
+    expect(newcomer).toMatchObject({
+      name: '두부',
+      breedId: pending.meeting.breedId,
+      joinedMonth: waiting.month,
+      passedMonth: null,
+    });
+    expect(after.pairs.filter((pair) => pair.dogIds.includes(newcomer.id))).toHaveLength(
+      waiting.dogs.filter((dog) => dog.passedMonth === null).length,
+    );
+    expect(after.log.at(-1)).toMatchObject({ kind: 'meet', dogId: newcomer.id, memorable: true });
+    expect(after.log.at(-1)!.text).toContain('두부가 새 식구가 됐어요.');
+
+    const meeting = advanceUntilChoice(after);
+    expect(meeting.pendingChoice).toMatchObject({
+      eventId: 'first-meeting',
+      dogId: pending.hostId,
+      partnerId: newcomer.id,
+    });
+    expect(meeting.pendingChoice!.text).toContain('두부');
+  });
+
+  it('uses a suggested name when the name is blank or already taken', () => {
+    const suggested = pending.meeting.suggestedNames[0];
+    expect(welcome(waiting, '보리').dogs.at(-1)!.name).toBe(suggested);
+    expect(welcome(waiting, '   ').dogs.at(-1)!.name).toBe(suggested);
+    expect(autoWelcome(waiting)).toEqual(welcome(waiting, ''));
+    expect(() => welcome(welcome(waiting, '두부'), '콩')).toThrow();
   });
 });

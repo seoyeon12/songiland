@@ -8,12 +8,21 @@ export type DogPortraitProps = {
   look: Look;
   stage: Stage;
   mood: Mood;
-  /** 화면 낭독기용 설명. */
-  label: string;
+  /** 화면 낭독기용 설명. 없으면 장식으로 보고 낭독기에서 숨긴다. */
+  label?: string;
   className?: string;
+  /** 'face'는 머리와 귀만 보이게 잘라 작은 동그라미(가족 탭)에 쓴다. */
+  framing?: 'full' | 'face';
 };
 
 const SCALE: Record<Size, number> = { toy: 0.72, small: 0.82, medium: 0.92, large: 1 };
+
+/** 머리(가운데 100,86)와 귀를 감싸는 자리. 몸 크기 비율(발끝 190 기준)을 따라 옮긴다. */
+function faceViewBox(scale: number): string {
+  const centerY = 190 - 110 * scale;
+  const half = 58 * scale;
+  return `${100 - half} ${centerY - half} ${half * 2} ${half * 2}`;
+}
 
 const INK = '#2b2724';
 const TONGUE = '#f08a8a';
@@ -222,7 +231,16 @@ function Pattern({ coat, palette }: { coat: Coat; palette: Palette }) {
  * 견종 정보로 그리는 강아지 한 마리(정면, 앉은 자세). 외부 그림을 쓰지 않는 자체 SVG다.
  * 체급·귀·털·털색·무늬·꼬리·다리를 견종대로, 노년에는 주둥이가 하얗게, 표정은 행복도대로 바뀐다.
  */
-export function DogPortrait({ breedId, coatId, look, stage, mood, label, className }: DogPortraitProps) {
+export function DogPortrait({
+  breedId,
+  coatId,
+  look,
+  stage,
+  mood,
+  label,
+  className,
+  framing = 'full',
+}: DogPortraitProps) {
   const breed = getBreed(breedId);
   const coat = getCoat(breed, coatId);
   const palette = paletteFor(coat);
@@ -234,9 +252,8 @@ export function DogPortrait({ breedId, coatId, look, stage, mood, label, classNa
   return (
     <svg
       className={className}
-      viewBox="0 0 200 200"
-      role="img"
-      aria-label={label}
+      viewBox={framing === 'face' ? faceViewBox(scale) : '0 0 200 200'}
+      {...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true })}
       xmlns="http://www.w3.org/2000/svg"
     >
       <ellipse cx={100} cy={192} rx={58} ry={6} fill="rgba(28, 27, 25, 0.08)" />

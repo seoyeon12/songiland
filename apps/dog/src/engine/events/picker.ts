@@ -1,11 +1,38 @@
 import { toneWeights } from '../data/arcs';
 import { getBreed } from '../data/breeds';
+import { MAX_DOGS, rapportBetween } from '../family';
 import type { Rng } from '../rng';
-import type { Arc, Dog, RunState, StatKey, Tone } from '../types';
+import type { Arc, Dog, RunState, Tone } from '../types';
 import { EVENTS } from './catalog';
-import type { Condition, EventCard, Outcome } from './types';
+import type { BoundKey, Condition, EventCard, Outcome } from './types';
 
 const EVENT_BY_ID = new Map(EVENTS.map((event) => [event.id, event]));
+
+/** 새 식구를 들일 수 있는 사건. */
+const ADOPTING = new Set(
+  EVENTS.filter((event) =>
+    event.choices?.some((choice) => choice.outcomes.some((outcome) => outcome.effects?.adopt)),
+  ).map((event) => event.id),
+);
+
+/** 새 식구 사건은 견생에서 두 번까지, 앞의 사건과 2년 넘게 떨어져서 열린다. */
+export const NEWCOMER_OFFERS = 2;
+export const NEWCOMER_GAP = 24;
+
+/**
+ * 지금 새 식구 사건이 열릴 수 있는지. 판이 진행 중이고, 가족이 셋보다 적고, 지난 새 식구
+ * 사건(들였든 아니든)이 두 번보다 적고 2년 넘게 지났을 때.
+ */
+export function newcomerOpen(state: RunState): boolean {
+  if (state.status !== 'running' || state.dogs.length >= MAX_DOGS) {
+    return false;
+  }
+  const offers = state.log.filter(
+    (entry) => entry.kind === 'choice' && entry.eventId && ADOPTING.has(entry.eventId),
+  );
+  const last = offers.at(-1);
+  return offers.length < NEWCOMER_OFFERS && (!last || state.month - last.month >= NEWCOMER_GAP);
+}
 
 export function getEvent(id: string): EventCard {
   const event = EVENT_BY_ID.get(id);
@@ -28,14 +55,26 @@ export function lifeProgress(dog: Dog): number {
   return Math.min(1, Math.max(0, (dog.ageMonths - dog.metAgeMonths) / span));
 }
 
-function statValue(dog: Dog, state: RunState, key: StatKey | 'ease'): number {
-  return key === 'ease' ? state.household.ease : dog.stats[key];
+function boundValue(
+  dog: Dog,
+  state: RunState,
+  key: BoundKey,
+  partner: Dog | undefined,
+): number | undefined {
+  if (key === 'ease') {
+    return state.household.ease;
+  }
+  if (key === 'rapport') {
+    return partner ? rapportBetween(state, dog.id, partner.id) : undefined;
+  }
+  return dog.stats[key];
 }
 
 export function meetsCondition(
   when: Condition | undefined,
   dog: Dog,
   state: RunState,
+  partner?: Dog,
 ): boolean {
   if (!when) {
     return true;
@@ -63,13 +102,19 @@ export function meetsCondition(
     return false;
   }
   for (const [key, value] of Object.entries(when.min ?? {})) {
-    if (statValue(dog, state, key as StatKey | 'ease') < value) return false;
+    const current = boundValue(dog, state, key as BoundKey, partner);
+    if (current === undefined || current < value) return false;
   }
   for (const [key, value] of Object.entries(when.max ?? {})) {
-    if (statValue(dog, state, key as StatKey | 'ease') > value) return false;
+    const current = boundValue(dog, state, key as BoundKey, partner);
+    if (current === undefined || current > value) return false;
   }
   if (when.minTogether !== undefined && together < when.minTogether) return false;
   if (when.maxTogether !== undefined && together > when.maxTogether) return false;
+  if (when.partnerStages && (!partner || !when.partnerStages.includes(partner.stage))) {
+    return false;
+  }
+  if (when.firstInHouse && (!partner || dog.joinedMonth >= partner.joinedMonth)) return false;
   return true;
 }
 
@@ -86,11 +131,23 @@ export function isRepeatAllowed(event: EventCard, dog: Dog, month: number): bool
   return month - last >= (event.cooldown ?? 24);
 }
 
-export function isAvailable(event: EventCard, dog: Dog, state: RunState): boolean {
+/**
+ * 이 아이에게 지금 이 사건이 일어날 수 있는지. 짝 사건은 짝이 있어야 하고 둘 다, 집 사건은
+ * 가족 모두가 한동안 같은 사건을 겪지 않았어야 한다. 새 식구 사건은 newcomerOpen일 때만.
+ */
+export function isAvailable(event: EventCard, dog: Dog, state: RunState, partner?: Dog): boolean {
+  if (event.pair && !partner) {
+    return false;
+  }
+  if (ADOPTING.has(event.id) && !newcomerOpen(state)) {
+    return false;
+  }
+  const mate = event.pair ? partner : undefined;
+  const witnesses = event.household ? state.dogs : mate ? [dog, mate] : [dog];
   return (
     event.stages.includes(dog.stage) &&
-    isRepeatAllowed(event, dog, state.month) &&
-    meetsCondition(event.when, dog, state)
+    witnesses.every((witness) => isRepeatAllowed(event, witness, state.month)) &&
+    meetsCondition(event.when, dog, state, mate)
   );
 }
 
@@ -128,14 +185,16 @@ export function pickByTone(
   return { event, tone };
 }
 
-/** 능력치가 결과 확률을 기울인다. 0.5배~1.5배 사이. */
-export function outcomeWeight(outcome: Outcome, dog: Dog): number {
+/** 능력치(짝 사건이면 사이도)가 결과 확률을 기울인다. 0.5배~1.5배 사이. */
+export function outcomeWeight(outcome: Outcome, dog: Dog, rapport?: number): number {
+  const value = (key: NonNullable<Outcome['favoredBy']>) =>
+    key === 'rapport' ? (rapport ?? 50) : dog.stats[key];
   let weight = outcome.weight;
   if (outcome.favoredBy) {
-    weight *= 0.5 + dog.stats[outcome.favoredBy] / 100;
+    weight *= 0.5 + value(outcome.favoredBy) / 100;
   }
   if (outcome.hinderedBy) {
-    weight *= 1.5 - dog.stats[outcome.hinderedBy] / 100;
+    weight *= 1.5 - value(outcome.hinderedBy) / 100;
   }
   return weight;
 }

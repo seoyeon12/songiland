@@ -2,6 +2,7 @@ import { BREEDS, getBreed } from './data/breeds';
 import { traitsConflict } from './data/traits';
 import { drawMeeting, nicknameFor } from './meeting';
 import { createRng } from './rng';
+import { stageStart } from './stages';
 import type { Meeting } from './types';
 
 function sample(count: number, seed = 2026): Meeting[] {
@@ -63,6 +64,38 @@ describe('drawMeeting', () => {
     expect(bichons.some((m) => m.suggestedNames.includes('송이'))).toBe(true);
     const others = meetings.filter((m) => m.breedId !== 'bichon');
     expect(others.some((m) => m.suggestedNames.includes('송이'))).toBe(false);
+  });
+});
+
+describe('drawMeeting for a new family member', () => {
+  const draw = (wish: Parameters<typeof drawMeeting>[1], count = 500) =>
+    Array.from({ length: count }, (_, i) => drawMeeting(createRng(800 + i), wish));
+
+  it('meets the wished route, and only breeds that can be met that way', () => {
+    for (const meeting of draw({ route: 'rural' })) {
+      expect(meeting.route).toBe('rural');
+      expect(getBreed(meeting.breedId).family).not.toBe('purebred');
+      expect(meeting.nickname === '시고르자브종' || meeting.nickname === null).toBe(true);
+    }
+    expect(draw({ route: 'rural' }).some((m) => m.nickname === '시고르자브종')).toBe(true);
+  });
+
+  it('meets a senior at the shelter when asked', () => {
+    for (const meeting of draw({ route: 'shelter', senior: true })) {
+      expect(meeting.route).toBe('shelter');
+      expect(meeting.ageMonths).toBeGreaterThanOrEqual(
+        stageStart(getBreed(meeting.breedId).size, 'senior'),
+      );
+    }
+  });
+
+  it('never suggests a name already in the family', () => {
+    for (const meeting of draw({ takenNames: ['콩이', '보리', '송이'] })) {
+      expect(meeting.suggestedNames).not.toContain('콩이');
+      expect(meeting.suggestedNames).not.toContain('보리');
+      expect(meeting.suggestedNames).not.toContain('송이');
+      expect(meeting.suggestedNames).toHaveLength(4);
+    }
   });
 });
 

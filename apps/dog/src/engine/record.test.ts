@@ -1,5 +1,6 @@
 import { formatAge, formatMonths, summarize } from './record';
 import { simulateToEnd, startRun } from './simulation';
+import type { RunState } from './types';
 
 it('formats ages like people say them', () => {
   expect(formatAge(4)).toBe('4개월');
@@ -25,4 +26,34 @@ it('summarizes a finished life for the ending card', () => {
   expect(record.highlights.length).toBeGreaterThan(0);
   expect(record.highlights.length).toBeLessThanOrEqual(3);
   expect(record.choicesMade).toBeGreaterThan(0);
+});
+
+it('keeps a record card for every other dog in the family', () => {
+  const runs: RunState[] = [];
+  for (let seed = 3000; runs.length < 2 && seed < 3400; seed += 1) {
+    const run = simulateToEnd(startRun({ seed, name: '두부' }));
+    const leftFirst = run.dogs.slice(1).some((dog) => dog.passedMonth !== null);
+    if (run.epilogue || leftFirst) {
+      runs.push(run);
+    }
+  }
+  expect(runs.length).toBe(2);
+  for (const run of runs) {
+    const record = summarize(run);
+    expect(record.family).toHaveLength(run.dogs.length - 1);
+    for (const member of record.family) {
+      expect(member.dog.passedMonth).not.toBeNull();
+      expect(member.farewell).not.toBeNull();
+      expect(member.summary.monthsTogether).toBe(member.dog.ageMonths - member.dog.metAgeMonths);
+      expect(member.highlights.length).toBeGreaterThan(0);
+      expect(member.highlights.every((moment) => moment.month <= member.dog.passedMonth!)).toBe(
+        true,
+      );
+      if (member.leftFirst) {
+        expect(member.monthsAfter).toBe(0);
+      } else {
+        expect(member.monthsAfter).toBe(member.dog.passedMonth! - run.month);
+      }
+    }
+  }
 });

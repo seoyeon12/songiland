@@ -20,8 +20,17 @@ const JINDO_COAT_IDS = new Set(JINDO_COATS.map((coat) => coat.id));
 /** 강아지가 우리와 최소한 함께 지내는 기간(개월). 노견 입양도 짧게나마 이야기가 있게 한다. */
 export const MIN_MONTHS_TOGETHER = 24;
 
+/** 시니어 입양: 시니어 시작 나이부터, 함께할 시간이 남도록 최소 수명보다 넉넉히 앞에서. */
+function drawSeniorAgeMonths(rng: Rng, breed: Breed): number {
+  const from = stageStart(breed.size, 'senior');
+  const to = Math.max(
+    from,
+    Math.min(from + 36, breed.lifespanYears[0] * 12 - MIN_MONTHS_TOGETHER - 6),
+  );
+  return rng.intRange(from, to);
+}
+
 function drawAgeMonths(rng: Rng, breed: Breed, route: Route): number {
-  const minLifespan = breed.lifespanYears[0] * 12;
   switch (route) {
     case 'rural':
     case 'acquaintance':
@@ -36,10 +45,7 @@ function drawAgeMonths(rng: Rng, breed: Breed, route: Route): number {
       if (roll < 0.85) {
         return rng.intRange(12, 72);
       }
-      // 시니어 입양: 시니어 시작 나이부터, 함께할 시간이 남도록 최소 수명보다 넉넉히 앞에서.
-      const from = stageStart(breed.size, 'senior');
-      const to = Math.max(from, Math.min(from + 36, minLifespan - MIN_MONTHS_TOGETHER - 6));
-      return rng.intRange(from, to);
+      return drawSeniorAgeMonths(rng, breed);
     }
   }
 }
@@ -92,10 +98,10 @@ function routeIntro(route: Route, ageMonths: number, breed: Breed): string {
   }
 }
 
-function suggestNames(rng: Rng, breed: Breed): string[] {
-  const pool = [...NAME_POOL];
+function suggestNames(rng: Rng, breed: Breed, taken: readonly string[]): string[] {
+  const pool = NAME_POOL.filter((name) => !taken.includes(name));
   const names: string[] = [];
-  if (breed.id === 'bichon' && rng.chance(SONGI_EASTER_EGG_CHANCE)) {
+  if (breed.id === 'bichon' && rng.chance(SONGI_EASTER_EGG_CHANCE) && !taken.includes('송이')) {
     names.push('송이');
   }
   while (names.length < 4) {
@@ -105,15 +111,32 @@ function suggestNames(rng: Rng, breed: Breed): string[] {
   return names;
 }
 
+/** 새 식구를 들일 때 정해 둔 것. 정하지 않은 것은 첫 만남과 같은 규칙으로 뽑는다. */
+export type MeetingWish = {
+  route?: Route;
+  /** 보호소의 나이 지긋한 아이(시니어) */
+  senior?: boolean;
+  /** 이미 가족인 아이들 이름. 추천 이름에서 뺀다. */
+  takenNames?: readonly string[];
+};
+
 /**
  * 만남 뽑기. 같은 난수 흐름이면 언제나 같은 만남이 나온다.
  * 견종 → 경로 → 나이 → 털색·생김새 → 성별 → 성격 → 추천 이름 순서로 뽑는다.
+ * 경로를 정해 두면 그 경로로 만날 수 있는 견종 안에서 뽑는다.
  */
-export function drawMeeting(rng: Rng): Meeting {
-  const breed = rng.weighted(BREEDS, (entry) => entry.weight);
+export function drawMeeting(rng: Rng, wish: MeetingWish = {}): Meeting {
+  const wishedRoute = wish.route;
+  const breed = wishedRoute
+    ? rng.weighted(BREEDS, (entry) =>
+        ROUTE_WEIGHTS[entry.family][wishedRoute] > 0 ? entry.weight : 0,
+      )
+    : rng.weighted(BREEDS, (entry) => entry.weight);
   const routeWeights = ROUTE_WEIGHTS[breed.family];
-  const route = rng.weighted(ROUTES, (entry) => routeWeights[entry]);
-  const ageMonths = drawAgeMonths(rng, breed, route);
+  const route = wishedRoute ?? rng.weighted(ROUTES, (entry) => routeWeights[entry]);
+  const ageMonths = wish.senior
+    ? drawSeniorAgeMonths(rng, breed)
+    : drawAgeMonths(rng, breed, route);
   const coat = rng.pick(breed.coats);
   const look = {
     ears: rng.pick(breed.ears),
@@ -141,7 +164,7 @@ export function drawMeeting(rng: Rng): Meeting {
     route,
     traits,
     intro,
-    suggestedNames: suggestNames(rng, getBreed(breed.id)),
+    suggestedNames: suggestNames(rng, getBreed(breed.id), wish.takenNames ?? []),
   };
 }
 

@@ -7,8 +7,10 @@ import {
   autoChoose,
   MS_PER_MONTH,
   startRun,
+  welcome,
   type RunState,
 } from '../engine';
+import { runAwaitingNewcomer } from '../test/runs';
 import { PlayScreen } from './PlayScreen';
 
 afterEach(() => {
@@ -123,4 +125,61 @@ it('pauses when the tab is hidden', () => {
     vi.advanceTimersByTime(MS_PER_MONTH * 2);
   });
   expect(month()).toBe(quiet.month);
+});
+
+it('asks to name a new family member and stops the clock until then', () => {
+  vi.useFakeTimers();
+  const waiting = runAwaitingNewcomer();
+  const meeting = waiting.pendingMeeting!.meeting;
+  render(<Harness initial={waiting} />);
+  const dialog = screen.getByRole('dialog');
+  expect(dialog).toHaveTextContent(meeting.intro[0]);
+  act(() => {
+    vi.advanceTimersByTime(MS_PER_MONTH * 3);
+  });
+  expect(month()).toBe(waiting.month);
+
+  fireEvent.change(screen.getByLabelText('이름을 지어 주세요'), { target: { value: '보리' } });
+  expect(screen.getByText('가족 중에 같은 이름이 있어요.')).toBeVisible();
+  expect(screen.getByRole('button', { name: /가족이 되기/ })).toBeDisabled();
+
+  fireEvent.change(screen.getByLabelText('이름을 지어 주세요'), { target: { value: '두부' } });
+  fireEvent.click(screen.getByRole('button', { name: '두부와 가족이 되기' }));
+  expect(screen.queryByRole('dialog')).toBeNull();
+  expect(screen.getByRole('group', { name: '우리 가족' })).toBeVisible();
+  expect(screen.getByRole('button', { name: '두부' })).toHaveAttribute('aria-pressed', 'false');
+});
+
+it('names the newcomer with a suggestion when auto-decide is on, unless typing', () => {
+  vi.useFakeTimers();
+  const waiting = runAwaitingNewcomer();
+  const suggested = waiting.pendingMeeting!.meeting.suggestedNames[0];
+  window.localStorage.setItem('songiland:gyeonsaeng:pref:auto-decide', 'true');
+  const { unmount } = render(<Harness initial={waiting} />);
+  fireEvent.click(screen.getByRole('button', { name: suggested }));
+  act(() => {
+    vi.advanceTimersByTime(10_000);
+  });
+  expect(screen.getByRole('dialog')).toBeVisible();
+  unmount();
+
+  render(<Harness initial={waiting} />);
+  expect(screen.getByText(/곧 추천 이름으로 정해요/)).toBeVisible();
+  act(() => {
+    vi.advanceTimersByTime(5000);
+  });
+  expect(screen.queryByRole('dialog')).toBeNull();
+  expect(screen.getByRole('button', { name: suggested })).toBeVisible();
+});
+
+it('switches between the dogs at home and shows how close they are', () => {
+  const run = welcome(runAwaitingNewcomer(), '두부');
+  render(<PlayScreen run={run} onChange={() => {}} />);
+  expect(screen.getByRole('heading', { level: 1, name: '보리' })).toBeVisible();
+  expect(screen.getByRole('meter', { name: '두부와 사이' })).toBeVisible();
+
+  fireEvent.click(screen.getByRole('button', { name: '두부' }));
+  expect(screen.getByRole('heading', { level: 1, name: '두부' })).toBeVisible();
+  expect(screen.getByRole('button', { name: '두부' })).toHaveAttribute('aria-pressed', 'true');
+  expect(screen.getByRole('meter', { name: '보리와 사이' })).toBeVisible();
 });

@@ -51,3 +51,23 @@ it('mixes colors and spots dark coats', () => {
   expect(isDark('#231f1d')).toBe(true);
   expect(isDark('#f6f3ec')).toBe(false);
 });
+
+it('hides a decorative portrait from screen readers', () => {
+  const breed = BREEDS[0];
+  const { container } = render(
+    <DogPortrait
+      breedId={breed.id}
+      coatId={breed.coats[0].id}
+      look={{ ears: 'erect', coatType: 'short', tail: 'curled', legs: 'normal' }}
+      stage="adult"
+      mood="good"
+      framing="face"
+    />,
+  );
+  const svg = container.querySelector('svg')!;
+  expect(svg).toHaveAttribute('aria-hidden', 'true');
+  expect(svg).not.toHaveAttribute('role');
+  // 얼굴만 보이게 자른 그림은 전체(0 0 200 200)보다 좁은 자리를 본다.
+  const [, , width] = svg.getAttribute('viewBox')!.split(' ').map(Number);
+  expect(width).toBeLessThan(200);
+});
