@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAutoDecide, useOnPageHidden, usePreference, useRunClock, type Speed } from '../app/useRunClock';
 import { ChoiceDialog } from '../components/ChoiceDialog';
 import { DogPortrait } from '../components/DogPortrait';
-import { breedLabel, portraitLabel } from '../components/labels';
+import { breedLabel, portraitLabel, whenLabel } from '../components/labels';
 import { LifeMap } from '../components/LifeMap';
 import { NewcomerDialog } from '../components/NewcomerDialog';
 import { PortalLink } from '../components/PortalLink';
@@ -196,7 +196,7 @@ export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProp
             {shown.map((entry, index) => (
               <li key={`${entries.length - index}`} className={`story__entry story__entry--${entry.kind}`}>
                 <span className="story__when">
-                  {entry.month === 0 ? '첫날' : `${formatMonths(entry.month)}째`}
+                  {whenLabel(entry.month)}
                 </span>
                 <span className="story__text">
                   {entry.choice && <strong className="story__choice">{entry.choice}</strong>}

@@ -54,6 +54,10 @@ function spread<T>(items: readonly T[], count: number): T[] {
   if (items.length <= count) {
     return [...items];
   }
+  // 하나만 고를 때는 가운데. 아래 식은 count - 1로 나누므로 둘 이상일 때만 쓴다.
+  if (count === 1) {
+    return [items[Math.floor(items.length / 2)]];
+  }
   const picked: T[] = [];
   for (let i = 0; i < count; i += 1) {
     picked.push(items[Math.round((i * (items.length - 1)) / (count - 1))]);

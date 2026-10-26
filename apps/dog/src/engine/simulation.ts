@@ -38,7 +38,7 @@ const DAILY_CHANCE = 0.35;
  * 선택 사건 사이 최소 간격(개월)과, 간격이 지난 뒤 달마다 일어날 확률. 함께 사는 아이가 늘면
  * 고를 사건도 늘어나므로 간격을 한 아이당 3개월씩 넓혀 선택 카드가 너무 잦아지지 않게 한다.
  */
-const CHOICE_GAP = 6;
+const CHOICE_GAP = 8;
 const CHOICE_GAP_PER_DOG = 3;
 const CHOICE_CHANCE = 0.3;
 

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 import { getBreed, getCoat, type Coat, type Look, type Mood, type Size, type Stage } from '../engine';
 import { isDark, mix } from './color';
 
@@ -13,6 +13,8 @@ export type DogPortraitProps = {
   className?: string;
   /** 'face'는 머리와 귀만 보이게 잘라 작은 동그라미(가족 탭)에 쓴다. */
   framing?: 'full' | 'face';
+  /** 공유 카드에 같은 그림을 쓰려고 SVG를 읽을 때 */
+  ref?: Ref<SVGSVGElement>;
 };
 
 const SCALE: Record<Size, number> = { toy: 0.72, small: 0.82, medium: 0.92, large: 1 };
@@ -240,6 +242,7 @@ export function DogPortrait({
   label,
   className,
   framing = 'full',
+  ref,
 }: DogPortraitProps) {
   const breed = getBreed(breedId);
   const coat = getCoat(breed, coatId);
@@ -251,6 +254,7 @@ export function DogPortrait({
 
   return (
     <svg
+      ref={ref}
       className={className}
       viewBox={framing === 'face' ? faceViewBox(scale) : '0 0 200 200'}
       {...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true })}

@@ -304,6 +304,83 @@ export const EVENTS: readonly EventCard[] = [
       },
     ],
   },
+  {
+    id: 'first-swim',
+    category: 'growth',
+    tones: ['cheerful'],
+    stages: ['young', 'adult'],
+    when: { min: { ease: 45 } },
+    text: ['계곡에 놀러 왔어요. {name:이/가} 물가에서 앞발을 담갔다 뺐다 해요.'],
+    choices: [
+      {
+        id: 'life-vest',
+        label: '구명조끼 입히고 같이 들어가 보기',
+        outcomes: [
+          {
+            weight: 2,
+            favoredBy: 'bond',
+            text: '처음엔 허우적대더니 금세 개헤엄 선수가 됐어요. {name:은/는} 물에서 나오기 싫어했어요.',
+            effects: { happiness: 4, health: 2, bond: 1 },
+            memorable: true,
+          },
+          {
+            weight: 1,
+            text: '물이 생각보다 차가웠나 봐요. {name:은/는} 바위 위에서 몸을 말리며 구경하는 쪽을 골랐어요.',
+            effects: { happiness: 2, bond: 1 },
+          },
+        ],
+      },
+      {
+        id: 'shallow',
+        label: '얕은 물가에서 발만 담그게 하기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '{name:은/는} 얕은 물가를 찰방찰방 뛰어다니며 조약돌 냄새를 맡았어요.',
+            effects: { happiness: 3 },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'kid-greeting',
+    category: 'growth',
+    tones: ['cheerful', 'calm'],
+    stages: ['young', 'adult'],
+    text: ['산책길에서 만난 꼬마가 {name:을/를} 쓰다듬어 봐도 되냐고 물어요.'],
+    choices: [
+      {
+        id: 'sniff-first',
+        label: '손 냄새부터 천천히 맡게 하기',
+        outcomes: [
+          {
+            weight: 2,
+            favoredBy: 'sociability',
+            text: '냄새를 맡던 {name:이/가} 꼬마 손을 핥았어요. 꼬마가 까르르 웃었어요.',
+            effects: { sociability: 4, happiness: 2 },
+          },
+          {
+            weight: 1,
+            hinderedBy: 'sociability',
+            text: '{name:은/는} 냄새만 맡고 다리 뒤로 숨었어요. 꼬마는 다음에 또 보자며 손을 흔들었어요.',
+            effects: { sociability: 1, bond: 1 },
+          },
+        ],
+      },
+      {
+        id: 'not-today',
+        label: '오늘은 정중히 사양하기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '오늘은 {name}의 속도대로 걷기로 했어요. 꼬마는 멀리서 손을 흔들어 줬어요.',
+            effects: { happiness: 1, bond: 1 },
+          },
+        ],
+      },
+    ],
+  },
 
   // ─── 일상 (선택 없음) ─────────────────────────────────────────
   {
@@ -334,12 +411,52 @@ export const EVENTS: readonly EventCard[] = [
     category: 'daily',
     tones: ['cheerful', 'calm'],
     stages: ['puppy', 'young', 'adult', 'senior'],
+    household: true,
     cooldown: 12,
     text: [
       '첫눈이 왔어요. {name:은/는} 눈밭에 얼굴을 파묻고 한참을 놀았어요.',
       '눈 오는 날, {name}의 발자국이 마당에 꽃잎처럼 찍혔어요.',
     ],
     effects: { happiness: 4, bond: 1 },
+  },
+  {
+    id: 'spring-petals',
+    category: 'daily',
+    tones: ['cheerful', 'calm'],
+    stages: ['puppy', 'young', 'adult', 'senior'],
+    household: true,
+    text: [
+      '벚꽃잎이 흩날리는 산책길에서 {name:이/가} 꽃잎을 잡으려고 폴짝폴짝 뛰었어요.',
+      '봄이 왔어요. {name:은/는} 새로 돋은 풀 냄새를 맡느라 한 발짝도 못 갔어요.',
+    ],
+    effects: { happiness: 2 },
+  },
+  {
+    id: 'autumn-leaves',
+    category: 'daily',
+    tones: ['cheerful'],
+    stages: ['puppy', 'young', 'adult', 'senior'],
+    household: true,
+    text: ['바스락거리는 낙엽 더미에 {name:이/가} 얼굴을 묻고 한참을 나오지 않았어요.'],
+    effects: { happiness: 2 },
+  },
+  {
+    id: 'summer-heat',
+    category: 'daily',
+    tones: ['calm'],
+    stages: ['young', 'adult', 'senior', 'elderly'],
+    household: true,
+    text: ['푹푹 찌는 여름날, {name:은/는} 시원한 바닥에 배를 깔고 하루 종일 꼼짝하지 않았어요.'],
+    effects: { happiness: -5 },
+  },
+  {
+    id: 'pillow-thief',
+    category: 'daily',
+    tones: ['cheerful'],
+    stages: ['young', 'adult', 'senior'],
+    boostTraits: ['clingy'],
+    text: ['자고 일어나 보니 {name:이/가} 베개 한가운데를 차지하고 코를 골고 있었어요.'],
+    effects: { bond: 2 },
   },
   {
     id: 'delivery',
@@ -367,7 +484,7 @@ export const EVENTS: readonly EventCard[] = [
     stages: ['young', 'adult'],
     when: { min: { sociability: 50 } },
     text: ['산책길에서 단짝 친구가 생겼어요. 만나기만 하면 꼬리가 프로펠러가 돼요.'],
-    effects: { sociability: 3, happiness: 3 },
+    effects: { sociability: 3, happiness: 3, flags: ['walk-buddy'] },
   },
   {
     id: 'tail-chase',
@@ -392,7 +509,10 @@ export const EVENTS: readonly EventCard[] = [
     tones: ['calm', 'touching'],
     stages: ['young', 'adult', 'senior', 'elderly'],
     boostTraits: ['clingy'],
-    text: ['늦게 들어온 날, {name:이/가} 현관 앞에서 꼬리를 흔들며 기다리고 있었어요.'],
+    text: [
+      '늦게 들어온 날, {name:이/가} 현관 앞에서 꼬리를 흔들며 기다리고 있었어요.',
+      '{name:은/는} 현관문 비밀번호 누르는 소리만 들려도 어디서든 달려 나와요.',
+    ],
     effects: { bond: 3 },
   },
   {
@@ -417,8 +537,12 @@ export const EVENTS: readonly EventCard[] = [
     category: 'daily',
     tones: ['calm', 'touching'],
     stages: ['young', 'adult', 'senior', 'elderly'],
+    household: true,
     boostTraits: ['timid'],
-    text: ['천둥 치는 밤, {name:이/가} 이불 속으로 파고들었어요. 꼭 안아 주니 금세 잠들었어요.'],
+    text: [
+      '천둥 치는 밤, {name:이/가} 이불 속으로 파고들었어요. 꼭 안아 주니 금세 잠들었어요.',
+      '번개가 번쩍이자 {name:이/가} 다리 사이로 쏙 들어왔어요. 비가 그칠 때까지 곁에 있어 줬어요.',
+    ],
     effects: { bond: 3, happiness: -1 },
   },
   {
@@ -474,6 +598,7 @@ export const EVENTS: readonly EventCard[] = [
     category: 'daily',
     tones: ['cheerful'],
     stages: ['young', 'adult', 'senior'],
+    household: true,
     cooldown: 12,
     text: ['명절에 친척들이 모였어요. {name:은/는} 용돈 대신 간식을 잔뜩 받았어요.'],
     effects: { happiness: 3, sociability: 2, health: -1 },
@@ -483,6 +608,7 @@ export const EVENTS: readonly EventCard[] = [
     category: 'daily',
     tones: ['touching', 'calm'],
     stages: ['young', 'adult', 'senior'],
+    household: true,
     text: ['감기로 며칠을 앓아누웠어요. 그동안 {name:이/가} 침대 옆을 한 번도 떠나지 않았어요.'],
     effects: { bond: 4 },
     memorable: true,
@@ -492,6 +618,7 @@ export const EVENTS: readonly EventCard[] = [
     category: 'daily',
     tones: ['calm'],
     stages: ['young', 'adult', 'senior'],
+    household: true,
     cooldown: 12,
     text: ['장마가 일주일째예요. {name:은/는} 현관만 바라보며 한숨을 쉬어요.'],
     effects: { happiness: -6 },
@@ -502,7 +629,10 @@ export const EVENTS: readonly EventCard[] = [
     tones: ['calm', 'cheerful'],
     stages: ['puppy', 'young', 'adult', 'senior'],
     boostTraits: ['foodie'],
-    text: ['{name:이/가} 산책길에서 뭘 주워 먹었는지 배탈이 났어요. 하루 종일 기운이 없었어요.'],
+    text: [
+      '{name:이/가} 산책길에서 뭘 주워 먹었는지 배탈이 났어요. 하루 종일 기운이 없었어요.',
+      '새 간식이 안 맞았는지 {name}의 배가 꾸르륵거려요. 하루 종일 배를 깔고 누워 있었어요.',
+    ],
     effects: { happiness: -6, health: -3 },
   },
   {
@@ -510,7 +640,10 @@ export const EVENTS: readonly EventCard[] = [
     category: 'daily',
     tones: ['cheerful'],
     stages: ['young', 'adult', 'senior', 'elderly'],
-    text: ['병원 가는 날. {name:은/는} 병원 문 앞에서 갑자기 다리에 힘을 풀었어요.'],
+    text: [
+      '병원 가는 날. {name:은/는} 병원 문 앞에서 갑자기 다리에 힘을 풀었어요.',
+      '{name:은/는} 진료대 위에서 얼음이 됐다가 간식을 받자마자 꼬리를 흔들었어요.',
+    ],
     effects: { happiness: -4, health: 2 },
   },
   {
@@ -518,6 +651,7 @@ export const EVENTS: readonly EventCard[] = [
     category: 'daily',
     tones: ['calm'],
     stages: ['young', 'adult', 'senior', 'elderly'],
+    household: true,
     boostTraits: ['timid'],
     text: ['옆집 공사 소리에 {name:이/가} 며칠째 예민해요. 방석을 조용한 방으로 옮겨 줬어요.'],
     effects: { happiness: -5 },
@@ -527,6 +661,7 @@ export const EVENTS: readonly EventCard[] = [
     category: 'daily',
     tones: ['calm'],
     stages: ['young', 'adult', 'senior'],
+    household: true,
     text: ['정신없이 바쁜 한 주였어요. 산책이 짧았던 만큼 주말엔 꼭 공원에 가기로 {name}에게 약속했어요.'],
     effects: { happiness: -5, ease: -3 },
   },
@@ -535,10 +670,21 @@ export const EVENTS: readonly EventCard[] = [
     category: 'daily',
     tones: ['touching'],
     stages: ['young', 'adult', 'senior'],
-    when: { min: { sociability: 50 } },
+    when: { requires: ['walk-buddy'] },
     once: true,
     text: ['단짝 산책 친구가 멀리 이사를 갔어요. {name:은/는} 그 골목에서 한참 동안 냄새를 맡았어요.'],
     effects: { happiness: -7 },
+  },
+  {
+    id: 'old-friend',
+    category: 'daily',
+    tones: ['touching'],
+    stages: ['senior', 'elderly'],
+    when: { requires: ['walk-buddy'] },
+    once: true,
+    memorable: true,
+    text: ['산책길에서 예전 단짝 친구를 다시 만났어요. 둘 다 주둥이가 하얘졌지만 단번에 서로를 알아봤어요.'],
+    effects: { happiness: 5, sociability: 2 },
   },
   {
     id: 'gray-muzzle',
@@ -550,6 +696,18 @@ export const EVENTS: readonly EventCard[] = [
     effects: { bond: 2 },
   },
   {
+    id: 'old-toy',
+    category: 'daily',
+    tones: ['touching', 'calm'],
+    stages: ['adult', 'senior', 'elderly'],
+    when: { minTogether: 48 },
+    once: true,
+    text: [
+      '{name:이/가} 처음 온 날부터 물고 다니던 인형이 너덜너덜해졌어요. 새 인형을 사 줘도 여전히 그 인형만 찾아요.',
+    ],
+    effects: { bond: 2, happiness: 1 },
+  },
+  {
     id: 'slow-walk',
     category: 'daily',
     tones: ['calm', 'touching'],
@@ -559,6 +717,14 @@ export const EVENTS: readonly EventCard[] = [
       '짧아진 산책. 그래도 {name:은/는} 매일 같은 벤치에서 한참 바람을 쐬요.',
     ],
     effects: { happiness: 2 },
+  },
+  {
+    id: 'lap-nap',
+    category: 'daily',
+    tones: ['calm', 'touching'],
+    stages: ['elderly'],
+    text: ['요즘 {name:은/는} 무릎 위에서 낮잠 자는 시간이 길어졌어요. 따뜻한 무게가 참 좋아요.'],
+    effects: { bond: 2 },
   },
   {
     id: 'photo-album',
@@ -877,6 +1043,119 @@ export const EVENTS: readonly EventCard[] = [
             weight: 1,
             text: '기본 검진은 모두 괜찮았어요. 집에서 체중과 식사량을 꼼꼼히 적기로 했어요.',
             effects: { health: 1, ease: -2, lifespan: 1 },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'trachea',
+    category: 'health',
+    tones: ['calm'],
+    stages: ['adult', 'senior'],
+    when: { health: ['trachea'] },
+    text: ['{name:이/가} 신나게 놀고 나면 거위 소리 같은 기침을 해요. 기관지가 약한 편이래요.'],
+    choices: [
+      {
+        id: 'harness',
+        label: '목줄 대신 하네스로 바꾸고 너무 흥분하지 않게 놀기',
+        outcomes: [
+          {
+            weight: 2,
+            favoredBy: 'bond',
+            text: '하네스로 바꾸고 나서 기침이 눈에 띄게 줄었어요.',
+            effects: { health: 3, happiness: -1, lifespan: 1 },
+          },
+          {
+            weight: 1,
+            text: '기침이 완전히 멎지는 않았지만, 조심하며 잘 지내고 있어요.',
+            effects: { health: 1, happiness: -1 },
+          },
+        ],
+      },
+      {
+        id: 'medicine',
+        label: '병원에서 약을 처방받아 꾸준히 관리하기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '약을 챙겨 먹은 뒤로 {name}의 숨소리가 한결 편해졌어요.',
+            effects: { health: 4, ease: -5, lifespan: 1 },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'stone',
+    category: 'health',
+    tones: ['calm'],
+    stages: ['adult', 'senior'],
+    when: { health: ['stone'] },
+    text: ['{name:이/가} 화장실을 자꾸 들락거려요. 방광에 작은 결석이 생겼대요.'],
+    choices: [
+      {
+        id: 'diet',
+        label: '처방식과 물 많이 마시기로 녹여 보기',
+        outcomes: [
+          {
+            weight: 2,
+            text: '몇 달 만에 결석이 사라졌어요. {name:은/는} 새 사료도 잘 먹어요.',
+            effects: { health: 4, happiness: -2, ease: -4, lifespan: 1 },
+          },
+          {
+            weight: 1,
+            text: '결석이 녹지 않아 결국 수술로 꺼냈어요. 지금은 잘 회복했어요.',
+            effects: { health: 3, happiness: -3, ease: -9 },
+          },
+        ],
+      },
+      {
+        id: 'surgery',
+        label: '수술로 꺼내기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '수술은 잘 끝났어요. {name:은/는} 회복 기간 동안 넥카라를 쓰고 의젓하게 지냈어요.',
+            effects: { health: 5, happiness: -3, ease: -9, lifespan: 1 },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'short-nose',
+    category: 'health',
+    tones: ['calm', 'cheerful'],
+    stages: ['young', 'adult', 'senior'],
+    when: { health: ['brachycephalic'] },
+    text: ['더운 날 산책 뒤 {name}의 숨소리가 거칠어요. 코가 짧은 아이들은 더위에 약하대요.'],
+    choices: [
+      {
+        id: 'cool-hours',
+        label: '여름에는 이른 아침과 밤에만 산책하기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '새벽 산책이 {name}의 새 일과가 됐어요. 선선한 바람에 발걸음이 가벼워요.',
+            effects: { health: 3, happiness: 1, lifespan: 1 },
+          },
+        ],
+      },
+      {
+        id: 'indoor',
+        label: '한낮엔 시원한 실내에서 노즈워크로 놀아 주기',
+        outcomes: [
+          {
+            weight: 2,
+            favoredBy: 'bond',
+            text: '숨겨 둔 간식 찾기에 푹 빠졌어요. {name:은/는} 실내 놀이 천재였어요.',
+            effects: { health: 2, happiness: 3, bond: 2 },
+          },
+          {
+            weight: 1,
+            text: '바깥 냄새가 그리운지 현관을 자주 바라봐요. 그래도 저녁 산책을 기다리며 잘 지내요.',
+            effects: { health: 2, happiness: -1 },
           },
         ],
       },
@@ -1448,6 +1727,37 @@ export const EVENTS: readonly EventCard[] = [
             weight: 1,
             text: '작은 불빛 아래에서 {name:은/는} 다시 편안하게 잠들어요.',
             effects: { happiness: 1, bond: 3 },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'stroller',
+    category: 'senior',
+    tones: ['calm', 'touching'],
+    stages: ['elderly'],
+    text: ['산책길 중간에 {name:이/가} 자꾸 멈춰 서서 올려다봐요.'],
+    choices: [
+      {
+        id: 'stroller',
+        label: '개모차에 태워 산책 이어 가기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '{name:은/는} 개모차에 앉아 바람 냄새를 맡다가 꾸벅꾸벅 졸았어요.',
+            effects: { happiness: 3, ease: -3 },
+          },
+        ],
+      },
+      {
+        id: 'short-walks',
+        label: '집 앞만 짧게, 대신 자주 걷기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '짧은 산책을 하루에 세 번. {name:은/는} 나갈 때마다 처음처럼 신나 했어요.',
+            effects: { happiness: 2, health: 1 },
           },
         ],
       },

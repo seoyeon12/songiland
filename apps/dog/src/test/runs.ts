@@ -1,4 +1,11 @@
-import { advanceUntilChoice, autoChoose, startRun, type RunState } from '../engine';
+import {
+  advanceMonth,
+  advanceUntilChoice,
+  autoChoose,
+  autoWelcome,
+  startRun,
+  type RunState,
+} from '../engine';
 
 /**
  * 새 식구 이름 짓기를 기다리는 판을 찾는다. 선택은 자동 결정으로 고른다.
@@ -19,4 +26,22 @@ export function runAwaitingNewcomer(fromSeed = 1, name = '보리'): RunState {
     }
   }
   throw new Error('새 식구를 만나는 판을 찾지 못했습니다.');
+}
+
+/** 다음 달에 막을 내리는 판(선택·이름 짓기를 기다리지 않는 상태). 선택은 자동 결정으로 고른다. */
+export function runAboutToEnd(seed = 1, name = '보리'): RunState {
+  let run = startRun({ seed, name });
+  for (;;) {
+    if (run.pendingChoice) {
+      run = autoChoose(run);
+    } else if (run.pendingMeeting) {
+      run = autoWelcome(run);
+    } else {
+      const next = advanceMonth(run);
+      if (next.status === 'ended') {
+        return run;
+      }
+      run = next;
+    }
+  }
 }

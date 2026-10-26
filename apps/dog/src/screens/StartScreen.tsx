@@ -1,6 +1,7 @@
+import { PAST_LIVES_LIMIT, type PastLife } from '../app/storage';
 import { DogPortrait } from '../components/DogPortrait';
 import { PortalLink } from '../components/PortalLink';
-import { formatAge, josa, type RunState } from '../engine';
+import { arcTitle, formatAge, formatMonths, josa, type RunState } from '../engine';
 import { breedLabel } from '../components/labels';
 
 /** 시작 화면을 꾸미는 세 마리. 실제 판과는 상관없다. */
@@ -12,11 +13,43 @@ const CAST = [
 
 export type StartScreenProps = {
   saved: RunState | null;
+  /** 지난 견생, 최근 것부터 */
+  lives: readonly PastLife[];
+  onOpenLife: (life: PastLife) => void;
   onMeet: () => void;
   onResume: () => void;
 };
 
-export function StartScreen({ saved, onMeet, onResume }: StartScreenProps) {
+const SHORT_DATE = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium' });
+
+function PastLifeItem({ life, onOpen }: { life: PastLife; onOpen: () => void }) {
+  const dog = life.run.dogs[0];
+  return (
+    <li>
+      <button type="button" className="lives__item" onClick={onOpen}>
+        <DogPortrait
+          className="lives__face"
+          breedId={dog.breedId}
+          coatId={dog.coatId}
+          look={dog.look}
+          stage={dog.stage}
+          mood="good"
+          framing="face"
+        />
+        <span className="lives__body">
+          <span className="lives__name">{dog.name}의 견생</span>
+          <span className="lives__meta">
+            {breedLabel(dog)} · {formatMonths(dog.ageMonths - dog.metAgeMonths)} ·{' '}
+            {arcTitle(life.run.arc)}
+          </span>
+        </span>
+        <span className="lives__date">{SHORT_DATE.format(life.endedAt)}</span>
+      </button>
+    </li>
+  );
+}
+
+export function StartScreen({ saved, lives, onOpenLife, onMeet, onResume }: StartScreenProps) {
   const savedDog = saved?.dogs[0];
   return (
     <div className="app">
@@ -69,6 +102,20 @@ export function StartScreen({ saved, onMeet, onResume }: StartScreenProps) {
             </p>
           )}
         </div>
+
+        {lives.length > 0 && (
+          <section className="app__card lives" aria-labelledby="lives-title">
+            <h2 id="lives-title" className="section-title">
+              지난 견생
+            </h2>
+            <ol className="lives__list">
+              {lives.map((life) => (
+                <PastLifeItem key={life.run.seed} life={life} onOpen={() => onOpenLife(life)} />
+              ))}
+            </ol>
+            <p className="lives__note">최근 {PAST_LIVES_LIMIT}편까지 남아요.</p>
+          </section>
+        )}
       </main>
       <footer className="app__footer">
         <p>견종별 수치는 재미를 위해 단순화한 경향이며 수의학적 조언이 아니에요.</p>

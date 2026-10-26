@@ -1,13 +1,28 @@
 import type { RunState } from '../engine';
 
 const KEY = 'songiland:gyeonsaeng:run';
+const LIVES_KEY = 'songiland:gyeonsaeng:lives';
 const PROBE_KEY = 'songiland:gyeonsaeng:probe';
 
-/** 진행 중인 판을 이 브라우저에만 저장한다. 서버로 보내지 않는다. */
+/** 지난 견생은 최근 것부터 이만큼만 남긴다. */
+export const PAST_LIVES_LIMIT = 10;
+
+/** 끝난 판 하나. 결말 카드와 이야기 전체를 다시 볼 수 있게 판 상태를 그대로 둔다. */
+export type PastLife = {
+  /** 막을 내린 시각(ms) */
+  endedAt: number;
+  run: RunState;
+};
+
+/** 진행 중인 판과 지난 견생을 이 브라우저에만 저장한다. 서버로 보내지 않는다. */
 export type RunStore = {
   load(): RunState | null;
   save(run: RunState): void;
   clear(): void;
+  /** 지난 견생, 최근 것부터. */
+  pastLives(): PastLife[];
+  /** 끝난 판을 지난 견생 맨 앞에 넣는다. 같은 판(시드)이 이미 있으면 바꿔 넣는다. */
+  remember(run: RunState, endedAt?: number): void;
   /** 저장이 막힌 환경(시크릿 모드 등)이면 'memory' — 새로 고치면 사라진다. */
   persistence: 'local' | 'memory';
 };
@@ -41,8 +56,38 @@ export function isRunState(value: unknown): value is RunState {
   );
 }
 
+function isPastLife(value: unknown): value is PastLife {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const life = value as Partial<PastLife>;
+  return typeof life.endedAt === 'number' && isRunState(life.run) && life.run.status === 'ended';
+}
+
+function readLives(storage: Storage): PastLife[] {
+  try {
+    const parsed: unknown = JSON.parse(storage.getItem(LIVES_KEY) ?? '[]');
+    return Array.isArray(parsed) ? parsed.filter(isPastLife).slice(0, PAST_LIVES_LIMIT) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** 공간이 모자라면 오래된 견생부터 덜어 내며 다시 써 본다. */
+function writeLives(storage: Storage, lives: readonly PastLife[]): void {
+  for (let count = lives.length; count > 0; count -= 1) {
+    try {
+      storage.setItem(LIVES_KEY, JSON.stringify(lives.slice(0, count)));
+      return;
+    } catch {
+      // 한 편 덜어 내고 다시 써 본다.
+    }
+  }
+}
+
 export function createRunStore(storage: Storage | undefined = defaultStorage()): RunStore {
   let memory: RunState | null = null;
+  let memoryLives: PastLife[] = [];
   let persistence: RunStore['persistence'] = 'memory';
   if (storage) {
     try {
@@ -52,6 +97,10 @@ export function createRunStore(storage: Storage | undefined = defaultStorage()):
     } catch {
       persistence = 'memory';
     }
+  }
+
+  function pastLives(): PastLife[] {
+    return persistence === 'local' && storage ? readLives(storage) : memoryLives;
   }
 
   return {
@@ -87,6 +136,14 @@ export function createRunStore(storage: Storage | undefined = defaultStorage()):
         storage?.removeItem(KEY);
       } catch {
         // 지울 수 없어도 다음 load에서 무시된다.
+      }
+    },
+    pastLives,
+    remember(run, endedAt = Date.now()) {
+      const others = pastLives().filter((life) => life.run.seed !== run.seed);
+      memoryLives = [{ endedAt, run }, ...others].slice(0, PAST_LIVES_LIMIT);
+      if (persistence === 'local' && storage) {
+        writeLives(storage, memoryLives);
       }
     },
   };

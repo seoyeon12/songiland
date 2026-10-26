@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useRef, useState, type RefObject } from 'react';
 import { DogPortrait } from '../components/DogPortrait';
-import { breedLabel, portraitLabel } from '../components/labels';
+import { breedLabel, portraitLabel, whenLabel } from '../components/labels';
 import { LifeMap } from '../components/LifeMap';
 import { PortalLink } from '../components/PortalLink';
 import {
@@ -12,20 +12,79 @@ import {
   type LogEntry,
   type RunState,
 } from '../engine';
+import { shareCardFor } from '../share/card';
+import { canShareImages, imageFileName, saveImage, shareImage } from '../share/image';
+import { useShareImage } from '../share/useShareImage';
 
 export type EndingScreenProps = {
   run: RunState;
+  /** 결말에서는 "한 번 더 상영하기", 지난 견생에서는 "목록으로 돌아가기" */
   onAgain: () => void;
+  /** 지난 견생 목록에서 연 기록이면 막을 내린 시각(ms) */
+  endedAt?: number;
 };
 
-function when(month: number): string {
-  return month === 0 ? '첫날' : `${formatMonths(month)}째`;
+const LONG_DATE = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long' });
+
+/** 결말 카드를 PNG로 저장하거나, 지원하는 기기에서는 공유 시트로 보낸다. */
+function ShareActions({ run, portrait }: { run: RunState; portrait: RefObject<SVGSVGElement | null> }) {
+  const card = useMemo(() => shareCardFor(run), [run]);
+  const image = useShareImage(card, portrait);
+  const [canShare] = useState(canShareImages);
+  const [notice, setNotice] = useState<string | null>(null);
+  const fileName = imageFileName(card.name);
+
+  async function share(blob: Blob) {
+    try {
+      await shareImage(blob, fileName, `${card.title} · ${card.arcTitle}`);
+      setNotice(null);
+    } catch {
+      setNotice('공유하지 못했어요. 이미지로 저장해 주세요.');
+    }
+  }
+
+  return (
+    <div className="ending__share">
+      <div className="ending__share-buttons">
+        <button
+          type="button"
+          className="btn"
+          disabled={image.status !== 'ready'}
+          onClick={() => {
+            if (image.status === 'ready') {
+              saveImage(image.blob, fileName);
+              setNotice('이미지를 저장했어요.');
+            }
+          }}
+        >
+          이미지로 저장
+        </button>
+        {canShare && (
+          <button
+            type="button"
+            className="btn"
+            disabled={image.status !== 'ready'}
+            onClick={() => {
+              if (image.status === 'ready') {
+                void share(image.blob);
+              }
+            }}
+          >
+            공유
+          </button>
+        )}
+      </div>
+      <p className="ending__note" role="status">
+        {image.status === 'failed' ? '이 브라우저에서는 공유 이미지를 만들 수 없어요.' : notice}
+      </p>
+    </div>
+  );
 }
 
 function StoryItems({ entries }: { entries: readonly LogEntry[] }) {
   return entries.map((entry, index) => (
     <li key={index} className={`story__entry story__entry--${entry.kind}`}>
-      <span className="story__when">{when(entry.month)}</span>
+      <span className="story__when">{whenLabel(entry.month)}</span>
       <span className="story__text">
         {entry.choice && <strong className="story__choice">{entry.choice}</strong>}
         {entry.text}
@@ -77,11 +136,13 @@ function FamilyCard({ member, firstName }: { member: FamilyRecord; firstName: st
   );
 }
 
-/** 견생 기록 카드. 공유 이미지 저장은 5단계에서 붙는다. */
-export function EndingScreen({ run, onAgain }: EndingScreenProps) {
+/** 견생 기록 카드. 이미지로 저장·공유할 수 있고, 지난 견생 목록에서 다시 열 수 있다. */
+export function EndingScreen({ run, onAgain, endedAt }: EndingScreenProps) {
   const [showStory, setShowStory] = useState(false);
+  const portraitRef = useRef<SVGSVGElement>(null);
   const record = summarize(run);
   const dog = run.dogs[0];
+  const past = endedAt !== undefined;
 
   return (
     <div className="app">
@@ -90,8 +151,11 @@ export function EndingScreen({ run, onAgain }: EndingScreenProps) {
       </nav>
       <main className="app__main">
         <section className="app__card ending" aria-labelledby="ending-title">
-          <p className="ending__kicker">이번 상영작 · {record.arcTitle}</p>
+          <p className="ending__kicker">
+            {past ? '지난 상영작' : '이번 상영작'} · {record.arcTitle}
+          </p>
           <DogPortrait
+            ref={portraitRef}
             className="ending__dog"
             breedId={dog.breedId}
             coatId={dog.coatId}
@@ -106,6 +170,7 @@ export function EndingScreen({ run, onAgain }: EndingScreenProps) {
           <p className="ending__meta">
             {breedLabel(dog)} · {record.dog.coatLabel} · {record.dog.traits.join(', ')}
           </p>
+          {past && <p className="ending__date">{LONG_DATE.format(endedAt)} 상영</p>}
           <dl className="facts facts--center">
             <div>
               <dt>함께한 시간</dt>
@@ -133,7 +198,7 @@ export function EndingScreen({ run, onAgain }: EndingScreenProps) {
               <ol>
                 {record.highlights.map((moment) => (
                   <li key={`${moment.month}-${moment.text}`}>
-                    <span className="story__when">{when(moment.month)}</span>
+                    <span className="story__when">{whenLabel(moment.month)}</span>
                     {moment.text}
                   </li>
                 ))}
@@ -148,8 +213,9 @@ export function EndingScreen({ run, onAgain }: EndingScreenProps) {
 
           <div className="ending__actions">
             <button type="button" className="btn btn--primary btn--large" onClick={onAgain}>
-              한 번 더 상영하기
+              {past ? '목록으로 돌아가기' : '한 번 더 상영하기'}
             </button>
+            <ShareActions run={run} portrait={portraitRef} />
             <button type="button" className="btn btn--ghost" onClick={() => setShowStory(!showStory)}>
               {showStory ? '이야기 접기' : '이야기 전체 보기'}
             </button>

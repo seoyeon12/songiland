@@ -31,9 +31,9 @@ function allTexts(event: EventCard): string[] {
 }
 
 describe('event catalog', () => {
-  it('has at least 40 events with unique ids', () => {
+  it('has at least 80 events with unique ids', () => {
     const ids = EVENTS.map((event) => event.id);
-    expect(ids.length).toBeGreaterThanOrEqual(40);
+    expect(ids.length).toBeGreaterThanOrEqual(80);
     expect(new Set(ids).size).toBe(ids.length);
   });
 

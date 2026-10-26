@@ -1,6 +1,6 @@
-import { formatAge, formatMonths, summarize } from './record';
+import { formatAge, formatMonths, pickHighlights, summarize } from './record';
 import { simulateToEnd, startRun } from './simulation';
-import type { RunState } from './types';
+import type { LogEntry, RunState } from './types';
 
 it('formats ages like people say them', () => {
   expect(formatAge(4)).toBe('4개월');
@@ -26,6 +26,24 @@ it('summarizes a finished life for the ending card', () => {
   expect(record.highlights.length).toBeGreaterThan(0);
   expect(record.highlights.length).toBeLessThanOrEqual(3);
   expect(record.choicesMade).toBeGreaterThan(0);
+});
+
+it('fills the moments with choices when only two are memorable', () => {
+  const entry = (month: number, extra: Partial<LogEntry>): LogEntry => ({
+    month,
+    dogId: 'dog-1',
+    kind: 'event',
+    text: `${month}개월째`,
+    ...extra,
+  });
+  const log = [
+    entry(0, { kind: 'meet', memorable: true }),
+    entry(10, { kind: 'choice', choice: '산책' }),
+    entry(20, { kind: 'choice', choice: '간식' }),
+    entry(30, { kind: 'choice', choice: '낮잠' }),
+    entry(40, { memorable: true }),
+  ];
+  expect(pickHighlights(log, 'dog-1').map((moment) => moment.month)).toEqual([0, 20, 40]);
 });
 
 it('keeps a record card for every other dog in the family', () => {

@@ -1,10 +1,25 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { afterEach } from 'vitest';
-import { previewMeeting, simulateToEnd, startRun } from '../engine';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { afterEach, beforeEach, vi } from 'vitest';
+import { MS_PER_MONTH, previewMeeting, simulateToEnd, startRun } from '../engine';
+import { runAboutToEnd } from '../test/runs';
 import { App } from './App';
 import { createRunStore } from './storage';
 
+// jsdom에는 캔버스가 없어 공유 이미지는 가짜로 만든다.
+vi.mock('../share/image', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../share/image')>()),
+  createShareImage: vi.fn(async () => new Blob(['png'], { type: 'image/png' })),
+  canShareImages: () => false,
+}));
+
+beforeEach(() => {
+  // jsdom은 스크롤을 구현하지 않는다.
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+});
+
 afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
   window.localStorage.clear();
 });
 
@@ -56,4 +71,39 @@ it('does not offer to resume a finished run', () => {
   render(<App store={store} randomSeed={() => 1} />);
   expect(screen.queryByRole('button', { name: /이어 보기/ })).toBeNull();
   expect(screen.getByRole('button', { name: '만나러 가기' })).toBeVisible();
+});
+
+it('keeps a finished life in the past lives list', () => {
+  vi.useFakeTimers();
+  const store = memoryStore();
+  store.save(runAboutToEnd(8, '콩'));
+  render(<App store={store} randomSeed={() => 1} />);
+  fireEvent.click(screen.getByRole('button', { name: '콩과의 견생 이어 보기' }));
+  act(() => {
+    vi.advanceTimersByTime(MS_PER_MONTH);
+  });
+
+  expect(screen.getByRole('heading', { name: '콩의 견생' })).toBeVisible();
+  expect(store.pastLives()).toHaveLength(1);
+  expect(store.load()).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: '한 번 더 상영하기' }));
+
+  const list = screen.getByRole('region', { name: '지난 견생' });
+  fireEvent.click(within(list).getByRole('button', { name: /^콩의 견생/ }));
+  expect(screen.getByText(/^지난 상영작 · /)).toBeVisible();
+  expect(window.scrollTo).toHaveBeenCalledWith(0, 0);
+  fireEvent.click(screen.getByRole('button', { name: '목록으로 돌아가기' }));
+  expect(screen.getByRole('button', { name: '만나러 가기' })).toBeVisible();
+});
+
+it('lists past lives newest first', () => {
+  const store = memoryStore();
+  store.remember(simulateToEnd(startRun({ seed: 1, name: '보리' })), 1);
+  store.remember(simulateToEnd(startRun({ seed: 2, name: '두부' })), 2);
+  render(<App store={store} randomSeed={() => 1} />);
+  const items = within(screen.getByRole('region', { name: '지난 견생' })).getAllByRole('button');
+  expect(items.map((item) => item.textContent)).toEqual([
+    expect.stringMatching(/^두부의 견생/),
+    expect.stringMatching(/^보리의 견생/),
+  ]);
 });
