@@ -1,6 +1,6 @@
 # 송이랜드 모노레포 마이그레이션 현황
 
-기준일: 2026-10-25 (처음 작성 2026-10-20)
+기준일: 2026-10-26 (처음 작성 2026-10-20)
 
 단일 Vite 앱이던 송이랜드를 pnpm 워크스페이스 모노레포로 옮기는 작업의 진행 상황이다.
 도메인(게임·도구)마다 `apps/` 아래 독립 앱을 두고, 공유 코드는 `packages/`에 둔다.
@@ -13,6 +13,7 @@
   - 포털: `songiland.arosys.kr`
   - 로또쇼: `lotto.arosys.kr`
   - 한영타 변환기: `ko-en.arosys.kr`
+  - 견생극장: `dog.arosys.kr`
 - 처음 정했던 경로 규칙(`/games/<id>`, `/tools/<id>`)은 폐기했다. 게임과 도구의
   구분은 포털 카드 분류에만 남는다.
 - 로또쇼는 3D 연출 없이 스페이스바나 클릭 한 번에 번호를 뽑는 단순한 화면으로 간다
@@ -37,7 +38,8 @@
 | — | 견생극장 2단계: 사건 53개, 톤 흐름 사건 뽑기, 선택 카드, 자동 결정 | f8d7855 |
 | — | 견생극장 3단계: 실제 화면(시작·만남·진행·선택·결말), 강아지 SVG, 이어하기 저장 | 8ca79a0 |
 | — | 견생극장 4단계: 다견가정(새 식구 사건·이름 짓기, 사이 수치, 두 아이 사건, 남은 아이들의 이야기) | d1bd098 |
-| — | 견생극장 5단계: 공유 카드 이미지, 지난 견생 목록, 사건 80개, 밸런스 조정 | 커밋 전 |
+| — | 견생극장 5단계: 공유 카드 이미지, 지난 견생 목록, 사건 80개, 밸런스 조정 | 74b16c2 |
+| — | 견생극장 6단계: 카탈로그 등록(포털 게임 카드), `dog` Pages 설정, e2e | 커밋 전 |
 
 ## 현재 구조
 
@@ -45,6 +47,7 @@
 apps/portal/               송이랜드 소개와 도메인 카드 (songiland.arosys.kr)
 apps/lotto/                송이의 행운 로또쇼 (lotto.arosys.kr)
 apps/ko-en/                한영타 변환기 (ko-en.arosys.kr)
+apps/dog/                  견생극장 (dog.arosys.kr)
 packages/catalog/          도메인 목록, 앱별 서브도메인·포트(appHosts), 앱 주소(appUrl)
 packages/ui/               공통 디자인 시스템: 색 토큰, 앱 레이아웃(.app__*), 버튼(.btn*)
 packages/eslint-config/    공통 ESLint 설정
@@ -61,6 +64,7 @@ pnpm-workspace.yaml        워크스페이스 범위와 자동 설치 금지(ver
 | portal | `https://songiland.arosys.kr/` | `http://localhost:5173/` | `http://localhost:4173/` |
 | lotto | `https://lotto.arosys.kr/` | `http://localhost:5174/` | `http://localhost:4174/` |
 | ko-en | `https://ko-en.arosys.kr/` | `http://localhost:5175/` | `http://localhost:4175/` |
+| dog | `https://dog.arosys.kr/` | `http://localhost:5176/` | `http://localhost:4176/` |
 
 포털 카드와 각 앱의 `← 송이랜드` 링크는 dev 서버에서는 localhost 포트로, 빌드
 결과에서는 배포 주소로 이어진다.
@@ -82,6 +86,16 @@ pnpm-workspace.yaml        워크스페이스 범위와 자동 설치 금지(ver
 - 숫자·기호·공백 등은 그대로 둔다. 입력은 저장·전송하지 않는다.
 - 결과 복사(클립보드)와 지우기 버튼이 있다.
 
+## 견생극장
+
+- 어느 날 만난 강아지와 무지개다리까지 함께하는 10~15분짜리 견생 시뮬레이션이다.
+  기획과 단계별 구현 메모는 `docs/specs/2026-10-25-dog-life-sim-design.md`에 있다.
+- 시뮬레이션 엔진은 `apps/dog/src/engine`의 순수 TypeScript다. 같은 시드면 같은 견생이 나온다.
+- 진행 중인 판과 지난 견생(최근 10편)은 이 브라우저에만 저장한다. 공유 카드 PNG도
+  브라우저 안에서 그린다.
+- e2e는 만남·이름 짓기·이어 보기, 막을 내리기 한 달 전 판을 4배속으로 이어 본 결말 카드·
+  공유 카드 PNG(1080×1350)·지난 견생, 포털 링크를 확인한다.
+
 ## 배포 설정
 
 프로젝트별 Pages 설정값은 README의 "배포 (Cloudflare Pages)" 표에 있다. 요점은
@@ -98,17 +112,17 @@ pnpm-workspace.yaml        워크스페이스 범위와 자동 설치 금지(ver
 
 ### 배포 (개발자)
 
-- Cloudflare 대시보드에서 Pages 프로젝트 `songiland`, `lotto`, `ko-en`을 README 표대로
+- Cloudflare 대시보드에서 Pages 프로젝트 `songiland`, `lotto`, `ko-en`, `dog`을 README 표대로
   만들고 커스텀 도메인을 붙인다.
 - 첫 배포에서 확인할 것: Node·pnpm 버전이 적용되는지, 설치 단계가 성공하는지,
-  세 주소가 HTTPS로 열리는지, 포털과 각 앱 사이 링크가 서로 이어지는지, 다른 앱만
+  네 주소가 HTTPS로 열리는지, 포털과 각 앱 사이 링크가 서로 이어지는지, 다른 앱만
   바뀐 커밋에서 빌드가 건너뛰어지는지.
 
 ### 공개 전 확인
 
 - 법적 검토 문서의 출시 전 체크리스트에 따라, 공개·수익화 전에 실제 빌드 기준으로
   게임물 등급분류 대상 여부를 전문가에게 확인한다. 3D 상호작용을 뺐으므로 지금 화면
-  기준으로 확인받는다.
+  기준으로 확인받는다. 견생극장도 같은 기준으로 함께 확인받는다.
 - README의 수동 검증 체크리스트를 새 화면 기준으로 실행한다.
 
 ## 알아 둘 점

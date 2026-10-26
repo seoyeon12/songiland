@@ -10,10 +10,13 @@
 ## 범위 (첫 출시)
 
 - 공개 주소는 `https://songiland.arosys.kr/`(소개), `https://lotto.arosys.kr/`(로또쇼),
-  `https://ko-en.arosys.kr/`(한영타 변환기) 세 곳입니다. 각각 별도 앱
-  (`apps/portal`, `apps/lotto`, `apps/ko-en`)이 맡습니다.
+  `https://ko-en.arosys.kr/`(한영타 변환기), `https://dog.arosys.kr/`(견생극장) 네 곳입니다.
+  각각 별도 앱(`apps/portal`, `apps/lotto`, `apps/ko-en`, `apps/dog`)이 맡습니다.
 - 한영타 변환기는 입력한 글자를 브라우저 안에서만 바꾸며 저장하거나 전송하지
   않습니다.
+- 견생극장은 진행 중인 판과 지난 견생(최근 10편)을 이 브라우저의 `localStorage`에만
+  저장합니다. 공유 카드 이미지도 브라우저 안에서 그리며 서버로 보내지 않습니다.
+  기획은 `docs/specs/2026-10-25-dog-life-sim-design.md`를 따릅니다.
 - 무료 서비스이며 결제·상금·포인트·경품·계정·서버 저장·사운드가 없습니다.
 - 추첨 결과는 이 브라우저의 `localStorage`에만 최대 24시간·최신 20건 저장되며
   서버로 전송되지 않습니다.
@@ -29,7 +32,7 @@
 apps/portal/               송이랜드 소개·도메인 목록 (songiland.arosys.kr)
 apps/lotto/                송이의 행운 로또쇼 (lotto.arosys.kr)
 apps/ko-en/                한영타 변환기 (ko-en.arosys.kr)
-apps/dog/                  견생극장 (개발 중, 공개 전. dog.arosys.kr 예정)
+apps/dog/                  견생극장 (dog.arosys.kr)
 packages/catalog/          도메인 목록, 앱별 서브도메인·포트, 앱 주소 appUrl (@songiland/catalog)
 packages/ui/               공통 디자인 시스템: 색 토큰, 앱 레이아웃, 버튼 (@songiland/ui/base.css)
 packages/eslint-config/    공통 ESLint 설정 (@songiland/eslint-config)
@@ -69,7 +72,7 @@ pnpm test:e2e                          # 브라우저 e2e (Playwright)
 | portal | `https://songiland.arosys.kr/` | `http://localhost:5173/` | `http://localhost:4173/` |
 | lotto  | `https://lotto.arosys.kr/`     | `http://localhost:5174/` | `http://localhost:4174/` |
 | ko-en  | `https://ko-en.arosys.kr/`     | `http://localhost:5175/` | `http://localhost:4175/` |
-| dog    | 공개 전 (`dog.arosys.kr` 예정) | `http://localhost:5176/` | `http://localhost:4176/` |
+| dog    | `https://dog.arosys.kr/`       | `http://localhost:5176/` | `http://localhost:4176/` |
 
 서브도메인과 포트는 `@songiland/catalog`의 `appHosts`가 정하고, `appUrl`이 앱 주소를
 만듭니다. 포털 카드는 dev 서버에서는 localhost 포트로, 빌드 결과에서는 배포 주소로
@@ -102,6 +105,7 @@ pnpm test:e2e                          # 브라우저 e2e (Playwright)
 | `songiland`    | `pnpm --filter portal build` | `apps/portal/dist` | `apps/portal/*` | `songiland.arosys.kr` |
 | `lotto`        | `pnpm --filter lotto build`  | `apps/lotto/dist`  | `apps/lotto/*`  | `lotto.arosys.kr`     |
 | `ko-en`        | `pnpm --filter ko-en build`  | `apps/ko-en/dist`  | `apps/ko-en/*`  | `ko-en.arosys.kr`     |
+| `dog`          | `pnpm --filter dog build`    | `apps/dog/dist`    | `apps/dog/*`    | `dog.arosys.kr`       |
 
 - Build watch paths를 지정하면 다른 앱만 바뀐 커밋에서는 이 프로젝트가 다시 빌드되지
   않습니다.
@@ -112,7 +116,7 @@ pnpm test:e2e                          # 브라우저 e2e (Playwright)
 - Custom domain은 프로젝트의 Custom domains 탭에서 추가합니다. arosys.kr DNS가
   Cloudflare에 있으면 CNAME 레코드가 자동으로 생기고 HTTPS 인증서도 자동 발급됩니다.
 
-첫 배포 때는 빌드 로그에서 Node·pnpm 버전과 설치 단계를 확인하고, 세 주소가 열리는지,
+첫 배포 때는 빌드 로그에서 Node·pnpm 버전과 설치 단계를 확인하고, 각 주소가 열리는지,
 포털 카드와 각 앱의 `← 송이랜드` 링크가 서로 이어지는지 확인합니다.
 
 ## 릴리스 검증
@@ -136,6 +140,9 @@ git status --short
 - **한영타 변환기** — `dkssudgktpdy`가 `안녕하세요`로, `한글`이 `gksrmf`로
   자동 변환되는지, 방향을 직접 고르면 그 방향으로만 바뀌는지, 결과 복사와 지우기가
   동작하는지, 네트워크 탭에 입력 내용을 보내는 요청이 없는지 확인.
+- **견생극장** — 만나러 가기 → 이름 짓기 → 진행 화면이 이어지는지, 새로 고쳐도 `이어 보기`로
+  돌아오는지, 4배속·자동 결정으로 결말 카드까지 가는지, `이미지로 저장`이 PNG를 내려받는지,
+  휴대폰에서 `공유`가 공유 시트를 여는지, 끝난 판이 시작 화면 `지난 견생`에 남는지 확인.
 - **비기능** — 320px 화면에서도 공 7개가 한 줄에 들어가는지, OS `모션 줄이기`를
   켜면 공 등장 애니메이션이 꺼지는지, 사운드/오디오 요청이 전혀 없는지 확인.
 - **법적·데이터 경계** — DOM·자산·의존성·네트워크 탭에 공식 복권 로고/영상,

@@ -27,6 +27,13 @@ export const domains = [
     description: '한/영 키를 잘못 누른 채 친 글자를 바로 되돌려 주는 도구',
     emoji: '⌨️',
   },
+  {
+    id: 'dog',
+    kind: 'game',
+    title: '견생극장',
+    description: '운명처럼 만난 강아지와 무지개다리까지 함께하는 10~15분 견생 시뮬레이션',
+    emoji: '🐾',
+  },
 ] as const satisfies readonly DomainEntry[];
 
 export type DomainId = (typeof domains)[number]['id'];
@@ -59,6 +66,7 @@ export const appHosts = {
   portal: { subdomain: 'songiland', devPort: 5173, previewPort: 4173 },
   lotto: { subdomain: 'lotto', devPort: 5174, previewPort: 4174 },
   'ko-en': { subdomain: 'ko-en', devPort: 5175, previewPort: 4175 },
+  dog: { subdomain: 'dog', devPort: 5176, previewPort: 4176 },
 } as const satisfies Record<AppId, AppHost>;
 
 /**

@@ -1,5 +1,5 @@
 import { appUrl, domains, type DomainKind } from '@songiland/catalog';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { LandingPage } from './LandingPage';
 
 it('introduces Songiland and links every catalog domain to its subdomain', () => {
@@ -25,6 +25,15 @@ it('lists the ko-en converter under tools', () => {
   expect(
     screen.getByRole('link', { name: /한영타 변환기/ }),
   ).toHaveAttribute('href', 'https://ko-en.arosys.kr/');
+});
+
+it('lists 견생극장 under games', () => {
+  render(<LandingPage linkTarget="production" />);
+  const games = screen.getByRole('region', { name: '게임' });
+  expect(within(games).getByRole('link', { name: /견생극장/ })).toHaveAttribute(
+    'href',
+    'https://dog.arosys.kr/',
+  );
 });
 
 it('links to local dev servers during development', () => {
