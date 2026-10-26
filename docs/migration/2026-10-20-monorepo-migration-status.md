@@ -90,7 +90,7 @@ pnpm-workspace.yaml        워크스페이스 범위와 자동 설치 금지(ver
 - Root directory는 저장소 루트(`/`)로 두고, Build command로 한 앱만 빌드한다.
   예: `pnpm --filter lotto build`, 출력 `apps/lotto/dist`.
 - Build watch paths로 해당 앱 폴더와 `packages/`만 지켜본다.
-- 환경 변수 `NODE_VERSION=22.23.2`, `PNPM_VERSION=11.11.0`.
+- 환경 변수 `NODE_VERSION=22.23.4`, `PNPM_VERSION=11.11.0`.
 - 각 앱의 `public/_headers`가 캐시·보안 헤더를 붙인다.
 - 앱에 `404.html`이 없으므로 Pages SPA 폴백이 켜진다.
 

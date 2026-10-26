@@ -92,7 +92,7 @@ pnpm test:e2e                          # 브라우저 e2e (Playwright)
 | Production branch | `main`                                         |
 | Framework preset  | None                                           |
 | Root directory    | `/` (저장소 루트)                              |
-| 환경 변수         | `NODE_VERSION=22.23.2`, `PNPM_VERSION=11.11.0` |
+| 환경 변수         | `NODE_VERSION=22.23.4`, `PNPM_VERSION=11.11.0` |
 
 프로젝트마다 다른 설정입니다. Build watch paths에는 표의 앱 폴더와 함께 공통으로
 `packages/*`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `tsconfig.base.json`을 넣습니다.
