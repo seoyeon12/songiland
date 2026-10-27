@@ -6,7 +6,8 @@ import { breedLabel, portraitLabel, whenLabel } from '../components/labels';
 import { LifeMap } from '../components/LifeMap';
 import { NewcomerDialog } from '../components/NewcomerDialog';
 import { PortalLink } from '../components/PortalLink';
-import { StatBars, type RapportRow } from '../components/StatBars';
+import { SiblingCards } from '../components/SiblingCards';
+import { StatBars } from '../components/StatBars';
 import {
   advanceMonth,
   autoChoose,
@@ -14,11 +15,9 @@ import {
   choose,
   formatAge,
   formatMonths,
-  isAlive,
-  livingDogs,
+  josa,
   moodFor,
   MS_PER_MONTH,
-  rapportBetween,
   STAGE_LABELS,
   traitLabel,
   welcome,
@@ -53,12 +52,16 @@ function milestones(run: RunState): number {
   ).length;
 }
 
-/** 지금 보고 있는 아이와 함께 사는 다른 아이들의 사이. */
-function rapportRows(run: RunState, dogId: string): RapportRow[] {
-  return livingDogs(run).flatMap((other) => {
-    const rapport = other.id === dogId ? undefined : rapportBetween(run, dogId, other.id);
-    return rapport === undefined ? [] : [{ id: other.id, name: other.name, rapport }];
-  });
+/** 함께 사는 아이가 여럿이면 선택 카드가 누구 이야기인지 이름을 붙인다. 두 아이 사건은 둘 다. */
+function choiceSubject(run: RunState): string | undefined {
+  const pending = run.pendingChoice;
+  if (!pending || run.dogs.length < 2) {
+    return undefined;
+  }
+  const name = (id: string) => run.dogs.find((entry) => entry.id === id)?.name ?? '';
+  return pending.partnerId
+    ? `${josa(name(pending.dogId), '과/와')} ${name(pending.partnerId)}`
+    : name(pending.dogId);
 }
 
 export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProps) {
@@ -66,12 +69,11 @@ export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProp
   const [speed, setSpeed] = usePreference<Speed>('speed', 1);
   const [autoDecide, setAutoDecide] = usePreference<boolean>('auto-decide', false);
   const [showAllLog, setShowAllLog] = useState(false);
-  const [selectedId, setSelectedId] = useState(run.dogs[0].id);
   /** 빨리 감기를 시작한 때의 milestones. 그 뒤로 선택 카드가 뜨거나 이별이 오면 끝난다. */
   const [rushFrom, setRushFrom] = useState<number | null>(null);
 
-  // 고른 아이가 무지개다리를 건너면 첫째를 보여 준다.
-  const dog = run.dogs.find((entry) => entry.id === selectedId && isAlive(entry)) ?? run.dogs[0];
+  // 판은 첫째와 함께 끝나므로 진행 중에는 첫째가 늘 곁에 있다. 동생들은 아래 작은 카드로 본다.
+  const dog = run.dogs[0];
   const pending = run.pendingChoice;
   const newcomer = run.pendingMeeting;
   const running = !paused && run.status === 'running' && !pending && !newcomer;
@@ -104,36 +106,6 @@ export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProp
       </nav>
 
       <main className="app__main">
-        {run.dogs.length > 1 && (
-          <div className="family-tabs" role="group" aria-label="우리 가족">
-            {run.dogs.map((member) => {
-              const gone = !isAlive(member);
-              return (
-                <button
-                  key={member.id}
-                  type="button"
-                  className="family-tab"
-                  aria-pressed={member.id === dog.id}
-                  disabled={gone}
-                  onClick={() => setSelectedId(member.id)}
-                >
-                  <DogPortrait
-                    className="family-tab__dog"
-                    framing="face"
-                    breedId={member.breedId}
-                    coatId={member.coatId}
-                    look={member.look}
-                    stage={member.stage}
-                    mood={moodFor(member.stats.happiness)}
-                  />
-                  <span className="family-tab__name">{member.name}</span>
-                  {gone && <span className="family-tab__note">강아지별</span>}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
         <section className="app__card play__hero" aria-labelledby="dog-name">
           <DogPortrait
             className="play__dog"
@@ -160,6 +132,8 @@ export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProp
             </ul>
           </div>
         </section>
+
+        <SiblingCards run={run} />
 
         <section className="controls" aria-label="진행 조절">
           <button
@@ -222,11 +196,7 @@ export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProp
           <h2 id="stats-title" className="section-title">
             지금 {dog.name}
           </h2>
-          <StatBars
-            stats={dog.stats}
-            ease={run.household.ease}
-            rapport={rapportRows(run, dog.id)}
-          />
+          <StatBars stats={dog.stats} ease={run.household.ease} />
         </section>
 
         <section className="app__card" aria-labelledby="map-title">
@@ -285,6 +255,7 @@ export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProp
       {pending && (
         <ChoiceDialog
           pending={pending}
+          subject={choiceSubject(run)}
           autoDeciding={autoDecide && !pending.alwaysAsk}
           onChoose={(choiceId) =>
             onChange((current) => (current.pendingChoice ? choose(current, choiceId) : current))

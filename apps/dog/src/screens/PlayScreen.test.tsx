@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { useState } from 'react';
 import { afterEach, vi } from 'vitest';
 import {
@@ -197,8 +197,8 @@ it('asks to name a new family member and stops the clock until then', () => {
   fireEvent.change(screen.getByLabelText('이름을 지어 주세요'), { target: { value: '두부' } });
   fireEvent.click(screen.getByRole('button', { name: '두부와 가족이 되기' }));
   expect(screen.queryByRole('dialog')).toBeNull();
-  expect(screen.getByRole('group', { name: '우리 가족' })).toBeVisible();
-  expect(screen.getByRole('button', { name: '두부' })).toHaveAttribute('aria-pressed', 'false');
+  const siblings = screen.getByRole('list', { name: '함께 사는 동생들' });
+  expect(within(siblings).getByRole('heading', { name: '두부' })).toBeVisible();
 });
 
 it('names the newcomer with a suggestion when auto-decide is on, unless typing', () => {
@@ -220,17 +220,56 @@ it('names the newcomer with a suggestion when auto-decide is on, unless typing',
     vi.advanceTimersByTime(5000);
   });
   expect(screen.queryByRole('dialog')).toBeNull();
-  expect(screen.getByRole('button', { name: suggested })).toBeVisible();
+  const siblings = screen.getByRole('list', { name: '함께 사는 동생들' });
+  expect(within(siblings).getByRole('heading', { name: suggested })).toBeVisible();
 });
 
-it('switches between the dogs at home and shows how close they are', () => {
+it('shows the other dogs in small cards under the first dog', () => {
   const run = welcome(runAwaitingNewcomer(), '두부');
-  render(<PlayScreen run={run} onChange={() => {}} />);
+  const { rerender } = render(<PlayScreen run={run} onChange={() => {}} />);
   expect(screen.getByRole('heading', { level: 1, name: '보리' })).toBeVisible();
-  expect(screen.getByRole('meter', { name: '두부와 사이' })).toBeVisible();
+  const card = within(screen.getByRole('list', { name: '함께 사는 동생들' })).getByRole('region', {
+    name: '두부',
+  });
+  expect(within(card).getByRole('meter', { name: '두부 건강' })).toBeVisible();
+  expect(within(card).getByRole('meter', { name: '두부 행복' })).toBeVisible();
+  expect(within(card).getByRole('meter', { name: '두부, 보리와 사이' })).toBeVisible();
 
-  fireEvent.click(screen.getByRole('button', { name: '두부' }));
-  expect(screen.getByRole('heading', { level: 1, name: '두부' })).toBeVisible();
-  expect(screen.getByRole('button', { name: '두부' })).toHaveAttribute('aria-pressed', 'true');
-  expect(screen.getByRole('meter', { name: '보리와 사이' })).toBeVisible();
+  // 먼저 떠난 동생은 흐리게 남고 막대는 없다.
+  const [first, second] = run.dogs;
+  rerender(
+    <PlayScreen
+      run={{ ...run, dogs: [first, { ...second, passedMonth: run.month }] }}
+      onChange={() => {}}
+    />,
+  );
+  const gone = screen.getByRole('region', { name: '두부' });
+  expect(gone).toHaveTextContent('강아지별로 떠났어요');
+  expect(within(gone).queryByRole('meter')).toBeNull();
+});
+
+it('names the dog a choice card is about when several dogs live together', () => {
+  const run = welcome(runAwaitingNewcomer(), '두부');
+  const [first, second] = run.dogs;
+  const pending = {
+    eventId: 'kid-greeting',
+    dogId: second.id,
+    month: run.month,
+    tone: 'calm' as const,
+    text: '산책길에서 만난 꼬마가 두부를 쓰다듬어 봐도 되냐고 물어요.',
+    choices: [{ id: 'sniff-first', label: '손 냄새부터 천천히 맡게 하기' }],
+    alwaysAsk: false,
+  };
+  const { rerender } = render(
+    <PlayScreen run={{ ...run, pendingChoice: pending }} onChange={() => {}} />,
+  );
+  expect(screen.getByRole('dialog')).toHaveTextContent('선택의 순간 · 두부');
+
+  rerender(
+    <PlayScreen
+      run={{ ...run, pendingChoice: { ...pending, partnerId: first.id } }}
+      onChange={() => {}}
+    />,
+  );
+  expect(screen.getByRole('dialog')).toHaveTextContent('선택의 순간 · 두부와 보리');
 });

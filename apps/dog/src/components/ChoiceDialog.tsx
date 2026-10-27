@@ -3,13 +3,15 @@ import type { PendingChoice } from '../engine';
 
 export type ChoiceDialogProps = {
   pending: PendingChoice;
+  /** 함께 사는 아이가 여럿일 때 누구 이야기인지(예: "두부", "두부와 보리") */
+  subject?: string;
   /** 자동 결정이 곧 고를 예정이면 안내를 보여 준다. */
   autoDeciding: boolean;
   onChoose: (choiceId: string) => void;
 };
 
 /** 선택 카드. 뜨는 동안 시간은 멈춘다. */
-export function ChoiceDialog({ pending, autoDeciding, onChoose }: ChoiceDialogProps) {
+export function ChoiceDialog({ pending, subject, autoDeciding, onChoose }: ChoiceDialogProps) {
   const firstButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     firstButton.current?.focus();
@@ -23,7 +25,7 @@ export function ChoiceDialog({ pending, autoDeciding, onChoose }: ChoiceDialogPr
         aria-modal="true"
         aria-labelledby="choice-text"
       >
-        <p className="choice__kicker">선택의 순간</p>
+        <p className="choice__kicker">선택의 순간{subject && ` · ${subject}`}</p>
         <p id="choice-text" className="choice__text">
           {pending.text}
         </p>

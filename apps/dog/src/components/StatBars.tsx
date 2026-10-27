@@ -1,4 +1,4 @@
-import { josa, type StatKey, type Stats } from '../engine';
+import type { StatKey, Stats } from '../engine';
 
 const LABELS: Record<StatKey | 'ease', string> = {
   health: '건강',
@@ -8,10 +8,8 @@ const LABELS: Record<StatKey | 'ease', string> = {
   ease: '여유',
 };
 
-/** 함께 사는 다른 아이와의 사이 */
-export type RapportRow = { id: string; name: string; rapport: number };
-
-function Meter({
+/** 이름표와 막대, 숫자 한 줄. 동생 카드에서도 쓴다. */
+export function Meter({
   label,
   name,
   value,
@@ -43,16 +41,8 @@ function Meter({
   );
 }
 
-/** 능력치 막대. 강아지 네 가지와 가정의 여유, 함께 사는 아이가 있으면 그 아이와의 사이. */
-export function StatBars({
-  stats,
-  ease,
-  rapport = [],
-}: {
-  stats: Stats;
-  ease: number;
-  rapport?: readonly RapportRow[];
-}) {
+/** 능력치 막대. 강아지 네 가지와 가정의 여유. */
+export function StatBars({ stats, ease }: { stats: Stats; ease: number }) {
   const rows: [StatKey, number][] = [
     ['health', stats.health],
     ['happiness', stats.happiness],
@@ -60,29 +50,11 @@ export function StatBars({
     ['sociability', stats.sociability],
   ];
   return (
-    <>
-      <dl className="stats">
-        {rows.map(([key, value]) => (
-          <Meter key={key} label={LABELS[key]} name={LABELS[key]} value={value} />
-        ))}
-        <Meter label={LABELS.ease} name={LABELS.ease} value={ease} variant="household" />
-      </dl>
-      {rapport.length > 0 && (
-        <>
-          <h3 className="stats__caption">함께 사는 아이와의 사이</h3>
-          <dl className="stats">
-            {rapport.map((row) => (
-              <Meter
-                key={row.id}
-                label={row.name}
-                name={`${josa(row.name, '과/와')} 사이`}
-                value={row.rapport}
-                variant="pair"
-              />
-            ))}
-          </dl>
-        </>
-      )}
-    </>
+    <dl className="stats">
+      {rows.map(([key, value]) => (
+        <Meter key={key} label={LABELS[key]} name={LABELS[key]} value={value} />
+      ))}
+      <Meter label={LABELS.ease} name={LABELS.ease} value={ease} variant="household" />
+    </dl>
   );
 }
