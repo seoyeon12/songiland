@@ -17,6 +17,7 @@ import {
   isAlive,
   livingDogs,
   moodFor,
+  MS_PER_MONTH,
   rapportBetween,
   STAGE_LABELS,
   traitLabel,
@@ -39,6 +40,18 @@ const AUTO_DECIDE_DELAY_MS = 2400;
 /** 새 식구 카드는 읽을 거리가 많아 조금 더 오래 보여 준다. */
 const AUTO_WELCOME_DELAY_MS = 4000;
 const RECENT_LOG = 8;
+/** "다음 선택지까지" 빨리 감을 때 한 달이 흐르는 시간(ms). 1배속의 50배. */
+const RUSH_MS_PER_MONTH = 100;
+
+/**
+ * 빨리 감기를 멈추는 순간(선택, 새 식구 이름 짓기, 가족과의 이별)이 지금까지 몇 번 있었는지.
+ * 빨리 감기는 이 수가 바뀌기 전까지만 이어진다. 이별 장면은 휙 지나가지 않게 여기서 멈춘다.
+ */
+function milestones(run: RunState): number {
+  return run.log.filter(
+    (entry) => entry.kind === 'choice' || entry.kind === 'meet' || entry.kind === 'passed',
+  ).length;
+}
 
 /** 지금 보고 있는 아이와 함께 사는 다른 아이들의 사이. */
 function rapportRows(run: RunState, dogId: string): RapportRow[] {
@@ -54,15 +67,26 @@ export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProp
   const [autoDecide, setAutoDecide] = usePreference<boolean>('auto-decide', false);
   const [showAllLog, setShowAllLog] = useState(false);
   const [selectedId, setSelectedId] = useState(run.dogs[0].id);
+  /** 빨리 감기를 시작한 때의 milestones. 그 뒤로 선택 카드가 뜨거나 이별이 오면 끝난다. */
+  const [rushFrom, setRushFrom] = useState<number | null>(null);
 
   // 고른 아이가 무지개다리를 건너면 첫째를 보여 준다.
   const dog = run.dogs.find((entry) => entry.id === selectedId && isAlive(entry)) ?? run.dogs[0];
   const pending = run.pendingChoice;
   const newcomer = run.pendingMeeting;
   const running = !paused && run.status === 'running' && !pending && !newcomer;
+  const milestoneCount = milestones(run);
+  const rushing = running && rushFrom === milestoneCount;
 
-  useRunClock({ running, speed, onTick: () => onChange(advanceMonth) });
-  useOnPageHidden(() => setPaused(true));
+  useRunClock({
+    running,
+    intervalMs: rushing ? RUSH_MS_PER_MONTH : MS_PER_MONTH / speed,
+    onTick: () => onChange(advanceMonth),
+  });
+  useOnPageHidden(() => {
+    setPaused(true);
+    setRushFrom(null);
+  });
   useAutoDecide({
     active: Boolean(pending) && autoDecide && !pending?.alwaysAsk,
     delayMs: AUTO_DECIDE_DELAY_MS / speed,
@@ -142,7 +166,10 @@ export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProp
             type="button"
             className="btn btn--primary"
             aria-pressed={paused}
-            onClick={() => setPaused(!paused)}
+            onClick={() => {
+              setPaused(!paused);
+              setRushFrom(null);
+            }}
           >
             {paused ? '계속 보기' : '일시정지'}
           </button>
@@ -154,12 +181,33 @@ export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProp
                   type="radio"
                   name="speed"
                   checked={speed === value}
-                  onChange={() => setSpeed(value)}
+                  onChange={() => {
+                    setSpeed(value);
+                    setRushFrom(null);
+                  }}
                 />
                 <span>{value}배속</span>
               </label>
             ))}
           </fieldset>
+          <button
+            type="button"
+            className="btn rush"
+            aria-pressed={rushing}
+            onClick={() => {
+              if (rushing) {
+                setRushFrom(null);
+              } else {
+                setPaused(false);
+                setRushFrom(milestoneCount);
+              }
+            }}
+          >
+            <svg className="rush__icon" viewBox="0 0 16 16" aria-hidden>
+              <path d="M1 3l7 5-7 5zM8 3l7 5-7 5z" fill="currentColor" />
+            </svg>
+            다음 선택지까지
+          </button>
           <label className="toggle">
             <input
               type="checkbox"

@@ -392,6 +392,18 @@ button.chip:focus-visible {
   gap: 0.625rem;
 }
 
+.rush__icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* 다음 선택지까지 빨리 감는 중 */
+.rush[aria-pressed='true'] {
+  border-color: var(--songi-accent);
+  background: var(--songi-accent-soft);
+  color: var(--songi-accent-text);
+}
+
 .segmented {
   display: flex;
   gap: 0.25rem;

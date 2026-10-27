@@ -86,6 +86,57 @@ it('stops the clock on a choice card until a choice is made', () => {
   expect(month()).toBe(waiting.month + 1);
 });
 
+it('rushes to the next choice card, then goes back to the chosen speed', () => {
+  vi.useFakeTimers();
+  const quiet = quietRun();
+  const next = advanceUntilChoice(quiet);
+  expect(next.pendingChoice).not.toBeNull();
+  render(<Harness initial={quiet} />);
+  const rush = screen.getByRole('button', { name: '다음 선택지까지' });
+  fireEvent.click(rush);
+  expect(rush).toHaveAttribute('aria-pressed', 'true');
+
+  // 한 달에 0.1초씩 흘러 선택 카드가 뜨는 달에 멈춘다.
+  act(() => {
+    vi.advanceTimersByTime(100 * (next.month - quiet.month));
+  });
+  expect(month()).toBe(next.month);
+  expect(screen.getByRole('dialog')).toHaveTextContent(next.pendingChoice!.text);
+
+  // 이 판의 다음 선택은 새 식구 사건이라, 이름 짓기 카드가 뜨지 않게 들이지 않는 쪽을 고른다.
+  fireEvent.click(screen.getByRole('button', { name: next.pendingChoice!.choices.at(-1)!.label }));
+  expect(rush).toHaveAttribute('aria-pressed', 'false');
+  act(() => {
+    vi.advanceTimersByTime(MS_PER_MONTH - 1);
+  });
+  expect(month()).toBe(next.month);
+  act(() => {
+    vi.advanceTimersByTime(1);
+  });
+  expect(month()).toBe(next.month + 1);
+});
+
+it('starts rushing from a pause and stops when pressed again', () => {
+  vi.useFakeTimers();
+  const quiet = quietRun();
+  render(<Harness initial={quiet} />);
+  fireEvent.click(screen.getByRole('button', { name: '일시정지' }));
+  const rush = screen.getByRole('button', { name: '다음 선택지까지' });
+  fireEvent.click(rush);
+  expect(screen.getByRole('button', { name: '일시정지' })).toBeVisible();
+  act(() => {
+    vi.advanceTimersByTime(200);
+  });
+  expect(month()).toBe(quiet.month + 2);
+
+  fireEvent.click(rush);
+  expect(rush).toHaveAttribute('aria-pressed', 'false');
+  act(() => {
+    vi.advanceTimersByTime(1000);
+  });
+  expect(month()).toBe(quiet.month + 2);
+});
+
 it('lets auto-decide choose after a short pause', () => {
   vi.useFakeTimers();
   const waiting = advanceUntilChoice(startRun({ seed: 12, name: '보리' }));

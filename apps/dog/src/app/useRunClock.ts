@@ -1,16 +1,15 @@
 import { useEffect, useEffectEvent, useState } from 'react';
-import { MS_PER_MONTH } from '../engine';
 
 export type Speed = 1 | 2 | 4;
 
-/** running인 동안 기본 속도에서 한 달(5초)마다, 배속이면 그만큼 자주 onTick을 부른다. */
+/** running인 동안 intervalMs마다 onTick을 부른다(한 달이 흐르는 시간). */
 export function useRunClock({
   running,
-  speed,
+  intervalMs,
   onTick,
 }: {
   running: boolean;
-  speed: Speed;
+  intervalMs: number;
   onTick: () => void;
 }): void {
   const tick = useEffectEvent(onTick);
@@ -18,9 +17,9 @@ export function useRunClock({
     if (!running) {
       return;
     }
-    const id = window.setInterval(() => tick(), MS_PER_MONTH / speed);
+    const id = window.setInterval(() => tick(), intervalMs);
     return () => window.clearInterval(id);
-  }, [running, speed]);
+  }, [running, intervalMs]);
 }
 
 /** 탭이 숨겨지면 onHidden을 부른다(자동 일시정지용). */
