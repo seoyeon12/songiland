@@ -1,3 +1,4 @@
+import { BEHAVIOR_IDS, easedFlag } from '../data/behaviors';
 import { EVENTS } from './catalog';
 import { render } from './template';
 import type { EventCard } from './types';
@@ -18,6 +19,8 @@ const FORBIDDEN = [
   '펫샵',
   '안락사',
   '똥개',
+  '체벌',
+  '혼내',
 ];
 
 function allTexts(event: EventCard): string[] {
@@ -154,6 +157,24 @@ describe('event catalog', () => {
         (choice) => !choice.outcomes.some((outcome) => outcome.effects?.adopt),
       );
       expect(waits.length, event.id).toBeGreaterThan(0);
+    }
+  });
+
+  it('gives every behavior a start, a repeat and a caring choice that can ease it', () => {
+    const setsFlag = (event: EventCard, flag: string) =>
+      [
+        event.effects,
+        ...(event.choices ?? []).flatMap((choice) => choice.outcomes.map((o) => o.effects)),
+      ].some((effects) => effects?.flags?.includes(flag));
+    for (const id of BEHAVIOR_IDS) {
+      const related = EVENTS.filter((event) => event.category === 'behavior');
+      expect(related.some((event) => !event.when?.requires && setsFlag(event, id)), id).toBe(true);
+      const care = related.filter(
+        (event) => event.choices && event.when?.requires?.includes(`${id}-again`),
+      );
+      expect(care, id).toHaveLength(1);
+      expect(setsFlag(care[0], easedFlag(id)), id).toBe(true);
+      expect(care[0].when?.excludes, id).toContain(easedFlag(id));
     }
   });
 });

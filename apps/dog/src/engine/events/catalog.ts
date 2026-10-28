@@ -1669,6 +1669,507 @@ export const EVENTS: readonly EventCard[] = [
     effects: { happiness: 4, bond: 4 },
   },
 
+  // ─── 문제행동 ─────────────────────────────────────────────────
+  // 처음 나타남(표시 <id>) → 되풀이(표시 <id>-again) → "어떻게 도와줄까요?" 선택(좋아지면 <id>-eased).
+  // 해결은 훈련·진료·환경 바꾸기·맞춰 살기처럼 아이를 돕는 방법만 쓴다. 물림은 가볍게, 다친 곳 없이.
+  {
+    id: 'separation-onset',
+    category: 'behavior',
+    tones: ['calm'],
+    stages: ['young', 'adult', 'senior'],
+    when: { minTogether: 4 },
+    weight: 0.09,
+    once: true,
+    boostTraits: ['clingy'],
+    memorable: true,
+    text: [
+      '{name:이/가} 혼자 남겨지면 현관 앞에서 한참을 울어요. 이웃이 하울링 소리를 들었대요. 분리불안이 생겼나 봐요.',
+    ],
+    effects: { happiness: -4, ease: -2, flags: ['separation-anxiety'] },
+  },
+  {
+    id: 'separation-again',
+    category: 'behavior',
+    tones: ['calm', 'cheerful'],
+    stages: ['young', 'adult', 'senior', 'elderly'],
+    when: { requires: ['separation-anxiety'], excludes: ['separation-anxiety-eased'] },
+    weight: 1.5,
+    cooldown: 10,
+    text: [
+      '외출하고 돌아오니 현관 매트가 솜사탕처럼 뜯겨 있었어요. {name:은/는} 모른 척 꼬리를 흔들었어요.',
+      '신발을 신기만 해도 {name:이/가} 따라 나와 문 앞을 막아서요.',
+    ],
+    effects: { happiness: -3, ease: -2, flags: ['separation-anxiety-again'] },
+  },
+  {
+    id: 'separation-care',
+    category: 'behavior',
+    tones: ['calm', 'touching'],
+    stages: ['young', 'adult', 'senior'],
+    when: {
+      requires: ['separation-anxiety-again'],
+      excludes: ['separation-anxiety-eased'],
+    },
+    text: ['혼자 있는 시간을 힘들어하는 {name}, 어떻게 도와줄까요?'],
+    choices: [
+      {
+        id: 'practice',
+        label: '짧은 외출부터 차근차근 연습하기',
+        outcomes: [
+          {
+            weight: 2,
+            favoredBy: 'bond',
+            text: '1분, 5분, 30분… 몇 달을 연습한 끝에 {name:은/는} 혼자서도 낮잠을 자게 됐어요.',
+            effects: { happiness: 4, bond: 3, ease: -2, flags: ['separation-anxiety-eased'] },
+            memorable: true,
+          },
+          {
+            weight: 1,
+            text: '아직 긴 외출은 힘들어해요. 그래도 짧은 외출에는 더 이상 울지 않아요.',
+            effects: { happiness: 1, bond: 2, ease: -2 },
+          },
+        ],
+      },
+      {
+        id: 'vet',
+        label: '수의 행동의학 진료 받아 보기',
+        outcomes: [
+          {
+            weight: 3,
+            text: '약과 훈련을 함께 하니 {name}의 불안이 눈에 띄게 줄었어요.',
+            effects: { happiness: 3, ease: -6, flags: ['separation-anxiety-eased'] },
+          },
+          {
+            weight: 1,
+            text: '조금씩 나아지는 중이에요. 꾸준히 다니기로 했어요.',
+            effects: { happiness: 1, ease: -6 },
+          },
+        ],
+      },
+      {
+        id: 'daycare',
+        label: '혼자 있는 날엔 강아지 유치원 보내기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '유치원 가는 날이면 {name:이/가} 먼저 현관에 나가 기다려요.',
+            effects: {
+              happiness: 3,
+              sociability: 3,
+              ease: -5,
+              flags: ['separation-anxiety-eased'],
+            },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'isolation-onset',
+    category: 'behavior',
+    tones: ['calm'],
+    stages: ['young', 'adult', 'senior'],
+    when: { minTogether: 4, onlyDog: true },
+    weight: 0.05,
+    once: true,
+    boostTraits: ['timid', 'clingy'],
+    text: [
+      '{name:은/는} 누구라도 집에 있으면 괜찮은데, 집이 텅 비면 불안해서 낑낑거려요. 고립불안이래요.',
+    ],
+    effects: { happiness: -4, flags: ['isolation-distress'] },
+  },
+  {
+    id: 'isolation-again',
+    category: 'behavior',
+    tones: ['calm', 'touching'],
+    stages: ['young', 'adult', 'senior', 'elderly'],
+    when: {
+      requires: ['isolation-distress'],
+      excludes: ['isolation-distress-eased'],
+      onlyDog: true,
+    },
+    weight: 1.5,
+    cooldown: 10,
+    text: ['아무도 없는 낮 동안 {name:이/가} 창가에서 내내 기다렸대요. 홈캠에 찍힌 뒷모습이 짠해요.'],
+    effects: { happiness: -3, bond: 1, flags: ['isolation-distress-again'] },
+  },
+  {
+    id: 'isolation-care',
+    category: 'behavior',
+    tones: ['calm'],
+    stages: ['young', 'adult', 'senior'],
+    when: {
+      requires: ['isolation-distress-again'],
+      excludes: ['isolation-distress-eased'],
+      onlyDog: true,
+    },
+    text: ['집이 비면 힘들어하는 {name}, 어떻게 도와줄까요?'],
+    choices: [
+      {
+        id: 'enrichment',
+        label: '노즈워크 장난감과 잔잔한 음악 틀어 두기',
+        outcomes: [
+          {
+            weight: 2,
+            text: '간식 찾기에 빠져 있다 보면 어느새 가족이 돌아와 있어요.',
+            effects: { happiness: 3, flags: ['isolation-distress-eased'] },
+          },
+          {
+            weight: 1,
+            text: '장난감은 금방 끝내고 다시 현관을 바라봐요. 다른 방법도 찾아보기로 했어요.',
+            effects: { happiness: 1 },
+          },
+        ],
+      },
+      {
+        id: 'sitter',
+        label: '혼자 있는 날엔 펫시터 부르기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '펫시터 선생님이 오는 날이면 {name:이/가} 신나서 빙글빙글 돌아요.',
+            effects: {
+              happiness: 3,
+              sociability: 2,
+              ease: -6,
+              flags: ['isolation-distress-eased'],
+            },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'not-alone',
+    category: 'behavior',
+    tones: ['touching', 'cheerful'],
+    stages: ['young', 'adult', 'senior', 'elderly'],
+    pair: true,
+    when: { requires: ['isolation-distress'], excludes: ['isolation-distress-eased'] },
+    weight: 4,
+    once: true,
+    memorable: true,
+    text: [
+      '{other:이/가} 온 뒤로 {name:은/는} 빈집을 훨씬 덜 힘들어해요. 둘이 나란히 창밖을 보며 가족을 기다려요.',
+    ],
+    effects: { happiness: 5, rapport: 6, flags: ['isolation-distress-eased'] },
+  },
+  {
+    id: 'aggression-onset',
+    category: 'behavior',
+    tones: ['calm'],
+    stages: ['young', 'adult', 'senior'],
+    when: { minTogether: 4, max: { sociability: 45 } },
+    weight: 0.12,
+    once: true,
+    boostTraits: ['timid', 'stubborn'],
+    text: [
+      '낯선 사람이 다가오자 {name:이/가} 이빨을 드러내며 으르렁거렸어요. 무서운 마음에 먼저 겁을 주는 거래요.',
+    ],
+    effects: { happiness: -3, sociability: -3, flags: ['aggression'] },
+  },
+  {
+    id: 'aggression-again',
+    category: 'behavior',
+    tones: ['calm'],
+    stages: ['young', 'adult', 'senior', 'elderly'],
+    when: { requires: ['aggression'], excludes: ['aggression-eased'] },
+    weight: 1.5,
+    cooldown: 12,
+    text: [
+      '산책길에서 마주친 큰 개에게 {name:이/가} 줄을 당기며 달려들었어요. 얼른 길을 건너 돌아왔어요.',
+      '택배 기사님 바짓단을 {name:이/가} 살짝 물었어요. 다친 곳은 없었지만 몇 번이고 사과드렸어요.',
+    ],
+    effects: { sociability: -2, ease: -2, flags: ['aggression-again'] },
+  },
+  {
+    id: 'aggression-care',
+    category: 'behavior',
+    tones: ['calm'],
+    stages: ['young', 'adult', 'senior'],
+    when: { requires: ['aggression-again'], excludes: ['aggression-eased'] },
+    text: ['낯선 사람과 개를 무서워하는 {name}, 어떻게 도와줄까요?'],
+    choices: [
+      {
+        id: 'trainer',
+        label: '행동 전문 훈련사와 교육 시작하기',
+        outcomes: [
+          {
+            weight: 2,
+            favoredBy: 'bond',
+            text: '멀리 지나가는 개를 보며 간식 받기부터 시작했어요. 이제 {name:은/는} 으르렁 대신 가족 얼굴을 봐요.',
+            effects: { sociability: 5, happiness: 3, ease: -8, flags: ['aggression-eased'] },
+            memorable: true,
+          },
+          {
+            weight: 1,
+            text: '갈 길이 멀지만, 편하게 지나칠 수 있는 거리가 조금씩 줄고 있어요.',
+            effects: { sociability: 2, ease: -8 },
+          },
+        ],
+      },
+      {
+        id: 'muzzle',
+        label: '입마개에 익숙해지게 하고 한적한 시간에 걷기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '간식과 함께 입마개를 연습했어요. 한적한 새벽 산책이 {name}에게도 편해 보여요.',
+            effects: { happiness: 2, ease: -2, flags: ['aggression-eased'] },
+          },
+        ],
+      },
+      {
+        id: 'vet',
+        label: '수의 행동의학 진료 받아 보기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '불안을 낮추는 약과 훈련을 함께 했어요. 으르렁거리는 날이 눈에 띄게 줄었어요.',
+            effects: { happiness: 3, sociability: 3, ease: -7, flags: ['aggression-eased'] },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'guarding-onset',
+    category: 'behavior',
+    tones: ['calm', 'cheerful'],
+    stages: ['young', 'adult', 'senior'],
+    when: { minTogether: 4 },
+    weight: 0.025,
+    once: true,
+    boostTraits: ['foodie', 'stubborn'],
+    text: [
+      '개껌을 물고 있는 {name}에게 손을 뻗었더니 낮게 으르렁거렸어요. 자기 물건을 지키려는 소유공격성이래요.',
+    ],
+    effects: { happiness: -1, flags: ['resource-guarding'] },
+  },
+  {
+    id: 'guarding-again',
+    category: 'behavior',
+    tones: ['cheerful', 'calm'],
+    stages: ['young', 'adult', 'senior', 'elderly'],
+    when: { requires: ['resource-guarding'], excludes: ['resource-guarding-eased'] },
+    weight: 1.2,
+    cooldown: 12,
+    text: [
+      '소파를 차지한 {name:이/가} 비켜 달라는 말에 으르렁 시위를 했어요. 결국 가족이 바닥에 앉았어요.',
+      '떨어진 양말을 주우려던 손을 {name:이/가} 살짝 물었어요. 다친 데는 없었지만 둘 다 깜짝 놀랐어요.',
+    ],
+    effects: { bond: -2, ease: -1, flags: ['resource-guarding-again'] },
+  },
+  {
+    id: 'guarding-partner',
+    category: 'behavior',
+    tones: ['calm'],
+    stages: ['young', 'adult', 'senior', 'elderly'],
+    pair: true,
+    when: { requires: ['resource-guarding'], excludes: ['resource-guarding-eased'] },
+    weight: 1.5,
+    cooldown: 18,
+    text: ['{name:이/가} 밥그릇 근처에 온 {other}에게 으르렁댔어요. 앞으로 밥은 따로 주기로 했어요.'],
+    effects: { rapport: -5, flags: ['resource-guarding-again'] },
+  },
+  {
+    id: 'guarding-care',
+    category: 'behavior',
+    tones: ['calm', 'cheerful'],
+    stages: ['young', 'adult', 'senior'],
+    when: {
+      requires: ['resource-guarding-again'],
+      excludes: ['resource-guarding-eased'],
+    },
+    text: ['소중한 물건을 지키려고 으르렁대는 {name}, 어떻게 할까요?'],
+    choices: [
+      {
+        id: 'trade',
+        label: '더 좋은 간식과 바꾸는 "교환 놀이" 가르치기',
+        outcomes: [
+          {
+            weight: 2,
+            favoredBy: 'bond',
+            text: '이제 "줘" 하면 {name:이/가} 개껌을 내려놓고 간식을 기다려요.',
+            effects: { bond: 4, happiness: 2, flags: ['resource-guarding-eased'] },
+          },
+          {
+            weight: 1,
+            hinderedBy: 'bond',
+            text: '귀한 물건 앞에서는 아직 몸이 굳어요. 천천히 계속 연습하기로 했어요.',
+            effects: { bond: 1 },
+          },
+        ],
+      },
+      {
+        id: 'space',
+        label: '먹고 놀 때는 방해받지 않는 자리 만들어 주기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '자기만의 자리가 생기자 {name:이/가} 훨씬 느긋해졌어요.',
+            effects: { happiness: 3, flags: ['resource-guarding-eased'] },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'prey-onset',
+    category: 'behavior',
+    tones: ['cheerful', 'calm'],
+    stages: ['young', 'adult'],
+    when: {
+      breeds: [
+        'jindo',
+        'shiba',
+        'beagle',
+        'border-collie',
+        'dachshund',
+        'miniature-schnauzer',
+        'yorkshire-terrier',
+        'welsh-corgi',
+        'mix-medium',
+      ],
+    },
+    weight: 0.35,
+    once: true,
+    text: ['산책 중 고양이를 본 {name:이/가} 줄이 팽팽해지도록 달려 나갔어요. 사냥 본능이 깨어났나 봐요.'],
+    effects: { health: 1, flags: ['prey-drive'] },
+  },
+  {
+    id: 'prey-again',
+    category: 'behavior',
+    tones: ['cheerful'],
+    stages: ['young', 'adult', 'senior'],
+    when: { requires: ['prey-drive'], excludes: ['prey-drive-eased'] },
+    weight: 1.5,
+    cooldown: 10,
+    text: [
+      '비둘기 떼를 본 {name:이/가} 순식간에 돌진했어요. 비둘기는 무사히 날아갔고 {name:은/는} 한참 하늘을 올려다봤어요.',
+      '공원에서 청설모를 발견한 {name:이/가} 나무 밑을 30분 동안 떠나지 않았어요.',
+    ],
+    effects: { happiness: 2, ease: -1, flags: ['prey-drive-again'] },
+  },
+  {
+    id: 'prey-care',
+    category: 'behavior',
+    tones: ['cheerful', 'calm'],
+    stages: ['young', 'adult', 'senior'],
+    when: { requires: ['prey-drive-again'], excludes: ['prey-drive-eased'] },
+    text: ['작은 동물만 보면 줄을 끌고 달려 나가는 {name}, 어떻게 할까요?'],
+    choices: [
+      {
+        id: 'look-at-me',
+        label: '"나 봐" 신호 훈련하기',
+        outcomes: [
+          {
+            weight: 2,
+            favoredBy: 'bond',
+            text: '고양이를 본 {name:이/가} 멈칫하더니 가족을 올려다봤어요. 훈련 성공!',
+            effects: { bond: 4, flags: ['prey-drive-eased'] },
+          },
+          {
+            weight: 1,
+            text: '간식보다 비둘기가 더 좋은가 봐요. 연습은 계속하기로 했어요.',
+            effects: { bond: 1 },
+          },
+        ],
+      },
+      {
+        id: 'sniff-walk',
+        label: '줄을 짧게 잡고 냄새 맡는 산책으로 바꾸기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '쫓는 대신 냄새를 쫓는 산책. {name:은/는} 숨겨 둔 간식 찾기에 푹 빠졌어요.',
+            effects: { happiness: 3, flags: ['prey-drive-eased'] },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'walk-onset',
+    category: 'behavior',
+    tones: ['cheerful'],
+    stages: ['young', 'adult'],
+    when: { min: { health: 55 } },
+    weight: 0.08,
+    once: true,
+    boostTraits: ['social', 'mischief'],
+    text: ['새벽 6시, {name:이/가} 리드줄을 물고 침대 옆에 앉아 있어요. 산책중독의 시작이었어요.'],
+    effects: { happiness: 3, flags: ['walk-obsession'] },
+  },
+  {
+    id: 'walk-again',
+    category: 'behavior',
+    tones: ['cheerful'],
+    stages: ['young', 'adult', 'senior'],
+    when: { requires: ['walk-obsession'], excludes: ['walk-obsession-eased'] },
+    weight: 1.5,
+    cooldown: 8,
+    text: [
+      '비가 와도 눈이 와도 {name}의 산책은 쉬지 않아요. 오늘도 우비를 입고 출근 도장을 찍었어요.',
+      '"산"자만 들어도 {name:이/가} 현관으로 뛰어가요. 이제 가족끼리 산책을 "그거"라고 불러요.',
+      '하루 세 번을 나가도 {name:은/는} 아직 부족하대요. 가족의 걸음 수만 늘어 가요.',
+    ],
+    effects: { health: 2, happiness: 2, ease: -2, flags: ['walk-obsession-again'] },
+  },
+  {
+    id: 'walk-care',
+    category: 'behavior',
+    tones: ['cheerful'],
+    stages: ['young', 'adult', 'senior'],
+    when: { requires: ['walk-obsession-again'], excludes: ['walk-obsession-eased'] },
+    text: ['산책을 다녀오자마자 {name:이/가} 다시 리드줄을 물고 와요. 어떻게 할까요?'],
+    choices: [
+      {
+        id: 'three-walks',
+        label: '하루 세 번, 원하는 만큼 걸어 주기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '덕분에 가족 모두 체력이 좋아졌어요. {name:은/는} 매일 밤 세상모르고 잠들어요.',
+            effects: { health: 4, happiness: 4, bond: 2, ease: -5 },
+          },
+        ],
+      },
+      {
+        id: 'brain-games',
+        label: '노즈워크와 터그 놀이로 집에서도 에너지 풀기',
+        outcomes: [
+          {
+            weight: 2,
+            text: '머리를 쓰는 놀이에 {name:이/가} 의외로 금방 지쳐 낮잠을 자요. 산책 시위가 줄었어요.',
+            effects: { happiness: 3, flags: ['walk-obsession-eased'] },
+          },
+          {
+            weight: 1,
+            text: '놀이도 좋지만 역시 산책이 최고래요. 리드줄은 오늘도 현관 앞에 있어요.',
+            effects: { happiness: 2, ease: -2 },
+          },
+        ],
+      },
+      {
+        id: 'walker',
+        label: '산책 메이트(펫시터) 구하기',
+        outcomes: [
+          {
+            weight: 1,
+            text: '평일 낮에는 산책 메이트 선생님과 한 바퀴. {name}의 하루가 꽉 찼어요.',
+            effects: {
+              happiness: 4,
+              sociability: 2,
+              ease: -6,
+              flags: ['walk-obsession-eased'],
+            },
+          },
+        ],
+      },
+    ],
+  },
+
   // ─── 노견 ─────────────────────────────────────────────────────
   {
     id: 'sofa-climb',

@@ -40,6 +40,8 @@ export type Condition = {
   partnerStages?: readonly Stage[];
   /** 짝 사건: 이 아이가 짝보다 먼저 가족이 됐을 때 */
   firstInHouse?: boolean;
+  /** 함께 사는 다른 아이가 없을 때(고립불안처럼 혼자일 때만 생기는 일) */
+  onlyDog?: boolean;
 };
 
 export type Effects = {
@@ -92,8 +94,11 @@ export type Choice = {
   outcomes: readonly Outcome[];
 };
 
-/** family는 견주 가정의 일(이사·이직·아기·여행), multi는 다견가정(새 식구·두 아이 사건). */
-export type EventCategory = 'daily' | 'growth' | 'health' | 'family' | 'multi' | 'senior';
+/**
+ * family는 견주 가정의 일(이사·이직·아기·여행), multi는 다견가정(새 식구·두 아이 사건),
+ * behavior는 문제행동(분리불안·공격성·산책중독 등).
+ */
+export type EventCategory = 'daily' | 'growth' | 'health' | 'family' | 'multi' | 'behavior' | 'senior';
 
 export type EventCard = {
   id: string;

@@ -7,6 +7,7 @@ import {
   STAGE_LABELS,
   type RunState,
 } from '../engine';
+import { BehaviorChips } from './BehaviorChips';
 import { DogPortrait } from './DogPortrait';
 import { Meter } from './StatBars';
 
@@ -47,6 +48,7 @@ function SiblingCard({ run, index }: { run: RunState; index: number }) {
             </p>
           </div>
         </div>
+        {!gone && <BehaviorChips dog={dog} />}
         {!gone && (
           <dl className="stats stats--compact">
             <Meter label="건강" name={`${dog.name} 건강`} value={dog.stats.health} />

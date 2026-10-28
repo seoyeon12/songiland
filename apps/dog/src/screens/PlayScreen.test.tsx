@@ -248,6 +248,22 @@ it('shows the other dogs in small cards under the first dog', () => {
   expect(within(gone).queryByRole('meter')).toBeNull();
 });
 
+it('shows behavior worries until they ease', () => {
+  const run = quietRun();
+  const worried = { ...run, dogs: [{ ...run.dogs[0], flags: ['separation-anxiety', 'walk-obsession'] }] };
+  const { rerender } = render(<PlayScreen run={worried} onChange={() => {}} />);
+  const chips = screen.getByRole('list', { name: '보리의 행동 고민' });
+  expect(chips).toHaveTextContent('분리불안');
+  expect(chips).toHaveTextContent('산책중독');
+
+  const eased = {
+    ...run,
+    dogs: [{ ...run.dogs[0], flags: ['separation-anxiety', 'separation-anxiety-eased'] }],
+  };
+  rerender(<PlayScreen run={eased} onChange={() => {}} />);
+  expect(screen.queryByRole('list', { name: '보리의 행동 고민' })).toBeNull();
+});
+
 it('names the dog a choice card is about when several dogs live together', () => {
   const run = welcome(runAwaitingNewcomer(), '두부');
   const [first, second] = run.dogs;

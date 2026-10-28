@@ -1,6 +1,6 @@
 import { toneWeights } from '../data/arcs';
 import { getBreed } from '../data/breeds';
-import { MAX_DOGS, rapportBetween } from '../family';
+import { livingDogs, MAX_DOGS, rapportBetween } from '../family';
 import type { Rng } from '../rng';
 import type { Arc, Dog, RunState, Tone } from '../types';
 import { EVENTS } from './catalog';
@@ -115,6 +115,7 @@ export function meetsCondition(
     return false;
   }
   if (when.firstInHouse && (!partner || dog.joinedMonth >= partner.joinedMonth)) return false;
+  if (when.onlyDog && livingDogs(state).length > 1) return false;
   return true;
 }
 

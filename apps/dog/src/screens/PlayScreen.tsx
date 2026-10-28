@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAutoDecide, useOnPageHidden, usePreference, useRunClock, type Speed } from '../app/useRunClock';
+import { BehaviorChips } from '../components/BehaviorChips';
 import { ChoiceDialog } from '../components/ChoiceDialog';
 import { DogPortrait } from '../components/DogPortrait';
 import { breedLabel, portraitLabel, whenLabel } from '../components/labels';
@@ -130,6 +131,7 @@ export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProp
                 </li>
               ))}
             </ul>
+            <BehaviorChips dog={dog} />
           </div>
         </section>
 
