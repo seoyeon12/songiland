@@ -46,6 +46,16 @@ describe('meetsCondition', () => {
   });
 });
 
+it('checks whether a dog lives alone', () => {
+  const alone = stateWith({});
+  expect(meetsCondition({ onlyDog: true }, alone.dogs[0], alone)).toBe(true);
+  const family = familyState();
+  expect(meetsCondition({ onlyDog: true }, family.dogs[0], family)).toBe(false);
+  // 함께 살던 아이가 떠나면 다시 혼자다.
+  const left = { ...family, dogs: [family.dogs[0], { ...family.dogs[1], passedMonth: 39 }] };
+  expect(meetsCondition({ onlyDog: true }, left.dogs[0], left)).toBe(true);
+});
+
 describe('two-dog events', () => {
   it('need a partner, and check rapport, who came first and the partner stage', () => {
     const state = familyState();

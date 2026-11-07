@@ -12,6 +12,14 @@ export {
   getCoat,
   HEALTH_LABELS,
 } from './data/breeds';
+export {
+  BEHAVIOR_IDS,
+  BEHAVIORS,
+  behaviorsOf,
+  easedFlag,
+  type BehaviorId,
+  type BehaviorState,
+} from './data/behaviors';
 export { TRAITS, traitLabel } from './data/traits';
 export { drawMeeting, nicknameFor, ROUTE_LABELS } from './meeting';
 export { isAlive, livingDogs, MAX_DOGS, rapportBetween } from './family';

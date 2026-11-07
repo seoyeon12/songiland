@@ -308,6 +308,16 @@ button.chip:focus-visible {
   font-size: 0.8125rem;
 }
 
+/* 행동 고민(분리불안 등): 성격 칩과 구분되게 회색으로 */
+.chips--static.chips--concern .chip {
+  background: var(--songi-surface-muted);
+  color: var(--songi-text);
+}
+
+.sibling .chips--concern {
+  margin-bottom: 0.75rem;
+}
+
 /* --- 진행 --- */
 /* --- 동생 카드: 첫째 아래에 함께 사는 아이들 --- */
 .siblings {
