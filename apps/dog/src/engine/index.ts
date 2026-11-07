@@ -21,7 +21,25 @@ export {
   type BehaviorState,
 } from './data/behaviors';
 export { TRAITS, traitLabel } from './data/traits';
-export { drawMeeting, nicknameFor, ROUTE_LABELS } from './meeting';
+export {
+  computeCost,
+  COST_CATEGORY_IDS,
+  COST_CATEGORY_LABELS,
+  formatManwon,
+  NATIONAL,
+  type CostBreakdown,
+  type CostCategory,
+} from './data/costs';
+export {
+  BEHAVIOR_SOURCE,
+  comboEncounter,
+  lifeStats,
+  type BehaviorCompare,
+  type ComboEncounter,
+  type LifespanCompare,
+  type LifeStats,
+} from './stats';
+export { drawMeeting, nicknameFor, ROUTE_LABELS, routeProbability } from './meeting';
 export { isAlive, livingDogs, MAX_DOGS, rapportBetween } from './family';
 export {
   formatAge,

@@ -103,7 +103,12 @@ describe('share card', () => {
     const run = simulateToEnd(startRun({ seed: 2024, name: '두부' }));
     const card = shareCardFor(run);
     expect(card.title).toBe('두부의 견생');
-    expect(card.facts.map((fact) => fact.label)).toEqual(['함께한 시간', '만난 곳', '나이']);
+    expect(card.facts.map((fact) => fact.label)).toEqual([
+      '함께한 시간',
+      '만난 곳',
+      '나이',
+      '함께한 비용',
+    ]);
     expect(card.moods).toHaveLength(run.timeline.length);
     const texts = expectToFit(card);
     expect(texts).toContain('두부의 견생');
@@ -126,10 +131,12 @@ describe('share card', () => {
       breed: '시고르자브종 (믹스견) · 흰 바탕 검은 점박이',
       rarity: '당신이 믹스견을 만날 확률 약 12% · 가장 자주 만나는 견종 중 하나예요',
       family: ['아주아주긴이름의둘째', '아주아주긴이름의셋째'],
+      combo: '다시 만날 확률 약 1,234,567명 중 1',
       facts: [
         { label: '함께한 시간', value: '19년 11개월' },
         { label: '만난 곳', value: '시골 마당' },
         { label: '나이', value: '11개월 → 20살' },
+        { label: '함께한 비용', value: '1억 2,340만원' },
       ],
       moments: [
         { when: '19년 11개월째', text: long },

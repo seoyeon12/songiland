@@ -1,5 +1,13 @@
 import { breedLabel, whenLabel } from '../components/labels';
-import { breedRarity, formatAge, formatMonths, summarize, type Mood, type RunState } from '../engine';
+import {
+  breedRarity,
+  formatAge,
+  formatManwon,
+  formatMonths,
+  summarize,
+  type Mood,
+  type RunState,
+} from '../engine';
 
 /** 공유 카드 크기. 인스타그램 피드 세로(4:5)에 맞춘다. */
 export const CARD_WIDTH = 1080;
@@ -15,6 +23,9 @@ export type ShareCard = {
   rarity: string;
   /** 함께한 다른 아이들 이름 */
   family: readonly string[];
+  /** "다시 만날 확률 약 n명 중 1" (견생 통계 한 줄) */
+  combo: string;
+  /** 함께한 시간·만난 곳·나이·함께한 비용 */
   facts: readonly { label: string; value: string }[];
   moments: readonly { when: string; text: string }[];
   moods: readonly Mood[];
@@ -31,10 +42,12 @@ export function shareCardFor(run: RunState): ShareCard {
     breed: `${breedLabel(run.dogs[0])} · ${dog.coatLabel}`,
     rarity: `${rarity.headline} 약 ${rarity.percent}% · ${rarity.note}`,
     family: record.family.map((member) => member.summary.name),
+    combo: `다시 만날 확률 약 ${record.stats.combo.oneIn.toLocaleString('ko-KR')}명 중 1`,
     facts: [
       { label: '함께한 시간', value: formatMonths(dog.monthsTogether) },
       { label: '만난 곳', value: dog.route },
       { label: '나이', value: `${formatAge(dog.metAgeMonths)} → ${formatAge(dog.ageAtEndMonths)}` },
+      { label: '함께한 비용', value: formatManwon(record.cost.total) },
     ],
     moments: record.highlights.map((moment) => ({ when: whenLabel(moment.month), text: moment.text })),
     moods: record.timeline.map((cell) => cell.mood),
@@ -195,7 +208,7 @@ export function drawShareCard(
   line(ctx, font(700), kicker, CENTER, 127, { size: 30, maxWidth: pill - 48 });
 
   // 강아지 뒤 둥근 조명(app.css의 radial-gradient와 같은 자리)
-  const top = 168;
+  const top = 152;
   ctx.beginPath();
   ctx.arc(CENTER, top + PORTRAIT * 0.58, PORTRAIT * 0.4, 0, Math.PI * 2);
   ctx.fillStyle = COLORS.accentSoft;
@@ -204,7 +217,7 @@ export function drawShareCard(
     ctx.drawImage(portrait, CENTER - PORTRAIT / 2, top, PORTRAIT, PORTRAIT);
   }
 
-  let y = top + PORTRAIT + 80;
+  let y = top + PORTRAIT + 64;
   ctx.fillStyle = COLORS.text;
   line(ctx, font(800), card.title, CENTER, y, { size: 68, maxWidth: CONTENT });
   y += 48;
@@ -221,7 +234,12 @@ export function drawShareCard(
     });
   }
 
-  // 함께한 시간 · 만난 곳 · 나이
+  // 다시 만날 확률(견생 통계 한 줄)
+  y += 38;
+  ctx.fillStyle = COLORS.muted;
+  line(ctx, font(600), card.combo, CENTER, y, { size: 24, maxWidth: CONTENT });
+
+  // 함께한 시간 · 만난 곳 · 나이 · 함께한 비용
   y += 28;
   roundedRect(ctx, LEFT, y, CONTENT, 112, 28);
   ctx.fillStyle = COLORS.surfaceMuted;

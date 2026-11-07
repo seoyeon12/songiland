@@ -7,13 +7,20 @@ import { josa } from './text/josa';
 import type { Breed, Meeting, Route, TraitId } from './types';
 
 /** 견종 계열별 만남 경로 가중치. 시골 마당은 믹스견·진돗개에만 있다. 펫숍은 없다. */
-const ROUTE_WEIGHTS: Record<Breed['family'], Record<Route, number>> = {
+export const ROUTE_WEIGHTS: Record<Breed['family'], Record<Route, number>> = {
   mix: { shelter: 35, rural: 35, rescue: 20, acquaintance: 10 },
   jindo: { shelter: 35, rural: 25, rescue: 15, acquaintance: 25 },
   purebred: { shelter: 30, rural: 0, rescue: 10, acquaintance: 60 },
 };
 
 const ROUTES: readonly Route[] = ['shelter', 'rural', 'rescue', 'acquaintance'];
+
+/** 이 견종 계열에서 이 경로로 만날 확률(0~1). 조합 확률 계산에 쓴다. */
+export function routeProbability(family: Breed['family'], route: Route): number {
+  const weights = ROUTE_WEIGHTS[family];
+  const total = ROUTES.reduce((sum, entry) => sum + weights[entry], 0);
+  return total > 0 ? weights[route] / total : 0;
+}
 
 const JINDO_COAT_IDS = new Set(JINDO_COATS.map((coat) => coat.id));
 

@@ -30,6 +30,11 @@ test('ends a life at 4x, saves the share card and keeps it in past lives', async
   await expect(page.getByText(/^이번 상영작 · /)).toBeVisible();
   await expect(page.getByRole('list', { name: /견생 지도/ })).toBeVisible();
 
+  // 결말 "견생 통계" 카드: 함께한 비용과 다시 만날 확률(8단계).
+  await expect(page.getByRole('heading', { name: '견생 통계' })).toBeVisible();
+  await expect(page.getByText('함께한 비용')).toBeVisible();
+  await expect(page.getByText('이 아이를 다시 만날 확률')).toBeVisible();
+
   // 공유 카드는 이 브라우저의 캔버스로 그린 1080×1350 PNG다.
   const save = page.getByRole('button', { name: '이미지로 저장' });
   await expect(save).toBeEnabled();

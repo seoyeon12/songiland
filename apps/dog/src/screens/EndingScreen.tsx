@@ -5,13 +5,19 @@ import { LifeMap } from '../components/LifeMap';
 // 포털(송이랜드) 미배포 동안 숨김. 포털 배포 후 주석 해제.
 // import { PortalLink } from '../components/PortalLink';
 import {
+  BEHAVIOR_SOURCE,
   breedRarity,
+  COST_CATEGORY_IDS,
+  COST_CATEGORY_LABELS,
   formatAge,
+  formatManwon,
   formatMonths,
   josa,
+  NATIONAL,
   summarize,
   type FamilyRecord,
   type LogEntry,
+  type RunRecord,
   type RunState,
 } from '../engine';
 import { shareCardFor } from '../share/card';
@@ -138,6 +144,95 @@ function FamilyCard({ member, firstName }: { member: FamilyRecord; firstName: st
   );
 }
 
+const LIFESPAN_NOTE: Record<RunRecord['stats']['lifespan']['band'], string> = {
+  short: '기대 수명보다 짧았지만, 매 순간 사랑받았어요.',
+  typical: '견종 기대 수명만큼 함께했어요.',
+  long: '기대 수명보다 오래 곁에 있어 줬어요.',
+};
+
+function comboPercentText(percent: number): string {
+  return percent < 1 ? '1% 미만' : `약 ${Math.round(percent)}%`;
+}
+
+/** 결말 "견생 통계" 카드: 함께한 비용, 다시 만날 확률, 수명, 겪은 문제행동. */
+function StatsCard({ record }: { record: RunRecord }) {
+  const { cost, stats } = record;
+  const { combo, lifespan, behaviors } = stats;
+  const hasBehaviorRate = behaviors.some((behavior) => behavior.typicalPercent !== null);
+  return (
+    <section className="app__card stats" aria-labelledby="stats-title">
+      <h2 id="stats-title" className="section-title">
+        견생 통계
+      </h2>
+
+      <div className="stats__block">
+        <p className="stats__label">함께한 비용</p>
+        <p className="stats__big">{formatManwon(cost.total)}</p>
+        <ul className="stats__bars">
+          {COST_CATEGORY_IDS.filter((id) => cost.byCategory[id] > 0).map((id) => {
+            const amount = cost.byCategory[id];
+            const percent = cost.total > 0 ? Math.round((amount / cost.total) * 100) : 0;
+            return (
+              <li key={id} className="stats__bar">
+                <span className="stats__bar-label">{COST_CATEGORY_LABELS[id]}</span>
+                <span className="stats__bar-track">
+                  <span className="stats__bar-fill" style={{ width: `${percent}%` }} />
+                </span>
+                <span className="stats__bar-value">{formatManwon(amount)}</span>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="stats__note">
+          한 마리당 월평균 <strong>{cost.monthlyAverage}만원</strong> · 전국 평균 약{' '}
+          {NATIONAL.monthly}만원
+        </p>
+      </div>
+
+      <div className="stats__block">
+        <p className="stats__label">이 아이를 다시 만날 확률</p>
+        <p className="stats__big">약 {combo.oneIn.toLocaleString('ko-KR')}명 중 1</p>
+        <p className="stats__note">
+          {combo.parts
+            .map((part) => `${part.label} ${comboPercentText(part.percent)}`)
+            .join(' · ')}
+        </p>
+      </div>
+
+      <div className="stats__block">
+        <p className="stats__label">함께한 시간과 견종 기대 수명</p>
+        <p className="stats__note">
+          함께한 <strong>{lifespan.years}년</strong> · 견종 기대 수명 {lifespan.breedLow}~
+          {lifespan.breedHigh}년 — {LIFESPAN_NOTE[lifespan.band]}
+        </p>
+      </div>
+
+      <div className="stats__block">
+        <p className="stats__label">겪은 문제행동</p>
+        {behaviors.length === 0 ? (
+          <p className="stats__note">큰 문제행동 없이 지냈어요.</p>
+        ) : (
+          <ul className="stats__behaviors">
+            {behaviors.map((behavior) => (
+              <li key={behavior.id}>
+                {behavior.label}
+                {behavior.eased && ' · 좋아졌어요'}
+                {behavior.typicalPercent !== null && (
+                  <span className="stats__behavior-rate"> · 또래 약 {behavior.typicalPercent}%</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <p className="stats__source">
+        금액은 어림값이에요. 출처: {NATIONAL.source}.{hasBehaviorRate && ` ${BEHAVIOR_SOURCE}`}
+      </p>
+    </section>
+  );
+}
+
 /** 견생 기록 카드. 이미지로 저장·공유할 수 있고, 지난 견생 목록에서 다시 열 수 있다. */
 export function EndingScreen({ run, onAgain, endedAt }: EndingScreenProps) {
   const [showStory, setShowStory] = useState(false);
@@ -229,6 +324,8 @@ export function EndingScreen({ run, onAgain, endedAt }: EndingScreenProps) {
             </button>
           </div>
         </section>
+
+        <StatsCard record={record} />
 
         {record.family.length > 0 && (
           <section className="app__card family" aria-labelledby="family-title">

@@ -1,6 +1,8 @@
 import { getBreed, getCoat } from './data/breeds';
+import { computeCost, type CostBreakdown } from './data/costs';
 import { traitLabel } from './data/traits';
 import { arcTitle } from './simulation';
+import { lifeStats, type LifeStats } from './stats';
 import { ROUTE_LABELS } from './meeting';
 import type { Dog, LogEntry, RunState, TimelineCell } from './types';
 
@@ -46,6 +48,10 @@ export type RunRecord = {
   highlights: Moment[];
   /** 플레이어가 고른 선택 수(남은 아이들의 이야기는 자동이라 세지 않는다). */
   choicesMade: number;
+  /** 견생에 든 비용(결말에서만 공개). */
+  cost: CostBreakdown;
+  /** 다시 만날 확률·수명·문제행동 비교. */
+  stats: LifeStats;
   ended: boolean;
 };
 
@@ -133,6 +139,8 @@ export function summarize(state: RunState): RunRecord {
     timeline: state.timeline,
     highlights: pickHighlights(state.log, dog.id).map(toMoment),
     choicesMade: state.log.filter((entry) => entry.choice).length,
+    cost: computeCost(state),
+    stats: lifeStats(state),
     ended: state.status === 'ended',
   };
 }
