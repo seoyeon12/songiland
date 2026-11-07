@@ -1,8 +1,15 @@
+import { josa } from '../text/josa';
 import type { Breed, Coat } from '../types';
 
 /**
  * 견종 표. 수명·체급·건강 경향은 일반적인 경향을 재미를 위해 단순화한 값이며 수의학적
- * 조언이 아니다. 등장 가중치는 국내 동물등록 비율(믹스견 약 20%, 말티즈 약 17%)을 대략 따른다.
+ * 조언이 아니다.
+ *
+ * 등장 가중치(weight)는 농림축산검역본부·농식품부가 공공데이터포털에 공개한 동물등록 현황
+ * (2024년 기준: 말티즈 19.8%, 푸들 14.1%, 믹스견 13.3%, 포메라니안 9.4%, 시츄 5.8%)의
+ * 견종별 비율을 그대로 쓴다. 합은 약 94로, 게임에 없는 기타 품종(약 6%)만큼 모자란다.
+ * 그래서 "만날 확률(%)"은 이 합으로 나눠 게임 안 견종 사이 상대 비율로 보여 주며,
+ * 전국 비율보다 1%p 안팎 높게 나온다.
  * 성격은 견종이 아니라 개체 성격(traits)으로 정한다. 견종 소개에 부정적 고정관념을 쓰지 않는다.
  */
 
@@ -24,7 +31,7 @@ export const BREEDS: readonly Breed[] = [
     family: 'mix',
     size: 'small',
     lifespanYears: [13, 16],
-    weight: 12,
+    weight: 8,
     health: [],
     coats: [
       { id: 'white', label: '흰둥이', main: WHITE, pattern: 'solid' },
@@ -45,7 +52,7 @@ export const BREEDS: readonly Breed[] = [
     family: 'mix',
     size: 'medium',
     lifespanYears: [13, 15],
-    weight: 8,
+    weight: 5,
     health: [],
     coats: [...JINDO_COATS, { id: 'brown', label: '갈색', main: '#a0703c', pattern: 'solid' }],
     ears: ['erect', 'folded'],
@@ -60,7 +67,7 @@ export const BREEDS: readonly Breed[] = [
     family: 'purebred',
     size: 'small',
     lifespanYears: [12, 15],
-    weight: 17,
+    weight: 20,
     health: ['patella', 'dental', 'heart'],
     coats: [{ id: 'white', label: '하양', main: '#fbfaf7', pattern: 'solid' }],
     ears: ['drop'],
@@ -75,7 +82,7 @@ export const BREEDS: readonly Breed[] = [
     family: 'purebred',
     size: 'small',
     lifespanYears: [14, 17],
-    weight: 13,
+    weight: 14,
     health: ['patella', 'eye'],
     coats: [
       { id: 'apricot', label: '애프리콧', main: '#e9b47a', pattern: 'solid' },
@@ -96,7 +103,7 @@ export const BREEDS: readonly Breed[] = [
     family: 'purebred',
     size: 'small',
     lifespanYears: [12, 16],
-    weight: 10,
+    weight: 9,
     health: ['patella', 'trachea', 'alopecia'],
     coats: [
       { id: 'orange', label: '오렌지', main: '#e59a4c', pattern: 'solid' },
@@ -116,7 +123,7 @@ export const BREEDS: readonly Breed[] = [
     family: 'purebred',
     size: 'small',
     lifespanYears: [13, 15],
-    weight: 7,
+    weight: 5,
     health: ['skin', 'patella', 'stone'],
     coats: [{ id: 'white', label: '하양', main: '#fbfaf7', pattern: 'solid' }],
     ears: ['drop'],
@@ -131,7 +138,7 @@ export const BREEDS: readonly Breed[] = [
     family: 'purebred',
     size: 'small',
     lifespanYears: [11, 15],
-    weight: 5,
+    weight: 6,
     health: ['eye', 'brachycephalic', 'skin'],
     coats: [
       { id: 'white-gold', label: '흰색·골드', main: WHITE, accent: '#c9924e', pattern: 'patch' },
@@ -238,7 +245,7 @@ export const BREEDS: readonly Breed[] = [
     family: 'purebred',
     size: 'large',
     lifespanYears: [10, 12],
-    weight: 2,
+    weight: 1,
     health: ['hip', 'tumor'],
     coats: [
       { id: 'gold', label: '골드', main: '#d9a24f', pattern: 'solid' },
@@ -275,7 +282,7 @@ export const BREEDS: readonly Breed[] = [
     family: 'purebred',
     size: 'toy',
     lifespanYears: [13, 16],
-    weight: 1,
+    weight: 3,
     health: ['patella', 'trachea', 'dental'],
     coats: [
       { id: 'blue-tan', label: '블루탄', main: '#3f4a5c', accent: '#c98f52', pattern: 'tan-points' },
@@ -385,6 +392,42 @@ export function getBreed(id: string): Breed {
     throw new Error(`알 수 없는 견종입니다: ${id}`);
   }
   return breed;
+}
+
+/** 등장 가중치 총합. 국내 동물등록 비율 근사값이라 비율 통계를 이 값으로 나눠 낸다. */
+const TOTAL_BREED_WEIGHT = BREEDS.reduce((sum, breed) => sum + breed.weight, 0);
+
+/** 첫 만남에서 이 견종을 만날 확률(%). 등장 가중치(국내 동물등록 비율 근사) 기반. */
+export function breedEncounterPercent(id: string): number {
+  return (getBreed(id).weight / TOTAL_BREED_WEIGHT) * 100;
+}
+
+export type BreedRarity = {
+  /** 반올림한 만남 확률(%). 1% 미만도 최소 1로 보여 준다. */
+  percent: number;
+  /** "당신이 OO를 만날 확률" */
+  headline: string;
+  /** 확률 구간에 맞춘 희소성 한마디. */
+  note: string;
+};
+
+/** 만난 아이의 희소성을 알려 주는 한 줄 통계. "당신이 OO를 만날 확률 약 n% — …" */
+export function breedRarity(id: string): BreedRarity {
+  const breed = getBreed(id);
+  const percent = Math.max(1, Math.round(breedEncounterPercent(id)));
+  const note =
+    percent >= 12
+      ? '가장 자주 만나는 견종 중 하나예요'
+      : percent >= 5
+        ? '길에서 종종 마주치는 견종이에요'
+        : percent >= 2
+          ? '흔치 않은 인연이에요'
+          : '아주 귀한 인연이에요';
+  return {
+    percent,
+    headline: `당신이 ${josa(breed.name, '을/를')} 만날 확률`,
+    note,
+  };
 }
 
 export function getCoat(breed: Breed, coatId: string): Coat {

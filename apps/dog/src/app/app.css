@@ -168,6 +168,28 @@
   margin: 0.25rem 0;
 }
 
+.meeting__rarity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0;
+  padding: 0.625rem 1rem;
+  border-radius: var(--songi-radius);
+  background: var(--songi-surface-muted);
+  color: var(--songi-text-muted);
+  font-size: 0.8125rem;
+}
+
+.meeting__rarity strong {
+  color: var(--songi-accent);
+  font-size: 1rem;
+}
+
+.meeting__rarity-note {
+  color: var(--songi-text);
+  font-weight: 600;
+}
+
 .meeting__name {
   display: flex;
   flex-direction: column;
@@ -787,6 +809,16 @@ button.chip:focus-visible {
 .ending__meta {
   margin: 0;
   color: var(--songi-text-muted);
+}
+
+.ending__rarity {
+  margin: 0;
+  color: var(--songi-text-muted);
+  font-size: 0.875rem;
+}
+
+.ending__rarity strong {
+  color: var(--songi-accent);
 }
 
 .ending__moments,

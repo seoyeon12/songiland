@@ -44,7 +44,7 @@ export type Breed = {
   size: Size;
   /** 기대 수명 범위(년). 일반적인 경향을 단순화한 값이다. */
   lifespanYears: readonly [number, number];
-  /** 만남 뽑기 가중치. 국내 동물등록 비율을 대략 따른다. */
+  /** 만남 뽑기 가중치. 농림축산검역본부 동물등록 현황(2024)의 견종별 비율. 합(약 94)으로 나눠 확률을 낸다. */
   weight: number;
   health: readonly HealthTendency[];
   coats: readonly Coat[];

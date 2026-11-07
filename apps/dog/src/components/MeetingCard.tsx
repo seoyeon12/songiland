@@ -1,4 +1,5 @@
 import {
+  breedRarity,
   formatAge,
   getBreed,
   getCoat,
@@ -24,6 +25,8 @@ export function MeetingCard({ meeting, titleId, heading: Heading }: MeetingCardP
   const breed = getBreed(meeting.breedId);
   const coat = getCoat(breed, meeting.coatId);
   const stage = stageFor(breed.size, meeting.ageMonths);
+  // 첫 만남(h1)만 순수 가중치 뽑기라 "만날 확률"이 정확하다. 새 식구(h2)는 경로가 정해져 생략.
+  const rarity = Heading === 'h1' ? breedRarity(meeting.breedId) : null;
 
   return (
     <>
@@ -44,6 +47,12 @@ export function MeetingCard({ meeting, titleId, heading: Heading }: MeetingCardP
           <p key={line}>{line}</p>
         ))}
       </div>
+      {rarity && (
+        <p className="meeting__rarity">
+          {rarity.headline} <strong>약 {rarity.percent}%</strong>
+          <span className="meeting__rarity-note">{rarity.note}</span>
+        </p>
+      )}
       <dl className="facts">
         <div>
           <dt>만난 곳</dt>

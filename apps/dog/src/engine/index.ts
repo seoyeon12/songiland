@@ -3,7 +3,15 @@ export { EVENTS } from './events/catalog';
 export { getEvent, newcomerOpen } from './events/picker';
 export { render } from './events/template';
 export type { EventCard } from './events/types';
-export { BREEDS, getBreed, getCoat, HEALTH_LABELS } from './data/breeds';
+export {
+  BREEDS,
+  breedEncounterPercent,
+  breedRarity,
+  type BreedRarity,
+  getBreed,
+  getCoat,
+  HEALTH_LABELS,
+} from './data/breeds';
 export { TRAITS, traitLabel } from './data/traits';
 export { drawMeeting, nicknameFor, ROUTE_LABELS } from './meeting';
 export { isAlive, livingDogs, MAX_DOGS, rapportBetween } from './family';

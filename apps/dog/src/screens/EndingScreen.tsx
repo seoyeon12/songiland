@@ -4,6 +4,7 @@ import { breedLabel, portraitLabel, whenLabel } from '../components/labels';
 import { LifeMap } from '../components/LifeMap';
 import { PortalLink } from '../components/PortalLink';
 import {
+  breedRarity,
   formatAge,
   formatMonths,
   josa,
@@ -143,6 +144,7 @@ export function EndingScreen({ run, onAgain, endedAt }: EndingScreenProps) {
   const record = summarize(run);
   const dog = run.dogs[0];
   const past = endedAt !== undefined;
+  const rarity = breedRarity(dog.breedId);
 
   return (
     <div className="app">
@@ -169,6 +171,9 @@ export function EndingScreen({ run, onAgain, endedAt }: EndingScreenProps) {
           </h1>
           <p className="ending__meta">
             {breedLabel(dog)} · {record.dog.coatLabel} · {record.dog.traits.join(', ')}
+          </p>
+          <p className="ending__rarity">
+            {rarity.headline} <strong>약 {rarity.percent}%</strong> · {rarity.note}
           </p>
           {past && <p className="ending__date">{LONG_DATE.format(endedAt)} 상영</p>}
           <dl className="facts facts--center">

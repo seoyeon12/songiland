@@ -31,10 +31,10 @@ describe('drawMeeting', () => {
     }
   });
 
-  it('draws mixed dogs about as often as Korean registrations', () => {
+  it('draws mixed dogs about as often as Korean registrations (2024: ~13%)', () => {
     const mixed = meetings.filter((m) => getBreed(m.breedId).family === 'mix').length;
-    expect(mixed / meetings.length).toBeGreaterThan(0.17);
-    expect(mixed / meetings.length).toBeLessThan(0.24);
+    expect(mixed / meetings.length).toBeGreaterThan(0.1);
+    expect(mixed / meetings.length).toBeLessThan(0.18);
     const seen = new Set(meetings.map((meeting) => meeting.breedId));
     expect(seen.size).toBe(BREEDS.length);
   });

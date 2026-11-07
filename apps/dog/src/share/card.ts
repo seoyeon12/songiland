@@ -1,5 +1,5 @@
 import { breedLabel, whenLabel } from '../components/labels';
-import { formatAge, formatMonths, summarize, type Mood, type RunState } from '../engine';
+import { breedRarity, formatAge, formatMonths, summarize, type Mood, type RunState } from '../engine';
 
 /** 공유 카드 크기. 인스타그램 피드 세로(4:5)에 맞춘다. */
 export const CARD_WIDTH = 1080;
@@ -11,6 +11,8 @@ export type ShareCard = {
   title: string;
   arcTitle: string;
   breed: string;
+  /** "당신이 OO를 만날 확률 약 n% · 희소성 한마디" */
+  rarity: string;
   /** 함께한 다른 아이들 이름 */
   family: readonly string[];
   facts: readonly { label: string; value: string }[];
@@ -21,11 +23,13 @@ export type ShareCard = {
 export function shareCardFor(run: RunState): ShareCard {
   const record = summarize(run);
   const { dog } = record;
+  const rarity = breedRarity(run.dogs[0].breedId);
   return {
     name: dog.name,
     title: `${dog.name}의 견생`,
     arcTitle: record.arcTitle,
     breed: `${breedLabel(run.dogs[0])} · ${dog.coatLabel}`,
+    rarity: `${rarity.headline} 약 ${rarity.percent}% · ${rarity.note}`,
     family: record.family.map((member) => member.summary.name),
     facts: [
       { label: '함께한 시간', value: formatMonths(dog.monthsTogether) },
@@ -206,6 +210,9 @@ export function drawShareCard(
   y += 48;
   ctx.fillStyle = COLORS.muted;
   line(ctx, font(500), card.breed, CENTER, y, { size: 28, maxWidth: CONTENT });
+  y += 38;
+  ctx.fillStyle = COLORS.accentText;
+  line(ctx, font(700), card.rarity, CENTER, y, { size: 26, maxWidth: CONTENT });
   if (card.family.length > 0) {
     y += 40;
     line(ctx, font(500), `함께한 가족 · ${card.family.join(', ')}`, CENTER, y, {
