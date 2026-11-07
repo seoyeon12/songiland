@@ -2,7 +2,8 @@ import { useMemo, useRef, useState, type RefObject } from 'react';
 import { DogPortrait } from '../components/DogPortrait';
 import { breedLabel, portraitLabel, whenLabel } from '../components/labels';
 import { LifeMap } from '../components/LifeMap';
-import { PortalLink } from '../components/PortalLink';
+// 포털(송이랜드) 미배포 동안 숨김. 포털 배포 후 주석 해제.
+// import { PortalLink } from '../components/PortalLink';
 import {
   breedRarity,
   formatAge,
@@ -148,9 +149,11 @@ export function EndingScreen({ run, onAgain, endedAt }: EndingScreenProps) {
 
   return (
     <div className="app">
+      {/* 포털(송이랜드) 미배포 동안 숨김. 포털 배포 후 주석 해제.
       <nav className="app__topbar" aria-label="송이랜드">
         <PortalLink />
       </nav>
+      */}
       <main className="app__main">
         <section className="app__card ending" aria-labelledby="ending-title">
           <p className="ending__kicker">

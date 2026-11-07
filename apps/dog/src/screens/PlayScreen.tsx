@@ -6,7 +6,8 @@ import { DogPortrait } from '../components/DogPortrait';
 import { breedLabel, portraitLabel, whenLabel } from '../components/labels';
 import { LifeMap } from '../components/LifeMap';
 import { NewcomerDialog } from '../components/NewcomerDialog';
-import { PortalLink } from '../components/PortalLink';
+// 포털(송이랜드) 미배포 동안 숨김. 포털 배포 후 주석 해제.
+// import { PortalLink } from '../components/PortalLink';
 import { SiblingCards } from '../components/SiblingCards';
 import { StatBars } from '../components/StatBars';
 import {
@@ -102,7 +103,8 @@ export function PlayScreen({ run, onChange, memoryOnly = false }: PlayScreenProp
   return (
     <div className="app play">
       <nav className="app__topbar" aria-label="송이랜드">
-        <PortalLink />
+        {/* 포털(송이랜드) 미배포 동안 숨김. 포털 배포 후 주석 해제. */}
+        {/* <PortalLink /> */}
         <span className="play__clock">함께한 지 {formatMonths(run.month)}</span>
       </nav>
 

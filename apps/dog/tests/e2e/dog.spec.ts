@@ -50,7 +50,8 @@ test('ends a life at 4x, saves the share card and keeps it in past lives', async
   await expect(page.getByRole('button', { name: '만나러 가기' })).toBeVisible();
 });
 
-test('links back to the Songiland portal', async ({ page }) => {
+// 포털(송이랜드) 미배포 동안 상단 링크를 숨김. 포털 배포 후 주석 해제.
+test.skip('links back to the Songiland portal', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('link', { name: /송이랜드/ })).toHaveAttribute(
     'href',

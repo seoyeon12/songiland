@@ -1,7 +1,8 @@
 import { useId } from 'react';
 import { MeetingCard } from '../components/MeetingCard';
 import { NameForm } from '../components/NameForm';
-import { PortalLink } from '../components/PortalLink';
+// 포털(송이랜드) 미배포 동안 숨김. 포털 배포 후 주석 해제.
+// import { PortalLink } from '../components/PortalLink';
 import { previewMeeting } from '../engine';
 
 export type MeetingScreenProps = {
@@ -16,9 +17,11 @@ export function MeetingScreen({ seed, onAdopt, onBack }: MeetingScreenProps) {
 
   return (
     <div className="app">
+      {/* 포털(송이랜드) 미배포 동안 숨김. 포털 배포 후 주석 해제.
       <nav className="app__topbar" aria-label="송이랜드">
         <PortalLink />
       </nav>
+      */}
       <main className="app__main">
         <header className="app__header">
           <span className="app__eyebrow">

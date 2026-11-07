@@ -1,6 +1,7 @@
 import { PAST_LIVES_LIMIT, type PastLife } from '../app/storage';
 import { DogPortrait } from '../components/DogPortrait';
-import { PortalLink } from '../components/PortalLink';
+// 포털(송이랜드) 미배포 동안 숨김. 포털 배포 후 주석 해제.
+// import { PortalLink } from '../components/PortalLink';
 import { arcTitle, formatAge, formatMonths, josa, type RunState } from '../engine';
 import { breedLabel } from '../components/labels';
 
@@ -53,9 +54,11 @@ export function StartScreen({ saved, lives, onOpenLife, onMeet, onResume }: Star
   const savedDog = saved?.dogs[0];
   return (
     <div className="app">
+      {/* 포털(송이랜드) 미배포 동안 숨김. 포털 배포 후 주석 해제.
       <nav className="app__topbar" aria-label="송이랜드">
         <PortalLink />
       </nav>
+      */}
       <main className="app__main start">
         <div className="start__cast" aria-hidden>
           {CAST.map((dog) => (
