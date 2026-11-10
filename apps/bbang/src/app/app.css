@@ -698,3 +698,26 @@
 .shop__back {
   width: 100%;
 }
+
+/* 결과 공유(4단계) */
+.share {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0 0 1rem;
+}
+
+.share__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.share__note {
+  min-height: 1.25rem;
+  margin: 0;
+  color: var(--songi-text-muted);
+  font-size: 0.8125rem;
+}

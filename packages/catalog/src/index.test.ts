@@ -53,5 +53,7 @@ describe('catalog', () => {
     expect(appUrl('ko-en')).toBe('https://ko-en.arosys.kr/');
     expect(appUrl('dog')).toBe('https://dog.arosys.kr/');
     expect(appUrl('dog', 'local')).toBe('http://localhost:5176/');
+    expect(appUrl('bbang')).toBe('https://bbang.arosys.kr/');
+    expect(appUrl('bbang', 'local')).toBe('http://localhost:5177/');
   });
 });

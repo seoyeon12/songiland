@@ -114,6 +114,8 @@ export function App({ store: injected }: { store?: BbangStore } = {}) {
     return (
       <ResultScreen
         state={phase.state}
+        mode={phase.run.mode}
+        day={phase.run.day}
         label={phase.run.label}
         record={phase.record}
         points={wallet.points}

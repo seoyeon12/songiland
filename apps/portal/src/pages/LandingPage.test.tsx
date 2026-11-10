@@ -36,6 +36,15 @@ it('lists 견생극장 under games', () => {
   );
 });
 
+it('lists 붕어빵 랭킹전 under games', () => {
+  render(<LandingPage linkTarget="production" />);
+  const games = screen.getByRole('region', { name: '게임' });
+  expect(within(games).getByRole('link', { name: /붕어빵 랭킹전/ })).toHaveAttribute(
+    'href',
+    'https://bbang.arosys.kr/',
+  );
+});
+
 it('links to local dev servers during development', () => {
   render(<LandingPage linkTarget="local" />);
   expect(

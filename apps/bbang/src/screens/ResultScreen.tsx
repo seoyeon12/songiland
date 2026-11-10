@@ -1,13 +1,19 @@
+import { useMemo } from 'react';
 import { pointsFor, type ServedGrade } from '../engine';
 import type { RecordResult } from '../app/storage';
 import { GRADE_LABEL } from '../components/gradeColor';
+import { ShareActions } from '../components/ShareActions';
 import type { SessionState } from '../game/session';
+import { shareCardFor, type ShareMode } from '../share/card';
+import { imageFileName } from '../share/image';
 
 const SERVED_GRADES: readonly ServedGrade[] = ['perfect', 'good', 'cold'];
 
-/** 결과 화면: 점수·판정 집계와 오늘 최고 기록 비교. (공유 카드 PNG는 4단계) */
+/** 결과 화면: 점수·판정 집계, 최고 기록 비교, 영수증, 공유 카드(PNG). */
 export function ResultScreen({
   state,
+  mode,
+  day,
   label,
   record,
   points,
@@ -15,6 +21,9 @@ export function ResultScreen({
   onHome,
 }: {
   state: SessionState;
+  mode: ShareMode;
+  /** 'YYYY-MM-DD'(UTC) */
+  day: string;
   /** "오늘의 장사 · 2026-11-08" 또는 "내 가게" */
   label: string;
   record: RecordResult;
@@ -28,6 +37,10 @@ export function ResultScreen({
   const diff = previousBest === null ? null : tally.score - previousBest;
   const won = (value: number) => `${value.toLocaleString('ko-KR')}원`;
   const earned = pointsFor(state.revenue, state.cost);
+  const card = useMemo(
+    () => shareCardFor(state, { mode, day, isNewBest }),
+    [state, mode, day, isNewBest],
+  );
 
   return (
     <div className="app">
@@ -90,6 +103,8 @@ export function ResultScreen({
               </dd>
             </div>
           </dl>
+
+          <ShareActions card={card} fileName={imageFileName(mode, day)} />
 
           <div className="result__actions">
             <button type="button" className="btn btn--primary btn--large" onClick={onAgain}>

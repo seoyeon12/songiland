@@ -34,6 +34,13 @@ export const domains = [
     description: '운명처럼 만난 강아지와 무지개다리까지 함께하는 10~15분 견생 시뮬레이션',
     emoji: '🐾',
   },
+  {
+    id: 'bbang',
+    kind: 'game',
+    title: '붕어빵 랭킹전',
+    description: '손님 주문대로 붕어빵을 제 타이밍에 구워 내는 90초 장사, 매일 전 세계 같은 판',
+    emoji: '🐟',
+  },
 ] as const satisfies readonly DomainEntry[];
 
 export type DomainId = (typeof domains)[number]['id'];
@@ -67,6 +74,7 @@ export const appHosts = {
   lotto: { subdomain: 'lotto', devPort: 5174, previewPort: 4174 },
   'ko-en': { subdomain: 'ko-en', devPort: 5175, previewPort: 4175 },
   dog: { subdomain: 'dog', devPort: 5176, previewPort: 4176 },
+  bbang: { subdomain: 'bbang', devPort: 5177, previewPort: 4177 },
 } as const satisfies Record<AppId, AppHost>;
 
 /**
