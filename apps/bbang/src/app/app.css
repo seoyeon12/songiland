@@ -1,0 +1,700 @@
+/* 붕어빵 랭킹전. 공통 토큰·레이아웃·버튼은 @songiland/ui/base.css에 있다. */
+
+.app__main {
+  width: 100%;
+  max-width: 30rem;
+}
+
+/* --- 시작 --- */
+.start {
+  text-align: center;
+}
+
+.start__lead {
+  margin: 0.5rem 0 1rem;
+  color: var(--songi-text-muted);
+  line-height: 1.6;
+}
+
+.start__how {
+  margin: 0 0 1.25rem;
+  padding: 1rem 1rem 1rem 2.4rem;
+  text-align: left;
+  line-height: 1.7;
+  border-radius: var(--songi-radius);
+  background: var(--songi-surface-muted);
+}
+
+.start__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.start__record {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+
+.start__record strong {
+  font-size: 1.25rem;
+}
+
+.start__ghost {
+  width: 100%;
+  font-size: 0.8125rem;
+  color: var(--songi-text-muted);
+}
+
+.start__warn {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--songi-danger);
+}
+
+.start__daily {
+  margin: 1rem 0 0;
+  color: var(--songi-text-muted);
+  font-size: 0.8125rem;
+}
+
+/* --- 장사(플레이) --- */
+.play {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+}
+
+.play__hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.play__timer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.play__seconds {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.75rem;
+}
+
+.play__timebar {
+  flex: 1;
+  height: 0.625rem;
+  border-radius: 999px;
+  background: var(--songi-surface-muted);
+  overflow: hidden;
+}
+
+.play__timebar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--songi-accent);
+}
+
+.play__scores {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.play__score {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.play__combo {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--songi-accent-text);
+  background: var(--songi-accent-soft);
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+}
+
+/* 주문 줄 */
+.orders {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  overflow-x: auto;
+  min-height: 3.75rem;
+}
+
+.orders__empty {
+  color: var(--songi-text-muted);
+  font-size: 0.875rem;
+  align-self: center;
+  padding: 0 0.5rem;
+}
+
+.orders > li {
+  flex: 0 0 auto;
+}
+
+.order {
+  display: grid;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 0 0.375rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--songi-border);
+  border-radius: var(--songi-radius-sm);
+  background: var(--songi-surface);
+  flex: 0 0 auto;
+}
+
+.order--urgent {
+  border-color: var(--songi-danger);
+}
+
+.order--match {
+  border-color: var(--songi-primary);
+  box-shadow: 0 0 0 2px var(--songi-primary);
+}
+
+.order__filling {
+  font-size: 1.25rem;
+  grid-row: span 2;
+}
+
+.order__label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.order__count {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--songi-text-muted);
+}
+
+.order__patience {
+  grid-column: 1 / -1;
+  height: 0.25rem;
+  margin-top: 0.375rem;
+  border-radius: 999px;
+  background: var(--songi-surface-muted);
+  overflow: hidden;
+}
+
+.order__patience-fill {
+  display: block;
+  height: 100%;
+  background: var(--songi-accent);
+}
+
+.order--urgent .order__patience-fill {
+  background: var(--songi-danger);
+}
+
+/* 틀판 */
+.pans {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.pan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  aspect-ratio: 3 / 2;
+  padding: 0.75rem;
+  border: 2px solid var(--songi-border-strong);
+  border-radius: var(--songi-radius);
+  background: var(--songi-surface);
+  cursor: pointer;
+  color: inherit;
+}
+
+.pan--empty {
+  border-style: dashed;
+  color: var(--songi-text-muted);
+}
+
+.pan__hint {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.pan__fish {
+  width: 68%;
+  height: auto;
+}
+
+.pan--perfect {
+  border-color: var(--songi-accent);
+  box-shadow: var(--songi-focus);
+}
+
+.pan--burnt {
+  border-color: var(--songi-danger);
+  background: var(--songi-danger-soft);
+}
+
+.pan--raw {
+  cursor: default;
+}
+
+.pan__filling {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.pan__gauge {
+  position: relative;
+  width: 100%;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--songi-surface-muted);
+  overflow: hidden;
+}
+
+.pan__green {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(52, 168, 83, 0.4);
+}
+
+.pan--perfect .pan__green {
+  background: rgba(52, 168, 83, 0.7);
+}
+
+.pan__marker {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 3px;
+  margin-left: -1.5px;
+  background: var(--songi-text);
+  border-radius: 2px;
+}
+
+/* 소 고르개 */
+.picker {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.picker__btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.625rem 0.5rem;
+  border: 1px solid var(--songi-border);
+  border-radius: var(--songi-radius-sm);
+  background: var(--songi-surface);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: inherit;
+}
+
+.picker__btn--on {
+  border-color: var(--songi-primary);
+  background: var(--songi-primary);
+  color: var(--songi-on-primary);
+}
+
+.picker__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.picker__emoji {
+  font-size: 1.25rem;
+}
+
+.picker__lock {
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+/* 서빙 피드백 */
+.flash {
+  position: absolute;
+  top: 3.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0.375rem 0.875rem;
+  border-radius: 999px;
+  font-weight: 800;
+  color: var(--songi-on-primary);
+  background: var(--songi-text);
+  animation: flash-pop 0.7s ease-out forwards;
+  pointer-events: none;
+}
+
+.flash--perfect {
+  background: var(--songi-accent);
+}
+
+.flash--bad {
+  background: var(--songi-danger);
+}
+
+.flash--info {
+  background: var(--songi-text-muted);
+}
+
+/* 거치대 + 쓰레기통 */
+.rack {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.rack__slots {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.5rem;
+  list-style: none;
+  border-radius: var(--songi-radius);
+  background: var(--songi-surface-muted);
+}
+
+.rack__empty {
+  min-height: 4.25rem;
+  border: 1px dashed var(--songi-border);
+  border-radius: var(--songi-radius-sm);
+}
+
+.rack__item {
+  width: 100%;
+  min-height: 4.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.375rem;
+  border: 2px solid var(--songi-border);
+  border-radius: var(--songi-radius-sm);
+  background: var(--songi-surface);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.rack__item--on {
+  border-color: var(--songi-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 2px var(--songi-primary);
+}
+
+.rack__item--burnt {
+  border-color: var(--songi-danger);
+}
+
+.rack__fish {
+  width: 70%;
+  height: auto;
+}
+
+.rack__label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.rack__warmth {
+  width: 80%;
+  height: 0.1875rem;
+  border-radius: 999px;
+  background: var(--songi-border);
+  overflow: hidden;
+}
+
+.rack__warmth-fill {
+  display: block;
+  height: 100%;
+  background: var(--songi-accent);
+}
+
+.rack__trash {
+  flex: 0 0 3.5rem;
+  border: 1px solid var(--songi-border);
+  border-radius: var(--songi-radius);
+  background: var(--songi-surface);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.rack__trash--armed {
+  border-color: var(--songi-danger);
+}
+
+/* 고스트(오늘 최고 기록 판) */
+.ghost {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: -0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--songi-text-muted);
+}
+
+.ghost__score {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ghost__lead {
+  margin-left: auto;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.ghost__lead--ahead {
+  color: var(--songi-accent-text);
+}
+
+.ghost__lead--behind {
+  color: var(--songi-danger);
+}
+
+@keyframes flash-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0.5rem) scale(0.9);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -1rem) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flash {
+    animation: none;
+  }
+}
+
+/* --- 결과 --- */
+.result {
+  text-align: center;
+}
+
+.result__score {
+  margin: 0.5rem 0 0;
+  font-size: 2.5rem;
+  font-weight: 800;
+}
+
+.result__best {
+  margin: 0.25rem 0 0;
+  color: var(--songi-text-muted);
+  font-weight: 700;
+}
+
+.result__best--new {
+  color: var(--songi-accent-text);
+}
+
+.result__combo {
+  margin: 0 0 1rem;
+  color: var(--songi-accent-text);
+  font-weight: 700;
+}
+
+.result__grades {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding: 1rem;
+  border-radius: var(--songi-radius);
+  background: var(--songi-surface-muted);
+}
+
+.result__grades dt {
+  font-size: 0.75rem;
+  color: var(--songi-text-muted);
+  font-weight: 700;
+}
+
+.result__grades dd {
+  margin: 0.125rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.result__meta {
+  margin: 0 0 1.25rem;
+  color: var(--songi-text-muted);
+  font-size: 0.875rem;
+}
+
+.result__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+/* --- 가게 경제 (15장) --- */
+.play__scores {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.play__revenue {
+  width: 100%;
+  text-align: right;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--songi-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.pans--wide {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.pans--wide .pan {
+  padding: 0.5rem;
+}
+
+/* 결과 영수증 */
+.receipt {
+  margin: 0 0 1.25rem;
+  padding: 0.875rem 1rem;
+  border: 1px dashed var(--songi-border-strong);
+  border-radius: var(--songi-radius-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.receipt > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.125rem 0;
+}
+
+.receipt dt {
+  color: var(--songi-text-muted);
+}
+
+.receipt dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.receipt__total {
+  margin-top: 0.375rem;
+  padding-top: 0.5rem !important;
+  border-top: 1px solid var(--songi-border);
+}
+
+.receipt__points dd {
+  color: var(--songi-accent-text);
+}
+
+.receipt__wallet {
+  font-weight: 500;
+  color: var(--songi-text-muted);
+}
+
+/* 상점 */
+.shop__points {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 1.125rem;
+}
+
+.shop__note {
+  margin: 0 0 1rem;
+  font-size: 0.8125rem;
+  color: var(--songi-text-muted);
+  line-height: 1.6;
+}
+
+.shop__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+}
+
+.shop__item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--songi-border);
+  border-radius: var(--songi-radius);
+  background: var(--songi-surface);
+}
+
+.shop__emoji {
+  font-size: 1.5rem;
+}
+
+.shop__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.shop__name {
+  margin: 0 0 0.125rem;
+  font-weight: 800;
+}
+
+.shop__level {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--songi-accent-text);
+}
+
+.shop__effect {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--songi-text-muted);
+}
+
+.shop__buy {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.shop__done {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--songi-text-muted);
+}
+
+.shop__back {
+  width: 100%;
+}
