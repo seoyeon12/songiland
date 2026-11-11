@@ -56,12 +56,12 @@ describe('purchase', () => {
   it('buys the next level when affordable', () => {
     const wallet = { ...EMPTY_WALLET, points: 500 };
     const bought = purchase(wallet, 'rack');
-    expect(bought?.points).toBe(350);
+    expect(bought?.points).toBe(250);
     expect(bought?.upgrades.rack).toBe(1);
   });
 
   it('refuses when short on points or already maxed', () => {
-    expect(purchase({ ...EMPTY_WALLET, points: 100 }, 'rack')).toBeNull();
+    expect(purchase({ ...EMPTY_WALLET, points: 200 }, 'rack')).toBeNull();
     const maxed = { ...EMPTY_WALLET, points: 9999, upgrades: { ...NO_UPGRADES, rack: maxLevel('rack') } };
     expect(purchase(maxed, 'rack')).toBeNull();
     expect(nextCost('rack', maxLevel('rack'))).toBeNull();

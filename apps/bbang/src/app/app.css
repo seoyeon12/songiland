@@ -721,3 +721,197 @@
   color: var(--songi-text-muted);
   font-size: 0.8125rem;
 }
+
+/* --- 손맛(5단계): 판정 세기별 반짝임·연기·숫자 팝·흰 플래시 --- */
+.pan {
+  overflow: visible;
+}
+
+/* 틀 밖으로 날아가는 반짝이가 페이지 가로 스크롤을 만들지 않게 자른다. */
+.play {
+  overflow-x: clip;
+}
+
+.burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.burst__bit {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin: -0.25rem 0 0 -0.25rem;
+  border-radius: 999px;
+  background: #ffc94a;
+  box-shadow: 0 0 6px #ffd76e;
+  animation: burst-fly 0.5s ease-out forwards;
+}
+
+.burst--good .burst__bit {
+  width: 0.375rem;
+  height: 0.375rem;
+  opacity: 0.8;
+  animation-duration: 0.4s;
+}
+
+.burst--burnt .burst__bit {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: -0.625rem 0 0 -0.625rem;
+  background: rgba(90, 80, 70, 0.45);
+  box-shadow: none;
+  animation: smoke-rise 0.9s ease-out forwards;
+}
+
+.burst--burnt .burst__bit:nth-child(2) {
+  animation-delay: 0.12s;
+  left: 40%;
+}
+
+.burst--burnt .burst__bit:nth-child(3) {
+  animation-delay: 0.24s;
+  left: 60%;
+}
+
+.burst__label {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--songi-accent-text);
+  text-shadow: 0 2px 0 #fff;
+  transform: translateX(-50%);
+  animation: label-pop 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) forwards;
+}
+
+@keyframes burst-fly {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--angle)) translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateY(-3.25rem) scale(0.4);
+  }
+}
+
+@keyframes smoke-rise {
+  0% {
+    opacity: 0.9;
+    transform: translateY(0) scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-2.5rem) scale(1.6);
+  }
+}
+
+@keyframes label-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0.25rem) scale(0.5);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1.25);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -0.25rem) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -0.75rem) scale(1);
+  }
+}
+
+/* 서빙 점수 팝 */
+.play__score {
+  position: relative;
+}
+
+.score-pop {
+  position: absolute;
+  right: 0;
+  top: -0.25rem;
+  font-size: 0.9375rem;
+  font-weight: 900;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: score-pop 0.8s cubic-bezier(0.2, 1.4, 0.4, 1) forwards;
+}
+
+.score-pop--plus {
+  color: var(--songi-accent-text);
+}
+
+.score-pop--big {
+  font-size: 1.25rem;
+}
+
+.score-pop--minus {
+  color: var(--songi-danger);
+}
+
+@keyframes score-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.6);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-0.75rem) scale(1.2);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-1.25rem) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-1.75rem) scale(1);
+  }
+}
+
+/* Perfect 순간의 짧은 흰 플래시 */
+.hitflash {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  animation: hitflash 0.12s ease-out;
+  z-index: 10;
+}
+
+@keyframes hitflash {
+  0% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 움직임 줄이기: 날아가는 반짝임·연기·팝·플래시를 끄고, 글자만 잠깐 보여 준다. */
+@media (prefers-reduced-motion: reduce) {
+  .burst__bit,
+  .hitflash {
+    display: none;
+  }
+
+  .burst__label,
+  .score-pop {
+    animation: fade-out 0.8s step-end forwards;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}

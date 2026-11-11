@@ -48,7 +48,7 @@ test('spends shop points on upgrades that apply only to 내 가게', async ({ pa
     [
       WALLET_KEY,
       JSON.stringify({
-        points: 400,
+        points: 600,
         totalRevenue: 0,
         upgrades: { rack: 0, pans: 0, batter: 0, warmer: 0 },
       }),
@@ -56,9 +56,9 @@ test('spends shop points on upgrades that apply only to 내 가게', async ({ pa
   );
   await page.reload();
 
-  await page.getByRole('button', { name: /상점 · 400P/ }).click();
-  await page.getByRole('button', { name: '틀 늘리기 200P에 사기' }).click();
-  await page.getByRole('button', { name: '거치대 넓히기 150P에 사기' }).click();
+  await page.getByRole('button', { name: /상점 · 600P/ }).click();
+  await page.getByRole('button', { name: '틀 늘리기 300P에 사기' }).click();
+  await page.getByRole('button', { name: '거치대 넓히기 250P에 사기' }).click();
   await expect(page.getByText('50P', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: '돌아가기' }).click();
 

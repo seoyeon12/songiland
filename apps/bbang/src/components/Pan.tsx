@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { FILLINGS, judge, type ShopConfig } from '../engine';
 import { panWindow, type Pan as PanState } from '../game/session';
 import { BbangFish } from './BbangFish';
@@ -10,9 +11,12 @@ export function Pan({
   elapsedMs,
   onClick,
   disabled,
+  children,
 }: {
   pan: PanState;
   shop: ShopConfig;
+  /** 꺼낸 순간의 효과(Burst). 틀이 비어도 위에 겹쳐 그린다. */
+  children?: ReactNode;
   elapsedMs: number;
   onClick: () => void;
   disabled: boolean;
@@ -21,6 +25,7 @@ export function Pan({
     return (
       <button type="button" className="pan pan--empty" onClick={onClick} disabled={disabled}>
         <span className="pan__hint">반죽 붓기</span>
+        {children}
       </button>
     );
   }
@@ -52,6 +57,7 @@ export function Pan({
         />
         <span className="pan__marker" style={{ left: pct(onPan) }} />
       </span>
+      {children}
     </button>
   );
 }

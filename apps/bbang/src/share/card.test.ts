@@ -111,9 +111,9 @@ describe('shareCardFor', () => {
 
   it('picks a meme line by score', () => {
     expect(memeCopy(0)).toContain('탄 맛');
-    expect(memeCopy(600)).toContain('1,000원');
-    expect(memeCopy(2000)).toContain('가슴속 3천원');
-    expect(memeCopy(5000)).toContain('붕세권');
+    expect(memeCopy(2000)).toContain('1,000원');
+    expect(memeCopy(5000)).toContain('가슴속 3천원');
+    expect(memeCopy(9000)).toContain('붕세권');
   });
 });
 

@@ -14,9 +14,9 @@ function fillingsAt(progress: number): readonly FillingId[] {
   return progress < 0.5 ? FILLING_IDS.slice(0, 2) : FILLING_IDS;
 }
 
-/** 주문 간격(ms): 초반 느긋(4.2초) → 막판 촘촘(1.8초). */
+/** 주문 간격(ms): 초반 느긋(4.2초) → 막판 촘촘(2.2초). 1.8초는 초보가 손님 40%를 놓쳤다(5단계 측정). */
 function orderGapMs(progress: number): number {
-  return lerp(4200, 1800, progress);
+  return lerp(4200, 2200, progress);
 }
 
 /** 장사 진행도에 따른 난이도(0~1). baking.cookWindow에 그대로 넣는다. */

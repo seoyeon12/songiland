@@ -23,15 +23,18 @@ export type ShareCard = {
 
 export type ShareMode = 'daily' | 'own';
 
-/** 점수대별 밈 한 줄. 붕세권·가슴속 3천원·1,000원 한 마리(12장 소재). */
+/**
+ * 점수대별 밈 한 줄. 붕세권·가슴속 3천원·1,000원 한 마리(12장 소재).
+ * 기준은 5단계 봇 측정(초보 약 2,300 · 보통 약 5,600 · 고수 약 11,700점)으로 나눴다.
+ */
 export function memeCopy(score: number): string {
-  if (score >= 3000) {
+  if (score >= 8000) {
     return '붕세권의 전설 — 이 동네 붕어빵은 내가 지킨다';
   }
-  if (score >= 1500) {
+  if (score >= 4000) {
     return '줄 서서 먹는 집. 가슴속 3천원 지도에 올라갈 각';
   }
-  if (score >= 500) {
+  if (score >= 1500) {
     return '오늘도 따끈하게, 1,000원에 한 마리';
   }
   return '붕어빵은 원래 살짝 탄 맛이지… (아님)';

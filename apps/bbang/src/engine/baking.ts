@@ -4,15 +4,18 @@ import type { CookWindow, Doneness, Grade } from './types';
 /**
  * 난이도별 익힘 구간. difficulty 0=장사 초반, 1=막판. 막판일수록 빨리 익고 초록 구간이 좁아진다.
  * widthBonus는 초록 폭 추가 비율(비싼 반죽, 0.1 = +10%).
- * Perfect는 초록 한가운데 절반이고, 양 끝 4분의 1씩이 Good이다.
+ * Perfect는 초록 한가운데 40%이고, 양 끝 30%씩이 Good이다(5단계 밸런스: 절반이면 콤보가 안 끊겼다).
  */
+/** 초록 구간 양 끝에서 Good으로 남기는 비율. */
+const PERFECT_PAD = 0.3;
+
 export function cookWindow(difficulty: number, widthBonus = 0): CookWindow {
   const d = clamp01(difficulty);
   const greenStartMs = lerp(3200, 2000, d); // 초반은 넉넉히 기다려도 된다
   // 폭: 초반 2.4초 → 막판 1.0초. 비싼 반죽(widthBonus)이면 그만큼 넓다(내 가게 모드).
   const greenWidth = lerp(2400, 1000, d) * (1 + Math.max(0, widthBonus));
   const greenEndMs = greenStartMs + greenWidth;
-  const pad = greenWidth * 0.25;
+  const pad = greenWidth * PERFECT_PAD;
   return {
     greenStartMs,
     greenEndMs,

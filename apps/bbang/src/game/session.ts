@@ -27,9 +27,9 @@ export const LATE_FILLING_FROM = 0.5;
 
 /**
  * 규칙 버전. 저장된 고스트(입력 로그)는 같은 규칙에서만 다시 돌릴 수 있어서, 규칙을 바꾸면
- * 올린다. (1 = 탭 한 번에 꺼내서 서빙, 2 = 거치대·쓰레기통·식음)
+ * 올린다. (1 = 탭 한 번에 꺼내서 서빙, 2 = 거치대·쓰레기통·식음, 3 = 5단계 밸런스)
  */
-export const RULES_VERSION = 2;
+export const RULES_VERSION = 3;
 
 export type Pan =
   | { status: 'empty' }
@@ -45,15 +45,16 @@ export type OpenOrder = {
   arrivedAtMs: number;
 };
 
-/** 방금 일어난 일(화면 피드백용). seq가 바뀌면 새 알림이다. */
+/** 방금 일어난 일(화면 피드백용). seq가 바뀌면 새 알림이다. points는 이 일로 바뀐 점수. */
 export type Notice = { seq: number } & (
-  | { kind: 'served'; grade: ServedGrade; multiplier: number }
-  | { kind: 'mismatch' }
-  | { kind: 'burnt-serve' }
+  | { kind: 'served'; grade: ServedGrade; multiplier: number; points: number }
+  | { kind: 'mismatch'; points: number }
+  | { kind: 'burnt-serve'; points: number }
   | { kind: 'raw' }
   | { kind: 'rack-full' }
   | { kind: 'discarded' }
   | { kind: 'pick-first' }
+  | { kind: 'left' }
 );
 
 /** 플레이어 입력. 시계(tick)는 입력이 아니다. */
@@ -66,6 +67,9 @@ export type Input =
   | { type: 'discard' };
 
 export type Action = { type: 'tick'; nowMs: number } | Input;
+
+/** 틀에서 막 꺼낸 순간(손맛 피드백용: 히트스톱·반짝임·연기). seq가 바뀌면 새 순간이다. */
+export type Burst = { seq: number; panIndex: number; grade: Grade; atMs: number };
 
 /** 언제(장사 시작부터 ms) 어떤 입력을 했는지. 같은 장사에 다시 넣으면 판이 그대로 재현된다(고스트). */
 export type LoggedInput = { atMs: number; input: Input };
@@ -96,6 +100,7 @@ export type SessionState = {
   /** 재료비(원): 반죽을 부을 때마다 나간다(태우거나 버려도). */
   cost: number;
   notice: Notice | null;
+  burst: Burst | null;
   inputs: LoggedInput[];
   over: boolean;
 };
@@ -119,6 +124,7 @@ export function createSession(shift: Shift, shop: ShopConfig = STANDARD_SHOP): S
     revenue: 0,
     cost: 0,
     notice: null,
+    burst: null,
     inputs: [],
     over: false,
   };
@@ -185,7 +191,7 @@ function tick(state: SessionState, nowMs: number): SessionState {
     }
   }
 
-  return {
+  const next: SessionState = {
     ...state,
     elapsedMs,
     admitted,
@@ -193,6 +199,10 @@ function tick(state: SessionState, nowMs: number): SessionState {
     missedOrders: state.missedOrders + missed,
     over: elapsedMs >= state.shift.durationMs,
   };
+  // 손님을 떠나보내면 콤보가 끊긴다(5단계: 굽기만 잘하고 손님을 놓치는 플레이를 막는다).
+  return missed > 0
+    ? withNotice({ ...next, tally: { ...next.tally, streak: 0 } }, { kind: 'left' })
+    : next;
 }
 
 function pour(state: SessionState, panIndex: number): SessionState {
@@ -238,6 +248,7 @@ function takeOut(state: SessionState, panIndex: number): SessionState {
     nextItemId: state.nextItemId + 1,
     // 고른 게 없으면 방금 꺼낸 것을 바로 골라 둔다(탭 한 번 아끼기).
     picked: state.picked ?? item.id,
+    burst: { seq: (state.burst?.seq ?? 0) + 1, panIndex, grade: doneness, atMs: state.elapsedMs },
     burnt: state.burnt + (doneness === 'burnt' ? 1 : 0),
   };
 }
@@ -263,11 +274,12 @@ function serve(state: SessionState, orderId: number): SessionState {
   const offer = { grade, matched: order.filling === item.filling };
   const outcome = serveOutcome(offer);
   const tally = applyServe(state.tally, offer);
+  const points = tally.score - state.tally.score;
 
   if (outcome !== 'accepted') {
     return withNotice(
       { ...state, tally, picked: null },
-      { kind: outcome === 'burnt' ? 'burnt-serve' : 'mismatch' },
+      { kind: outcome === 'burnt' ? 'burnt-serve' : 'mismatch', points },
     );
   }
 
@@ -284,7 +296,7 @@ function serve(state: SessionState, orderId: number): SessionState {
       rack: state.rack.filter((entry) => entry.id !== item.id),
       picked: null,
     },
-    { kind: 'served', grade: served, multiplier: comboMultiplier(tally.streak) },
+    { kind: 'served', grade: served, multiplier: comboMultiplier(tally.streak), points },
   );
 }
 

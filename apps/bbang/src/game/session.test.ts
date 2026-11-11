@@ -239,3 +239,41 @@ describe('session', () => {
     expect(state.pans[0].status).toBe('empty');
   });
 });
+
+describe('session feedback', () => {
+  it('marks the take-out moment and reports score changes on notices', () => {
+    const base = run(
+      createSession(shiftWith([{ id: 0, atMs: 0, filling: 'custard', count: 1 }]), SHOP),
+      at(0),
+      { type: 'pour', panIndex: 1 },
+      at(PERFECT_MS),
+      { type: 'take-out', panIndex: 1 },
+    );
+    expect(base.burst).toEqual({ seq: 1, panIndex: 1, grade: 'perfect', atMs: PERFECT_MS });
+
+    const refused = reduce(base, { type: 'serve', orderId: 0 }); // 팥을 슈크림 손님에게
+    expect(refused.notice).toMatchObject({ kind: 'mismatch', points: 0 }); // 0점에서 더 안 내려간다
+  });
+
+  it('breaks the combo when a customer gives up', () => {
+    const state = run(
+      createSession(
+        shiftWith([
+          { id: 0, atMs: 0, filling: 'red-bean', count: 2 },
+          { id: 1, atMs: 1000, filling: 'custard', count: 1 },
+        ]),
+        SHOP,
+      ),
+      at(0),
+      { type: 'pour', panIndex: 0 },
+      at(PERFECT_MS),
+      { type: 'take-out', panIndex: 0 },
+      { type: 'serve', orderId: 0 },
+    );
+    expect(state.tally.streak).toBe(1);
+    expect(state.notice).toMatchObject({ kind: 'served', points: 100 });
+    const left = reduce(state, at(1000 + ORDER_PATIENCE_MS + 1));
+    expect(left.tally.streak).toBe(0);
+    expect(left.notice?.kind).toBe('left');
+  });
+});

@@ -64,6 +64,7 @@ export function pointsFor(revenue: number, cost: number): number {
 }
 
 // --- 상점 (15.4) ---
+// 값은 5단계 봇 측정(보통 실력 한 판 약 360P)으로 맞췄다: 다 사는 데 3,600P ≈ 10판.
 
 export type UpgradeId = 'rack' | 'pans' | 'batter' | 'warmer';
 
@@ -85,13 +86,13 @@ export const UPGRADES: Record<UpgradeId, Upgrade> = {
     label: '거치대 넓히기',
     emoji: '🧺',
     levels: ['거치대 3칸', '거치대 4칸', '거치대 5칸'],
-    costs: [150, 300],
+    costs: [250, 500],
   },
   pans: {
     label: '틀 늘리기',
     emoji: '🍳',
     levels: ['틀 4칸', '틀 5칸', '틀 6칸'],
-    costs: [200, 400],
+    costs: [300, 600],
   },
   batter: {
     label: '비싼 반죽',
@@ -101,13 +102,13 @@ export const UPGRADES: Record<UpgradeId, Upgrade> = {
       '초록 구간 +10% · 판매가 +200원 · 재료비 +100원',
       '초록 구간 +20% · 판매가 +200원 · 재료비 +100원',
     ],
-    costs: [250, 500],
+    costs: [400, 800],
   },
   warmer: {
     label: '보온 거치대',
     emoji: '🔥',
     levels: ['8초마다 식음', '11초마다 식음', '14초마다 식음'],
-    costs: [150, 300],
+    costs: [250, 500],
   },
 };
 
