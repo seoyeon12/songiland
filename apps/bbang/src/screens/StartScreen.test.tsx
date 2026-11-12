@@ -11,6 +11,9 @@ describe('StartScreen', () => {
         ownBest={900}
         points={320}
         persistence="local"
+        tutorialDone
+        tutorialFinished={false}
+        onTutorial={() => {}}
         onStart={() => {}}
         onShop={() => {}}
       />,
@@ -29,11 +32,34 @@ describe('StartScreen', () => {
         ownBest={null}
         points={0}
         persistence="memory"
+        tutorialDone
+        tutorialFinished={false}
+        onTutorial={() => {}}
         onStart={() => {}}
         onShop={() => {}}
       />,
     );
     expect(screen.getByText('아직 없음')).toBeInTheDocument();
     expect(screen.getByRole('note')).toHaveTextContent('기록이 유지되지 않을 수');
+  });
+
+  it('puts the tutorial first for a newcomer', () => {
+    render(
+      <StartScreen
+        day="2026-11-08"
+        dailyBest={null}
+        ownBest={null}
+        points={0}
+        persistence="local"
+        tutorialDone={false}
+        tutorialFinished={false}
+        onTutorial={() => {}}
+        onStart={() => {}}
+        onShop={() => {}}
+      />,
+    );
+    const buttons = screen.getAllByRole('button');
+    expect(buttons[0]).toHaveTextContent('튜토리얼부터');
+    expect(screen.queryByRole('button', { name: /튜토리얼 다시 보기/ })).not.toBeInTheDocument();
   });
 });

@@ -17,13 +17,32 @@ test("plays today's shift, saves the share card and races its ghost next time", 
   await page.clock.runFor(500);
   await page.getByRole('button', { name: /붕어빵 굽는 중/ }).click();
   await expect(page.getByRole('status')).toHaveText('아직 덜 익었어요');
-  await page.clock.runFor(3900);
+  await page.clock.runFor(2500);
   await page.getByRole('button', { name: /붕어빵 꺼내기/ }).click();
   await expect(page.getByRole('list', { name: '거치대 (1/3)' })).toBeVisible();
 
+  // 손님이 오면 주문 카드가 보인다. 거치대의 붕어빵은 끌어서 휴지통에 놓으면 버려진다.
+  await expect(page.getByRole('button', { name: /개 주문/ }).first()).toBeVisible();
+  await page
+    .getByRole('button', { name: /고르기$/ })
+    .dragTo(page.getByRole('button', { name: '고른 붕어빵 버리기' }));
+  await expect(page.getByRole('list', { name: '거치대 (0/3)' })).toBeVisible();
+
+  // 눌러서 고른 뒤 휴지통을 눌러도 버려진다.
+  await page.getByRole('button', { name: /붕어빵 굽는 중|반죽 붓기/ }).first().click();
+  await page.clock.runFor(3000);
+  await page.getByRole('button', { name: /붕어빵 꺼내기/ }).first().click();
+  const fish = page.getByRole('button', { name: /고르기$/ });
+  await fish.click();
+  await expect(fish).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: '고른 붕어빵 버리기' }).click();
+  await expect(page.getByRole('list', { name: '거치대 (0/3)' })).toBeVisible();
+
   await page.clock.fastForward(90_000);
   await page.clock.runFor(100);
-  await expect(page.getByRole('heading', { name: '장사 끝!' })).toBeVisible();
+  // 손님을 계속 놓치면 목숨 5개를 다 잃고 일찍 문을 닫는다.
+  await expect(page.getByRole('heading', { name: '목숨을 다 썼어요' })).toBeVisible();
+  await expect(page.getByText(/놓친 손님 5팀/)).toBeVisible();
   await expect(page.getByText('🎉 첫 기록!')).toBeVisible();
   await expect(page.getByLabel('오늘의 영수증')).toContainText('재료비');
 
@@ -65,4 +84,58 @@ test('spends shop points on upgrades that apply only to 내 가게', async ({ pa
   await page.getByRole('button', { name: /내 가게 영업/ }).click();
   await expect(page.getByRole('button', { name: '반죽 붓기' })).toHaveCount(5);
   await expect(page.getByRole('list', { name: '거치대 (0/4)' })).toBeVisible();
+});
+
+test('a newcomer finishes the tutorial with keyboard shortcuts', async ({ page }) => {
+  await page.clock.install();
+  await page.goto('/');
+  await page.getByRole('button', { name: /튜토리얼부터/ }).click();
+  const coach = page.getByRole('list', { name: '튜토리얼 단계' });
+  await expect(coach.locator('[aria-current="step"]')).toContainText('팥 반죽');
+
+  await page.keyboard.press('q'); // 1번 틀에 팥
+  await page.clock.runFor(3000);
+  await page.keyboard.press('q'); // 꺼내기
+  await page.keyboard.press('a'); // 팥 손님에게
+  await expect(coach.locator('[aria-current="step"]')).toContainText('슈크림');
+
+  await page.keyboard.press('2'); // 슈크림
+  await page.keyboard.press('w');
+  await page.clock.runFor(3000);
+  await page.keyboard.press('w');
+  await page.keyboard.press('a'); // 이제 첫 손님이 슈크림 손님
+  await expect(page.getByText('튜토리얼 완료!')).toBeVisible();
+  await expect(page.getByRole('button', { name: /튜토리얼 다시 보기/ })).toBeVisible();
+});
+
+test('drags a fish onto the customer who ordered it, and leaves the tutorial', async ({ page }) => {
+  await page.clock.install();
+  await page.goto('/');
+  await page.getByRole('button', { name: /튜토리얼부터/ }).click();
+  await page.keyboard.press('q');
+  await page.clock.runFor(3000);
+  await page.keyboard.press('q');
+
+  // 키보드: Z로 거치대를 고르고, Esc는 고른 것만 풀며(튜토리얼은 그대로), →로 다시 고른다.
+  const fish = page.getByRole('button', { name: /팥 .* 고르기$/ });
+  await page.keyboard.press('z');
+  await expect(fish).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.press('Escape');
+  await expect(fish).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByRole('list', { name: '튜토리얼 단계' })).toBeVisible();
+  await page.keyboard.press('ArrowRight');
+  await expect(fish).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.press('s'); // 두 번째 손님(슈크림)에게 → 돌려받음
+  await expect(page.getByRole('status')).toHaveText('주문한 소가 아니에요');
+  await expect(fish).toHaveAttribute('aria-pressed', 'false');
+
+  // 슈크림 손님에게 팥을 끌어 놓으면 돌려받고, 팥 손님에게 놓으면 건네진다.
+  await fish.dragTo(page.getByRole('button', { name: /^슈크림 1개 주문/ }));
+  await expect(page.getByRole('status')).toHaveText('주문한 소가 아니에요');
+  await fish.dragTo(page.getByRole('button', { name: /^팥 1개 주문/ }));
+  await expect(page.getByRole('status')).toContainText('완벽');
+  await expect(page.getByRole('button', { name: /^팥 1개 주문/ })).toHaveCount(0);
+
+  await page.getByRole('button', { name: '나가기' }).click();
+  await expect(page.getByRole('button', { name: /튜토리얼부터/ })).toBeVisible();
 });

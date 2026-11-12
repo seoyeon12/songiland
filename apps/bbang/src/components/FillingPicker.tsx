@@ -1,4 +1,5 @@
 import { FILLING_IDS, FILLINGS, type FillingId } from '../engine';
+import { FILLING_KEYS } from '../game/hotkeys';
 import { fillingUnlocked } from '../game/session';
 
 /** 소 고르개. 고른 소를 빈 틀에 붓는다. 고구마는 장사 후반에 열린다. */
@@ -15,7 +16,7 @@ export function FillingPicker({
 }) {
   return (
     <div className="picker" role="group" aria-label="소 고르기">
-      {FILLING_IDS.map((filling) => {
+      {FILLING_IDS.map((filling, index) => {
         const unlocked = fillingUnlocked(filling, elapsedMs, durationMs);
         return (
           <button
@@ -26,6 +27,9 @@ export function FillingPicker({
             disabled={!unlocked}
             onClick={() => onSelect(filling)}
           >
+            <kbd className="hotkey" aria-hidden="true">
+              {FILLING_KEYS[index]}
+            </kbd>
             <span className="picker__emoji">{FILLINGS[filling].emoji}</span>
             {FILLINGS[filling].label}
             {!unlocked && <span className="picker__lock"> · 후반 개방</span>}

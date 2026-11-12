@@ -48,8 +48,13 @@ export function ResultScreen({
         <section className="app__card result" aria-labelledby="result-title">
           <p className="app__subtitle">{label}</p>
           <h1 id="result-title" className="app__title">
-            장사 끝!
+            {state.lives <= 0 ? '목숨을 다 썼어요' : '장사 끝!'}
           </h1>
+          {state.lives <= 0 && (
+            <p className="result__early">
+              ♥ 5개를 모두 잃어 {Math.floor(state.elapsedMs / 1000)}초에 가게 문을 닫았어요
+            </p>
+          )}
           <p className="result__score">{tally.score.toLocaleString('ko-KR')}점</p>
           {isNewBest ? (
             <p className="result__best result__best--new">
@@ -77,9 +82,8 @@ export function ResultScreen({
           </dl>
 
           <p className="result__meta">
-            판 붕어빵 {tally.served}개 · 버림 {state.discarded}개 · 놓친 손님 {state.missedOrders}팀
-            <br />
-            소 틀림 {tally.mismatches}번 · 탄 걸 냄 {tally.burntServes}번
+            판 붕어빵 {tally.served}개 · 버림 {state.discarded}개 · 놓친 손님 {state.missedOrders}팀 · 남은
+            목숨 {state.lives}개
           </p>
 
           <dl className="receipt" aria-label="오늘의 영수증">
