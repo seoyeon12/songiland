@@ -13,6 +13,7 @@ import {
 } from '../engine';
 import { replay, scoreTimeline, type ScorePoint } from '../game/replay';
 import { RULES_VERSION, type SessionState } from '../game/session';
+import { TUTORIAL_SHIFT } from '../game/tutorial';
 import { PlayScreen } from '../screens/PlayScreen';
 import { ResultScreen } from '../screens/ResultScreen';
 import { ShopScreen } from '../screens/ShopScreen';
@@ -22,8 +23,9 @@ import { createBbangStore, type BbangStore, type RecordResult } from './storage'
 type Run = { mode: StartMode; shift: Shift; shop: ShopConfig; label: string; day: string };
 
 type Phase =
-  | { name: 'start' }
+  | { name: 'start'; tutorialFinished?: boolean }
   | { name: 'shop' }
+  | { name: 'tutorial' }
   | { name: 'play'; run: Run; ghost: ScorePoint[] | null; attempt: number }
   | { name: 'result'; run: Run; state: SessionState; record: RecordResult };
 
@@ -83,6 +85,22 @@ export function App({ store: injected }: { store?: BbangStore } = {}) {
     setPhase({ name: 'play', run, ghost: loadGhost(store, run), attempt });
   };
 
+  if (phase.name === 'tutorial') {
+    // 연습 판: 기록·고스트·포인트에 쓰지 않고, 끝나면 시작 화면으로 돌아간다.
+    return (
+      <PlayScreen
+        shift={TUTORIAL_SHIFT}
+        shop={STANDARD_SHOP}
+        ghost={null}
+        practice
+        onQuit={() => setPhase({ name: 'start' })}
+        onEnd={() => {
+          store.markTutorialDone();
+          setPhase({ name: 'start', tutorialFinished: true });
+        }}
+      />
+    );
+  }
   if (phase.name === 'play') {
     const { run } = phase;
     return (
@@ -147,6 +165,9 @@ export function App({ store: injected }: { store?: BbangStore } = {}) {
       ownBest={store.ownBest()}
       points={wallet.points}
       persistence={store.persistence}
+      tutorialDone={store.tutorialDone()}
+      tutorialFinished={phase.tutorialFinished ?? false}
+      onTutorial={() => setPhase({ name: 'tutorial' })}
       onStart={(mode) => play(mode)}
       onShop={() => setPhase({ name: 'shop' })}
     />

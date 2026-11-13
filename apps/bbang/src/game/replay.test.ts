@@ -23,11 +23,10 @@ function botPlay(seed: number): SessionState {
     const order = state.orders[0];
     if (order && order.filling !== state.selected) {
       state = reduce(state, { type: 'select', filling: order.filling });
-    } else if (state.picked !== null && order) {
+    } else if (state.rack.length > 0 && order && rng.chance(0.7)) {
       state = reduce(state, { type: 'serve', orderId: order.id });
-    } else if (state.rack.length > 0 && rng.chance(0.3)) {
-      state = reduce(state, { type: 'pick', itemId: state.rack[0].id });
-      state = reduce(state, rng.chance(0.5) ? { type: 'discard' } : { type: 'pick', itemId: state.rack[0]?.id ?? -1 });
+    } else if (state.rack.length > 0 && rng.chance(0.2)) {
+      state = reduce(state, { type: 'discard', itemId: state.rack[0].id });
     } else if (readyPan >= 0) {
       state = reduce(state, { type: 'take-out', panIndex: readyPan });
     } else if (emptyPan >= 0) {

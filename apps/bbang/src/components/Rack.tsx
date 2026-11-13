@@ -1,75 +1,69 @@
-import { FILLINGS, type ShopConfig } from '../engine';
-import { rackGrade, type RackItem } from '../game/session';
-import { BbangFish } from './BbangFish';
-import { GRADE_LABEL, gradeColor } from './gradeColor';
+import type { ShopConfig } from '../engine';
+import type { RackItem } from '../game/session';
+import { FishItem } from './FishItem';
+import type { RackDrag, useRackDrag } from './useRackDrag';
 
 /**
- * 거치대(표준 3칸)와 쓰레기통. 붕어빵을 골라 두고 주문 카드를 누르면 서빙, 쓰레기통을 누르면 버린다.
- * 오래 두면 식어서 등급이 내려간다.
+ * 거치대(표준 3칸)와 오른쪽 휴지통. 붕어빵을 끌어 손님 카드에 놓으면 건네고, 휴지통에 놓으면 버린다.
+ * 눌러서 고른 뒤 손님·휴지통을 눌러도 된다. 오래 두면 식는다.
  */
 export function Rack({
   rack,
   shop,
-  picked,
   elapsedMs,
   disabled,
-  onPick,
-  onDiscard,
+  selected,
+  drag,
+  bind,
+  onTrash,
 }: {
   rack: readonly RackItem[];
   shop: ShopConfig;
-  picked: number | null;
   elapsedMs: number;
   disabled: boolean;
-  onPick: (itemId: number) => void;
-  onDiscard: () => void;
+  selected: number | null;
+  drag: RackDrag | null;
+  bind: ReturnType<typeof useRackDrag>['bind'];
+  /** 휴지통을 눌렀을 때(고른 붕어빵이 있으면 버린다). */
+  onTrash: () => void;
 }) {
   const empties = Math.max(0, shop.rackSlots - rack.length);
+  const armed = selected !== null || drag !== null;
+  const trashOver = drag?.over?.kind === 'trash';
   return (
     <div className="rack">
       <ul
         className="rack__slots"
         aria-label={`거치대 (${rack.length}/${shop.rackSlots})`}
-        style={{ gridTemplateColumns: `repeat(${shop.rackSlots}, 1fr)` }}
+        style={{ gridTemplateColumns: `repeat(${shop.rackSlots}, minmax(0, 1fr))` }}
       >
-        {rack.map((item) => {
-          const grade = rackGrade(item, elapsedMs, shop);
-          const held = elapsedMs - item.rackedAtMs;
-          const cooling = grade === 'perfect' || grade === 'good';
-          const warmth = cooling ? 1 - (held % shop.coolStepMs) / shop.coolStepMs : 0;
-          const on = picked === item.id;
-          return (
-            <li key={item.id}>
-              <button
-                type="button"
-                className={`rack__item rack__item--${grade} ${on ? 'rack__item--on' : ''}`}
-                aria-pressed={on}
-                disabled={disabled}
-                onClick={() => onPick(item.id)}
-              >
-                <BbangFish className="rack__fish" fill={gradeColor(grade)} />
-                <span className="rack__label">
-                  {FILLINGS[item.filling].emoji} {GRADE_LABEL[grade]}
-                </span>
-                <span className="rack__warmth" aria-hidden="true">
-                  <span className="rack__warmth-fill" style={{ width: `${warmth * 100}%` }} />
-                </span>
-              </button>
-            </li>
-          );
-        })}
+        {rack.map((item) => (
+          <li key={item.id}>
+            <FishItem
+              item={item}
+              shop={shop}
+              elapsedMs={elapsedMs}
+              disabled={disabled}
+              selected={selected === item.id}
+              dragging={drag?.itemId === item.id}
+              handlers={bind(item.id)}
+            />
+          </li>
+        ))}
         {Array.from({ length: empties }, (_, index) => (
           <li key={`empty-${index}`} className="rack__empty" aria-hidden="true" />
         ))}
       </ul>
       <button
         type="button"
-        className={`rack__trash ${picked !== null ? 'rack__trash--armed' : ''}`}
+        data-drop="trash"
+        className={`rack__trash ${armed ? 'rack__trash--armed' : ''} ${trashOver ? 'rack__trash--over' : ''}`}
         disabled={disabled}
-        onClick={onDiscard}
+        onClick={onTrash}
         aria-label="고른 붕어빵 버리기"
       >
-        🗑️
+        <span aria-hidden="true">🗑️</span>
+        <span className="rack__trash-label">휴지통</span>
       </button>
     </div>
   );

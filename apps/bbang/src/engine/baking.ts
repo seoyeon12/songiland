@@ -11,9 +11,9 @@ const PERFECT_PAD = 0.3;
 
 export function cookWindow(difficulty: number, widthBonus = 0): CookWindow {
   const d = clamp01(difficulty);
-  const greenStartMs = lerp(3200, 2000, d); // 초반은 넉넉히 기다려도 된다
-  // 폭: 초반 2.4초 → 막판 1.0초. 비싼 반죽(widthBonus)이면 그만큼 넓다(내 가게 모드).
-  const greenWidth = lerp(2400, 1000, d) * (1 + Math.max(0, widthBonus));
+  const greenStartMs = lerp(1800, 1200, d); // 짧게 기다리면 익는다
+  // 폭: 초반 2.4초 → 막판 1.2초. 비싼 반죽(widthBonus)이면 그만큼 넓다(내 가게 모드).
+  const greenWidth = lerp(2400, 1200, d) * (1 + Math.max(0, widthBonus));
   const greenEndMs = greenStartMs + greenWidth;
   const pad = greenWidth * PERFECT_PAD;
   return {

@@ -10,6 +10,9 @@ export function StartScreen({
   ownBest,
   points,
   persistence,
+  tutorialDone,
+  tutorialFinished,
+  onTutorial,
   onStart,
   onShop,
 }: {
@@ -20,6 +23,11 @@ export function StartScreen({
   /** 보유 포인트. */
   points: number;
   persistence: 'local' | 'memory';
+  /** 튜토리얼을 끝낸 적이 있으면 true(처음이면 튜토리얼 버튼을 맨 위에 크게). */
+  tutorialDone: boolean;
+  /** 방금 튜토리얼을 끝내고 돌아왔으면 true. */
+  tutorialFinished: boolean;
+  onTutorial: () => void;
   onStart: (mode: StartMode) => void;
   onShop: () => void;
 }) {
@@ -34,13 +42,25 @@ export function StartScreen({
           <p className="start__lead">
             손님 주문대로 붕어빵을 <strong>제 타이밍에</strong> 구워 내세요. 90초 장사 한 판!
           </p>
+          {tutorialFinished && (
+            <p className="start__done" role="status">
+              🎓 튜토리얼 완료! 이제 진짜 장사에 도전해요.
+            </p>
+          )}
           <ul className="start__how">
             <li>소를 고르고 빈 틀에 반죽을 부어요. 한번 부으면 뺄 수 없어요.</li>
             <li>
               게이지가 <strong>초록 구간</strong>일 때 꺼내면 완벽! 늦으면 타요.
             </li>
-            <li>거치대에서 붕어빵을 골라 주문 카드를 누르면 서빙. 탄 건 🗑️에 버려요.</li>
+            <li>
+              꺼낸 붕어빵은 거치대에 올라가요. 반짝이는 손님을 누르면 봉투에 담아 건네요. 거치대의 붕어빵을
+              손님에게 끌어 놓아도 되고, 휴지통에 놓으면 버려요.
+            </li>
             <li>거치대에 오래 두면 식어요. 완벽을 이어 내면 콤보!</li>
+            <li>
+              목숨은 <strong>♥ 5개</strong>. 손님이 기다리다 떠나거나 태우면 하나씩 잃고, 다 잃으면 장사 끝!
+            </li>
+            <li>PC에서는 단축키로도 해요: 1·2·3 소, Q~R 틀, A~F 손님, Z·←·→ 거치대 고르기, Del 버리기.</li>
             <li>번 돈(순이익)은 포인트가 되고, 상점에서 내 가게를 키워요.</li>
           </ul>
 
@@ -53,7 +73,16 @@ export function StartScreen({
           </div>
 
           <div className="start__actions">
-            <button type="button" className="btn btn--primary btn--large" onClick={() => onStart('daily')}>
+            {!tutorialDone && (
+              <button type="button" className="btn btn--primary btn--large" onClick={onTutorial}>
+                🎓 처음이라면 튜토리얼부터
+              </button>
+            )}
+            <button
+              type="button"
+              className={`btn ${tutorialDone ? 'btn--primary btn--large' : ''}`}
+              onClick={() => onStart('daily')}
+            >
               오늘의 장사 시작
             </button>
             <button type="button" className="btn" onClick={() => onStart('own')}>
@@ -62,6 +91,11 @@ export function StartScreen({
             <button type="button" className="btn" onClick={onShop}>
               🛒 상점 · {points.toLocaleString('ko-KR')}P
             </button>
+            {tutorialDone && (
+              <button type="button" className="btn" onClick={onTutorial}>
+                🎓 튜토리얼 다시 보기
+              </button>
+            )}
           </div>
           <p className="start__daily">
             오늘의 장사 · {day} (UTC) · 전 세계 같은 판 · 모두 같은 기본 가게

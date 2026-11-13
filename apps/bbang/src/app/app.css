@@ -172,6 +172,30 @@
   box-shadow: 0 0 0 2px var(--songi-primary);
 }
 
+.order--match {
+  animation: order-ready 1s ease-in-out infinite alternate;
+}
+
+@keyframes order-ready {
+  to {
+    box-shadow: 0 0 0 4px var(--songi-primary);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .order--match {
+    animation: none;
+  }
+}
+
+.order__ready {
+  grid-column: 1 / -1;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--songi-primary);
+}
+
 .order__filling {
   font-size: 1.25rem;
   grid-row: span 2;
@@ -210,7 +234,7 @@
 /* 틀판 */
 .pans {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
 }
 
@@ -220,14 +244,30 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.375rem;
-  aspect-ratio: 3 / 2;
-  padding: 0.75rem;
+  gap: 0.25rem;
+  min-width: 0;
+  min-height: 8.5rem;
+  padding: 0.625rem;
   border: 2px solid var(--songi-border-strong);
   border-radius: var(--songi-radius);
   background: var(--songi-surface);
   cursor: pointer;
   color: inherit;
+}
+
+.pan__status {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--songi-text-muted);
+}
+
+.pan__status--perfect,
+.pan__status--good {
+  color: var(--songi-accent-text);
+}
+
+.pan__status--burnt {
+  color: var(--songi-danger);
 }
 
 .pan--empty {
@@ -241,8 +281,9 @@
 }
 
 .pan__fish {
-  width: 68%;
-  height: auto;
+  width: auto;
+  height: 3.25rem;
+  max-width: 100%;
 }
 
 .pan--perfect {
@@ -364,17 +405,40 @@
   background: var(--songi-text-muted);
 }
 
-/* 거치대 + 쓰레기통 */
-.rack {
+/* 구역(손님·거치대·화로) 제목 */
+.station {
   display: flex;
-  gap: 0.5rem;
-  align-items: stretch;
+  flex-direction: column;
+  gap: 0.375rem;
 }
 
+.station__title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+
+.station__hint {
+  margin-left: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--songi-text-muted);
+}
+
+/* 지금 할 일 한 줄 */
+.play__step {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--songi-radius-sm);
+  background: var(--songi-surface-muted);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* 거치대 */
 .rack__slots {
-  flex: 1;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
   margin: 0;
   padding: 0.5rem;
@@ -405,10 +469,16 @@
   cursor: pointer;
 }
 
-.rack__item--on {
-  border-color: var(--songi-primary);
-  transform: translateY(-2px);
-  box-shadow: 0 0 0 2px var(--songi-primary);
+.rack__item {
+  position: relative;
+}
+
+.rack__x {
+  position: absolute;
+  top: 0.125rem;
+  right: 0.3125rem;
+  font-size: 0.625rem;
+  color: var(--songi-text-muted);
 }
 
 .rack__item--burnt {
@@ -437,19 +507,6 @@
   display: block;
   height: 100%;
   background: var(--songi-accent);
-}
-
-.rack__trash {
-  flex: 0 0 3.5rem;
-  border: 1px solid var(--songi-border);
-  border-radius: var(--songi-radius);
-  background: var(--songi-surface);
-  font-size: 1.5rem;
-  cursor: pointer;
-}
-
-.rack__trash--armed {
-  border-color: var(--songi-danger);
 }
 
 /* 고스트(오늘 최고 기록 판) */
@@ -579,7 +636,7 @@
 }
 
 .pans--wide {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .pans--wide .pan {
@@ -720,6 +777,240 @@
   margin: 0;
   color: var(--songi-text-muted);
   font-size: 0.8125rem;
+}
+
+/* 목숨 */
+.play__lives {
+  color: var(--songi-danger);
+  font-size: 0.9375rem;
+  letter-spacing: 0.0625rem;
+}
+
+.play__life--lost {
+  opacity: 0.2;
+}
+
+.play__practice {
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+
+/* 튜토리얼 단계 */
+.coach {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  list-style: none;
+  border: 2px solid var(--songi-primary);
+  border-radius: var(--songi-radius-sm);
+  background: var(--songi-surface);
+  font-size: 0.8125rem;
+  color: var(--songi-text-muted);
+}
+
+.coach__step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.coach__step--now {
+  color: var(--songi-text);
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+
+.coach__step--done {
+  text-decoration: line-through;
+}
+
+.coach__mark {
+  flex: 0 0 1.375rem;
+  height: 1.375rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--songi-surface-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.coach__step--now .coach__mark {
+  background: var(--songi-primary);
+  color: var(--songi-surface);
+}
+
+/* 단축키 배지: 키보드가 있는(마우스로 가리킬 수 있는) 기기에서만 보인다. */
+.hotkey {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  min-width: 1.125rem;
+  padding: 0 0.25rem;
+  border: 1px solid var(--songi-border-strong);
+  border-radius: 0.25rem;
+  background: var(--songi-surface);
+  font: 700 0.625rem/1.125rem ui-monospace, monospace;
+  color: var(--songi-text-muted);
+  text-align: center;
+}
+
+.order,
+.picker__btn {
+  position: relative;
+}
+
+.play__keys {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--songi-text-muted);
+  text-align: center;
+}
+
+.play__keys kbd {
+  padding: 0 0.25rem;
+  border: 1px solid var(--songi-border);
+  border-radius: 0.25rem;
+  font: 700 0.6875rem ui-monospace, monospace;
+}
+
+@media (hover: hover) {
+  .order:has(.hotkey) {
+    padding-left: 1.75rem;
+  }
+
+  .order .hotkey {
+    top: 0.5rem;
+  }
+}
+
+@media (hover: none) {
+  .hotkey,
+  .play__keys {
+    display: none;
+  }
+}
+
+.start__done {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--songi-radius-sm);
+  background: var(--songi-surface-muted);
+  font-weight: 700;
+}
+
+.result__early {
+  margin: 0 0 0.5rem;
+  color: var(--songi-danger);
+  font-weight: 700;
+}
+
+/* 거치대 + 오른쪽 휴지통 */
+.rack {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.rack .rack__slots {
+  flex: 1;
+  min-width: 0;
+}
+
+.rack__item {
+  touch-action: none; /* 끌기가 스크롤에 먹히지 않게 */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.rack__item--on {
+  border-color: var(--songi-primary);
+  box-shadow: 0 0 0 2px var(--songi-primary);
+  transform: translateY(-2px);
+}
+
+.rack__item--dragging {
+  opacity: 0.35;
+}
+
+.rack__trash {
+  flex: 0 0 3.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  border: 2px dashed var(--songi-border-strong);
+  border-radius: var(--songi-radius);
+  background: var(--songi-surface);
+  font-size: 1.5rem;
+  color: inherit;
+  cursor: pointer;
+}
+
+.rack__trash-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--songi-text-muted);
+}
+
+.rack__trash--armed {
+  border-color: var(--songi-danger);
+}
+
+.rack__trash--over {
+  border-style: solid;
+  background: var(--songi-danger-soft);
+  transform: scale(1.05);
+}
+
+/* 끌고 있는 손님 카드 위 */
+.order--over {
+  transform: scale(1.06);
+  background: var(--songi-surface-muted);
+}
+
+/* 끌고 가는 붕어빵 */
+.drag-ghost {
+  position: fixed;
+  z-index: 10;
+  width: 4rem;
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(-8deg);
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
+}
+
+.drag-ghost__fish {
+  width: 100%;
+  height: auto;
+}
+
+.play__practice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.play__quit {
+  min-height: 2rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.station__keys kbd {
+  padding: 0 0.25rem;
+  border: 1px solid var(--songi-border-strong);
+  border-radius: 0.25rem;
+  font: 700 0.625rem/1.125rem ui-monospace, monospace;
+  color: var(--songi-text-muted);
+}
+
+@media (hover: none) {
+  .station__keys {
+    display: none;
+  }
 }
 
 /* --- 손맛(5단계): 판정 세기별 반짝임·연기·숫자 팝·흰 플래시 --- */

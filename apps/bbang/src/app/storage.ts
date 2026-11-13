@@ -5,6 +5,7 @@ const BEST_KEY = 'songiland:bbang:best:v1';
 const GHOST_KEY = 'songiland:bbang:ghost:v1';
 const OWN_KEY = 'songiland:bbang:own-best:v1';
 const WALLET_KEY = 'songiland:bbang:wallet:v1';
+const TUTORIAL_KEY = 'songiland:bbang:tutorial:v1';
 const PROBE_KEY = 'songiland:bbang:probe';
 
 /** 날짜별 최고 기록은 최근 날짜부터 이만큼만 남긴다. */
@@ -52,6 +53,9 @@ export type BbangStore = {
   /** 가게 지갑(포인트·누적 매출·업그레이드 단계). */
   wallet(): Wallet;
   saveWallet(wallet: Wallet): void;
+  /** 튜토리얼을 끝낸 적이 있는지. */
+  tutorialDone(): boolean;
+  markTutorialDone(): void;
 };
 
 function defaultStorage(): Storage | undefined {
@@ -211,5 +215,7 @@ export function createBbangStore(storage: Storage | undefined = defaultStorage()
     },
     wallet: () => toWallet(read(WALLET_KEY)),
     saveWallet: (wallet) => write(WALLET_KEY, wallet),
+    tutorialDone: () => read(TUTORIAL_KEY) === true,
+    markTutorialDone: () => write(TUTORIAL_KEY, true),
   };
 }
