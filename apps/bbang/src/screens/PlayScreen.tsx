@@ -18,6 +18,7 @@ import {
 } from '../game/session';
 import { TUTORIAL_STEPS, tutorialStep } from '../game/tutorial';
 import { useShiftClock } from '../game/useShiftClock';
+import { QuitConfirm } from './QuitConfirm';
 
 /** 꺼낸 순간 장사 시간을 멈추는 길이(히트스톱, ms). 완벽은 또렷하게, 좋음은 절반, 탐은 없음. */
 const HITSTOP_MS: Record<Grade, number> = { perfect: 90, good: 40, cold: 0, burnt: 0 };
@@ -74,7 +75,7 @@ function nextStep(state: SessionState): string {
         !state.orders.some((order) => order.filling === pan.filling),
     );
     return waiting && state.rack.length >= shop.rackSlots
-      ? '🗑️ 거치대가 꽉 찼어요 · 안 팔릴 붕어빵을 눌러 버려요'
+      ? '🗑️ 거치대가 꽉 찼어요 · 붕어빵을 눌러 버려요'
       : '👇 다 익은 틀을 눌러 꺼내요 · 손님에게 바로 가요';
   }
   if (state.pans.some((pan) => pan.status === 'empty')) {
@@ -96,34 +97,41 @@ export function PlayScreen({
   shop,
   ghost,
   practice = false,
+  quitAsk = null,
   onEnd,
   onQuit,
 }: {
   shift: SessionState['shift'];
   /** 튜토리얼(연습 판): 손님이 안 떠나고 목숨이 안 줄며, 단계별 안내를 띄운다. */
   practice?: boolean;
+  /** 그만둘지 묻는 중이면 확인 레이어를 띄우고, 시계를 멈추고 판 입력을 받지 않는다. */
+  quitAsk?: { daily: boolean; onContinue: () => void; onQuit: () => void } | null;
   /** 가게 설정. 오늘의 장사는 표준 가게. */
   shop: ShopConfig;
   /** 오늘 최고 기록 판의 점수 흐름(없으면 null). */
   ghost: readonly ScorePoint[] | null;
   onEnd: (state: SessionState) => void;
-  /** 튜토리얼에서 나가기(연습 판에서만 보인다). */
+  /** 나가기(Esc). 튜토리얼은 바로 나가고, 장사는 그만둘지 묻는다. 나가기 버튼은 튜토리얼에만 있다. */
   onQuit?: () => void;
 }) {
   const [state, dispatch] = useReducer(reduce, null, () => createSession(shift, shop, { practice }));
+  const paused = quitAsk !== null;
   const endedRef = useRef(false);
-  const live = useRef({ state, onQuit });
+  const live = useRef({ state, onQuit, paused });
   useEffect(() => {
-    live.current = { state, onQuit };
+    live.current = { state, onQuit, paused };
   });
 
-  // 키보드 단축키(물리 키 기준이라 한글 입력 상태에서도 먹는다). 튜토리얼은 Esc로 나간다.
+  // 키보드 단축키(물리 키 기준이라 한글 입력 상태에서도 먹는다). Esc는 나가기(장사는 그만둘지 묻는다).
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) {
         return;
       }
-      const { state: current, onQuit: quit } = live.current;
+      const { state: current, onQuit: quit, paused: asking } = live.current;
+      if (asking) {
+        return; // 확인 창이 키를 받는다.
+      }
       if (event.code === 'Escape') {
         quit?.();
         return;
@@ -139,8 +147,11 @@ export function PlayScreen({
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const hitstop = useShiftClock(shift.durationMs, !state.over, (nowMs) =>
-    dispatch({ type: 'tick', nowMs }),
+  const hitstop = useShiftClock(
+    shift.durationMs,
+    !state.over,
+    (nowMs) => dispatch({ type: 'tick', nowMs }),
+    paused,
   );
 
   // 꺼낸 순간마다 판정 세기만큼 멈칫한다.
@@ -301,6 +312,14 @@ export function PlayScreen({
           >
             {noticeText(state.notice)}
           </p>
+        )}
+        {quitAsk && (
+          <QuitConfirm
+            daily={quitAsk.daily}
+            score={score}
+            onContinue={quitAsk.onContinue}
+            onQuit={quitAsk.onQuit}
+          />
         )}
         <p className="play__keys">
           ⌨️ 단축키 · <kbd>1</kbd>

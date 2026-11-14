@@ -133,7 +133,9 @@
   padding: 0.25rem;
   list-style: none;
   overflow-x: auto;
-  min-height: 3.75rem;
+  /* 손님 카드 한 줄 높이(카드 약 4.3rem + 위아래 여백). 손님이 다 가도 줄이 낮아져 아래 거치대·화로가
+     들썩이지 않게 비어 있을 때도 이 높이를 지킨다. */
+  min-height: 4.875rem;
 }
 
 .orders__empty {
@@ -849,12 +851,55 @@
   }
 }
 
-.start__done {
-  margin: 0 0 1rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--songi-radius-sm);
-  background: var(--songi-surface-muted);
-  font-weight: 700;
+/* 판 위에 띄우는 레이어(튜토리얼 완료 안내, 장사 그만두기 확인). */
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(28, 27, 25, 0.45);
+  animation: layer-in 0.2s ease-out both;
+}
+
+/* 튜토리얼 완료: 마지막으로 건넨 붕어빵이 보이도록 잠깐 뒤에 떠오른다. */
+.layer--late {
+  animation-delay: 0.7s;
+}
+
+.layer__card {
+  width: min(100%, 26rem);
+  margin: 0;
+}
+
+.layer__title {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+}
+
+.layer__lead {
+  margin: 0 0 1.25rem;
+  color: var(--songi-text-muted);
+  line-height: 1.6;
+}
+
+.layer__list {
+  margin: -0.75rem 0 1.25rem;
+  padding-left: 1.25rem;
+  line-height: 1.6;
+}
+
+.layer__actions {
+  display: grid;
+  gap: 0.5rem;
+}
+
+@keyframes layer-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
 }
 
 .result__early {

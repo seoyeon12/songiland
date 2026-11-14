@@ -87,8 +87,72 @@ test('a newcomer finishes the tutorial with keyboard shortcuts', async ({ page }
   await page.keyboard.press('w');
   await page.clock.runFor(3000);
   await page.keyboard.press('w');
-  await expect(page.getByText('튜토리얼 완료!')).toBeVisible();
+  // 다 끝내도 판에서 튕겨 나가지 않고, 판 위에 완료 안내가 뜬다.
+  const done = page.getByRole('dialog', { name: '🎉 튜토리얼 완료!' });
+  await expect(done).toBeVisible();
+  await expect(coach).toBeVisible();
+
+  // 바로 오늘의 장사로 넘어가고, 뒤로가기(그만두기)는 튜토리얼이 아니라 처음 화면으로 간다.
+  await done.getByRole('button', { name: '오늘의 장사 시작' }).click();
+  await expect(page).toHaveURL(/\/play$/);
+  await page.goBack();
+  await page.getByRole('button', { name: '그만두기' }).click();
+  await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole('button', { name: /튜토리얼 다시 보기/ })).toBeVisible();
+});
+
+test('asks before the back button throws away a running shift, with the clock stopped', async ({ page }) => {
+  await page.clock.install();
+  await page.goto('/');
+  await page.getByRole('button', { name: '오늘의 장사 시작' }).click();
+  await page.clock.runFor(10_000);
+  await expect(page.getByText('80초')).toBeVisible();
+
+  await page.goBack();
+  const ask = page.getByRole('alertdialog', { name: '오늘의 장사를 그만둘까요?' });
+  await expect(ask).toBeVisible();
+  await expect(ask).toContainText('기록에 남지 않고');
+  await expect(page).toHaveURL(/\/play$/);
+  // 묻는 동안은 시계가 멈춰 손님도 떠나지 않는다.
+  await page.clock.runFor(20_000);
+  await expect(page.getByText('80초')).toBeVisible();
+  await ask.getByRole('button', { name: '계속 장사하기' }).click();
+  await expect(ask).toBeHidden();
+  await page.clock.runFor(5_000);
+  await expect(page.getByText('75초')).toBeVisible();
+
+  // Esc로도 묻고, Esc는 계속하기다.
+  await page.keyboard.press('Escape');
+  await expect(ask).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(ask).toBeHidden();
+
+  // 그만두면 기록 없이 처음 화면으로.
+  await page.goBack();
+  await ask.getByRole('button', { name: '그만두기' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByText('아직 없음')).toBeVisible();
+});
+
+test('the browser back button walks between the start screen, the shop and the tutorial', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /상점/ }).click();
+  await expect(page).toHaveURL(/\/shop$/);
+  await page.goBack();
+  await expect(page.getByRole('button', { name: /튜토리얼부터/ })).toBeVisible();
+  await page.goForward();
+  await expect(page.getByRole('button', { name: '돌아가기' })).toBeVisible();
+
+  // 주소로 바로 열 수 있고, 새로고침해도 그 화면이다.
+  await page.goto('/tutorial');
+  await expect(page.getByRole('list', { name: '튜토리얼 단계' })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('list', { name: '튜토리얼 단계' })).toBeVisible();
+
+  // 장사 화면은 판 상태가 없으면 열 수 없어 처음 화면으로 간다.
+  await page.goto('/play');
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('button', { name: '오늘의 장사 시작' })).toBeVisible();
 });
 
 test('racks a fish nobody is waiting for, throws it away, and leaves the tutorial', async ({ page }) => {

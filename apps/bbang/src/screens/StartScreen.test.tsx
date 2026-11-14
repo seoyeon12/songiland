@@ -12,7 +12,6 @@ describe('StartScreen', () => {
         points={320}
         persistence="local"
         tutorialDone
-        tutorialFinished={false}
         onTutorial={() => {}}
         onStart={() => {}}
         onShop={() => {}}
@@ -33,7 +32,6 @@ describe('StartScreen', () => {
         points={0}
         persistence="memory"
         tutorialDone
-        tutorialFinished={false}
         onTutorial={() => {}}
         onStart={() => {}}
         onShop={() => {}}
@@ -52,7 +50,6 @@ describe('StartScreen', () => {
         points={0}
         persistence="local"
         tutorialDone={false}
-        tutorialFinished={false}
         onTutorial={() => {}}
         onStart={() => {}}
         onShop={() => {}}

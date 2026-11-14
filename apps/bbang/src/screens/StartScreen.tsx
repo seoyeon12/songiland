@@ -11,7 +11,6 @@ export function StartScreen({
   points,
   persistence,
   tutorialDone,
-  tutorialFinished,
   onTutorial,
   onStart,
   onShop,
@@ -25,8 +24,6 @@ export function StartScreen({
   persistence: 'local' | 'memory';
   /** 튜토리얼을 끝낸 적이 있으면 true(처음이면 튜토리얼 버튼을 맨 위에 크게). */
   tutorialDone: boolean;
-  /** 방금 튜토리얼을 끝내고 돌아왔으면 true. */
-  tutorialFinished: boolean;
   onTutorial: () => void;
   onStart: (mode: StartMode) => void;
   onShop: () => void;
@@ -42,11 +39,6 @@ export function StartScreen({
           <p className="start__lead">
             손님 주문대로 붕어빵을 <strong>제 타이밍에</strong> 구워 내세요. 90초 장사 한 판!
           </p>
-          {tutorialFinished && (
-            <p className="start__done" role="status">
-              🎓 튜토리얼 완료! 이제 진짜 장사에 도전해요.
-            </p>
-          )}
           <ul className="start__how">
             <li>소를 고르고 빈 틀에 반죽을 부어요. 한번 부으면 뺄 수 없어요.</li>
             <li>
