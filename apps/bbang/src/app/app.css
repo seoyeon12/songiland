@@ -149,10 +149,6 @@
 
 .order {
   display: grid;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  text-align: left;
   grid-template-columns: auto auto;
   align-items: center;
   gap: 0 0.375rem;
@@ -165,35 +161,6 @@
 
 .order--urgent {
   border-color: var(--songi-danger);
-}
-
-.order--match {
-  border-color: var(--songi-primary);
-  box-shadow: 0 0 0 2px var(--songi-primary);
-}
-
-.order--match {
-  animation: order-ready 1s ease-in-out infinite alternate;
-}
-
-@keyframes order-ready {
-  to {
-    box-shadow: 0 0 0 4px var(--songi-primary);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .order--match {
-    animation: none;
-  }
-}
-
-.order__ready {
-  grid-column: 1 / -1;
-  margin-top: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--songi-primary);
 }
 
 .order__filling {
@@ -857,7 +824,6 @@
   text-align: center;
 }
 
-.order,
 .picker__btn {
   position: relative;
 }
@@ -874,16 +840,6 @@
   border: 1px solid var(--songi-border);
   border-radius: 0.25rem;
   font: 700 0.6875rem ui-monospace, monospace;
-}
-
-@media (hover: hover) {
-  .order:has(.hotkey) {
-    padding-left: 1.75rem;
-  }
-
-  .order .hotkey {
-    top: 0.5rem;
-  }
 }
 
 @media (hover: none) {
@@ -905,86 +861,6 @@
   margin: 0 0 0.5rem;
   color: var(--songi-danger);
   font-weight: 700;
-}
-
-/* 거치대 + 오른쪽 휴지통 */
-.rack {
-  display: flex;
-  gap: 0.5rem;
-  align-items: stretch;
-}
-
-.rack .rack__slots {
-  flex: 1;
-  min-width: 0;
-}
-
-.rack__item {
-  touch-action: none; /* 끌기가 스크롤에 먹히지 않게 */
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.rack__item--on {
-  border-color: var(--songi-primary);
-  box-shadow: 0 0 0 2px var(--songi-primary);
-  transform: translateY(-2px);
-}
-
-.rack__item--dragging {
-  opacity: 0.35;
-}
-
-.rack__trash {
-  flex: 0 0 3.75rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.125rem;
-  border: 2px dashed var(--songi-border-strong);
-  border-radius: var(--songi-radius);
-  background: var(--songi-surface);
-  font-size: 1.5rem;
-  color: inherit;
-  cursor: pointer;
-}
-
-.rack__trash-label {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  color: var(--songi-text-muted);
-}
-
-.rack__trash--armed {
-  border-color: var(--songi-danger);
-}
-
-.rack__trash--over {
-  border-style: solid;
-  background: var(--songi-danger-soft);
-  transform: scale(1.05);
-}
-
-/* 끌고 있는 손님 카드 위 */
-.order--over {
-  transform: scale(1.06);
-  background: var(--songi-surface-muted);
-}
-
-/* 끌고 가는 붕어빵 */
-.drag-ghost {
-  position: fixed;
-  z-index: 10;
-  width: 4rem;
-  pointer-events: none;
-  transform: translate(-50%, -50%) rotate(-8deg);
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
-}
-
-.drag-ghost__fish {
-  width: 100%;
-  height: auto;
 }
 
 .play__practice {

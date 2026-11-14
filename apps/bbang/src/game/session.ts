@@ -30,9 +30,10 @@ export const LATE_FILLING_FROM = 0.5;
 /**
  * 규칙 버전. 저장된 고스트(입력 로그)는 같은 규칙에서만 다시 돌릴 수 있어서, 규칙을 바꾸면
  * 올린다. (1 = 탭 한 번에 꺼내서 서빙, 2 = 거치대·쓰레기통·식음, 3 = 주문 카드 한 번에 봉투 포장·탄 건 바로 버림·목숨 5개,
- * 4 = 5단계 밸런스: Perfect 구간 40%·손님이 떠나면 콤보 끊김·막판 주문 간격)
+ * 4 = 5단계 밸런스: Perfect 구간 40%·손님이 떠나면 콤보 끊김·막판 주문 간격,
+ * 5 = 꺼내면 기다리는 손님에게 바로·거치대는 손님이 오면 자동으로 건넴)
  */
-export const RULES_VERSION = 4;
+export const RULES_VERSION = 5;
 
 export type Pan =
   | { status: 'empty' }
@@ -52,8 +53,8 @@ export type OpenOrder = {
 export type Notice = { seq: number } & (
   /** grade = 봉투에서 가장 낮은 등급, count = 건넨 개수. */
   | { kind: 'served'; grade: ServedGrade; count: number; multiplier: number; points: number }
-  | { kind: 'none-ready'; filling: FillingId }
-  | { kind: 'mismatch' }
+  /** 기다리는 손님이 없어 거치대에 올렸다(그 소 손님이 오면 바로 건넨다). */
+  | { kind: 'racked'; filling: FillingId }
   | { kind: 'burnt' }
   | { kind: 'missed'; count: number }
   | { kind: 'raw' }
@@ -66,8 +67,6 @@ export type Input =
   | { type: 'select'; filling: FillingId }
   | { type: 'pour'; panIndex: number }
   | { type: 'take-out'; panIndex: number }
-  | { type: 'serve'; orderId: number }
-  | { type: 'give'; itemId: number; orderId: number }
   | { type: 'discard'; itemId: number };
 
 export type Action = { type: 'tick'; nowMs: number } | Input;
@@ -198,12 +197,22 @@ function tick(state: SessionState, nowMs: number): SessionState {
     admitted += 1;
   }
 
+  // 거치대에 그 소가 있으면 손님이 오자마자 건넨다. 등급은 손님이 온 시각 기준이라, tick 간격이
+  // 넓은 리플레이에서도 촘촘히 돌린 판과 같다.
+  let served: SessionState = { ...state, elapsedMs, admitted, orders: [...state.orders, ...incoming] };
+  for (const order of incoming) {
+    const pack = packFor(order, served.rack, order.arrivedAtMs, served.shop);
+    if (pack.length > 0) {
+      served = deliver(served, order, pack);
+    }
+  }
+
   // 오래 기다린 주문은 떠나고, 떠난 손님마다 목숨을 하나 잃는다(연습 판은 안 떠난다).
   const kept: OpenOrder[] = [];
   let missed = 0;
   // 남은 목숨보다 많이 떠나지는 않는다: 마지막 목숨을 잃는 순간 장사가 끝나므로, 리플레이처럼
   // tick 간격이 넓어도 촘촘히 돌린 판과 같은 수가 나온다.
-  for (const order of [...state.orders, ...incoming]) {
+  for (const order of served.orders) {
     const expired = elapsedMs - order.arrivedAtMs > ORDER_PATIENCE_MS;
     if (!state.practice && expired && missed < state.lives) {
       missed += 1;
@@ -213,9 +222,7 @@ function tick(state: SessionState, nowMs: number): SessionState {
   }
 
   const next: SessionState = {
-    ...state,
-    elapsedMs,
-    admitted,
+    ...served,
     orders: kept,
     missedOrders: state.missedOrders + missed,
     lives: Math.max(0, state.lives - missed),
@@ -256,8 +263,8 @@ function pour(state: SessionState, panIndex: number): SessionState {
 }
 
 /**
- * 틀에서 꺼내 거치대에 올린다. 덜 익었으면 못 꺼내고, 탄 건 바로 버리며,
- * 거치대가 꽉 차면 틀에서 계속 익는다.
+ * 틀에서 꺼낸다. 그 소를 기다리는 손님이 있으면 가장 오래 기다린 손님에게 바로 건네고, 없으면
+ * 거치대에 올린다. 덜 익었으면 못 꺼내고, 탄 건 바로 버리며, 거치대가 꽉 차면 틀에서 계속 익는다.
  */
 function takeOut(state: SessionState, panIndex: number): SessionState {
   const pan = state.pans[panIndex];
@@ -293,58 +300,41 @@ function takeOut(state: SessionState, panIndex: number): SessionState {
       ),
     );
   }
-  if (state.rack.length >= state.shop.rackSlots) {
-    return withNotice(state, { kind: 'rack-full' });
-  }
   const item: RackItem = {
     id: state.nextItemId,
     filling: pan.filling,
     grade: doneness,
     rackedAtMs: state.elapsedMs,
   };
-  return {
-    ...state,
-    pans: emptied,
-    rack: [...state.rack, item],
-    nextItemId: state.nextItemId + 1,
-    burst,
-  };
+  const taken = { ...state, pans: emptied, nextItemId: state.nextItemId + 1, burst };
+  // 주문 줄은 온 순서라, 처음 찾은 손님이 가장 오래 기다린 손님이다.
+  const order = state.orders.find((entry) => entry.filling === pan.filling);
+  if (order) {
+    return deliver(taken, order, [{ item, grade: doneness }]);
+  }
+  if (state.rack.length >= state.shop.rackSlots) {
+    return withNotice(state, { kind: 'rack-full' });
+  }
+  return withNotice({ ...taken, rack: [...state.rack, item] }, { kind: 'racked', filling: pan.filling });
 }
 
 const GRADE_RANK: Record<ServedGrade, number> = { perfect: 2, good: 1, cold: 0 };
 
-/** 이 주문에 지금 건넬 거치대 붕어빵들: 같은 소 중 등급 높은 것부터(같으면 먼저 꺼낸 것), 남은 개수만큼. */
-export function packFor(
+/** 시각 atMs에 이 주문에 건넬 거치대 붕어빵들: 같은 소 중 등급 높은 것부터(같으면 먼저 꺼낸 것), 남은 개수만큼. */
+function packFor(
   order: OpenOrder,
   rack: readonly RackItem[],
-  elapsedMs: number,
+  atMs: number,
   shop: ShopConfig,
 ): { item: RackItem; grade: ServedGrade }[] {
   return rack
     .filter((item) => item.filling === order.filling)
-    .map((item) => ({ item, grade: rackGrade(item, elapsedMs, shop) as ServedGrade }))
+    .map((item) => ({ item, grade: rackGrade(item, atMs, shop) as ServedGrade }))
     .sort((a, b) => GRADE_RANK[b.grade] - GRADE_RANK[a.grade] || a.item.id - b.item.id)
     .slice(0, order.remaining);
 }
 
-/**
- * 주문 카드를 누르면 거치대에서 그 소를 봉투에 담아 건넨다. 하나씩 채점해 콤보가 이어진다.
- * 거치대에 그 소가 없으면 아무 일 없이 알려 주기만 한다. 모자라면 있는 만큼만 건네고 남은 개수가 준다.
- */
-function serve(state: SessionState, orderId: number): SessionState {
-  const order = state.orders.find((entry) => entry.id === orderId);
-  if (!order) {
-    return state;
-  }
-  const pack = packFor(order, state.rack, state.elapsedMs, state.shop);
-  if (pack.length === 0) {
-    return withNotice(state, { kind: 'none-ready', filling: order.filling });
-  }
-
-  return deliver(state, order, pack);
-}
-
-/** 고른 붕어빵들을 봉투에 담아 건넨다. 하나씩 채점해 콤보가 이어진다. */
+/** 붕어빵들을 봉투에 담아 이 손님에게 건넨다. 하나씩 채점해 콤보가 이어진다. */
 function deliver(
   state: SessionState,
   order: OpenOrder,
@@ -384,24 +374,6 @@ function deliver(
   );
 }
 
-/**
- * 거치대의 붕어빵 하나를 골라 이 손님에게 건넨다(끌어다 놓기·골라서 누르기).
- * 소가 다르면 벌점 없이 돌려받는다.
- */
-function give(state: SessionState, itemId: number, orderId: number): SessionState {
-  const item = state.rack.find((entry) => entry.id === itemId);
-  const order = state.orders.find((entry) => entry.id === orderId);
-  if (!item || !order) {
-    return state;
-  }
-  if (item.filling !== order.filling) {
-    return withNotice(state, { kind: 'mismatch' });
-  }
-  return deliver(state, order, [
-    { item, grade: rackGrade(item, state.elapsedMs, state.shop) as ServedGrade },
-  ]);
-}
-
 /** 거치대의 붕어빵 하나를 버린다(벌점 없음, 칸만 비운다). */
 function discard(state: SessionState, itemId: number): SessionState {
   if (!state.rack.some((item) => item.id === itemId)) {
@@ -425,10 +397,6 @@ function applyInput(state: SessionState, input: Input): SessionState {
       return pour(state, input.panIndex);
     case 'take-out':
       return takeOut(state, input.panIndex);
-    case 'serve':
-      return serve(state, input.orderId);
-    case 'give':
-      return give(state, input.itemId, input.orderId);
     case 'discard':
       return discard(state, input.itemId);
     default:

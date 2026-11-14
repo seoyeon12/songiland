@@ -1,20 +1,16 @@
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useEffect, useReducer, useRef } from 'react';
 import { comboMultiplier, FILLINGS, type Grade, type ShopConfig } from '../engine';
-import { BbangFish } from '../components/BbangFish';
 import { Burst } from '../components/Burst';
 import { FillingPicker } from '../components/FillingPicker';
-import { GRADE_LABEL, gradeColor } from '../components/gradeColor';
+import { GRADE_LABEL } from '../components/gradeColor';
 import { OrderQueue } from '../components/OrderQueue';
 import { Pan } from '../components/Pan';
 import { Rack } from '../components/Rack';
-import { useRackDrag } from '../components/useRackDrag';
-import { actionForKey, ORDER_KEYS, PAN_KEYS } from '../game/hotkeys';
+import { actionForKey, PAN_KEYS } from '../game/hotkeys';
 import { scoreAt, type ScorePoint } from '../game/replay';
 import {
   createSession,
-  packFor,
   panDoneness,
-  rackGrade,
   reduce,
   type Notice,
   START_LIVES,
@@ -45,10 +41,8 @@ function noticeText(notice: Notice): string {
         ? `🛍️ ${count}완벽!${notice.multiplier > 1 ? ` 콤보 ×${notice.multiplier}` : ''}`
         : `🛍️ ${count}${GRADE_LABEL[notice.grade]}`;
     }
-    case 'mismatch':
-      return '주문한 소가 아니에요';
-    case 'none-ready':
-      return `거치대에 ${FILLINGS[notice.filling].label} 붕어빵이 없어요`;
+    case 'racked':
+      return `🧺 거치대로 · ${FILLINGS[notice.filling].label} 손님 오면 드려요`;
     case 'burnt':
       return '탔어요… ♥ −1';
     case 'missed':
@@ -69,15 +63,19 @@ function noticeTone(notice: Notice): string {
   return notice.kind === 'burnt' || notice.kind === 'missed' ? 'bad' : 'info';
 }
 
-/** 지금 해야 할 일 한 줄. 손님에게 줄 수 있으면 그게 먼저, 다음은 꺼내기, 그다음 붓기. */
+/** 지금 해야 할 일 한 줄. 꺼내기가 먼저, 그다음 붓기. 거치대가 꽉 차 막혔으면 비우기. */
 function nextStep(state: SessionState): string {
   const { shop, elapsedMs } = state;
-  if (state.orders.some((order) => packFor(order, state.rack, elapsedMs, shop).length > 0)) {
-    return '👆 반짝이는 손님을 누르면 봉투에 담아 드려요';
-  }
   const pans = state.pans.filter((pan) => pan.status === 'cooking');
   if (pans.some((pan) => panDoneness(pan, elapsedMs, shop) !== 'raw')) {
-    return '👇 다 익은 틀을 눌러 꺼내요';
+    const waiting = pans.some(
+      (pan) =>
+        panDoneness(pan, elapsedMs, shop) !== 'raw' &&
+        !state.orders.some((order) => order.filling === pan.filling),
+    );
+    return waiting && state.rack.length >= shop.rackSlots
+      ? '🗑️ 거치대가 꽉 찼어요 · 안 팔릴 붕어빵을 눌러 버려요'
+      : '👇 다 익은 틀을 눌러 꺼내요 · 손님에게 바로 가요';
   }
   if (state.pans.some((pan) => pan.status === 'empty')) {
     const wanted = state.orders.find((order) => order.filling !== state.selected);
@@ -90,7 +88,8 @@ function nextStep(state: SessionState): string {
 
 /**
  * 장사(플레이) 화면. 90초 동안 주문을 받아 붕어빵을 구워 낸다.
- * 위에서부터 손님 → 봉투 → 거치대 → 틀 순서라, 틀에서 꺼낸 붕어빵이 위로 올라가며 손님에게 간다.
+ * 위에서부터 손님 → 거치대 → 틀 순서라, 틀에서 꺼낸 붕어빵이 위로 올라가며 손님에게 간다.
+ * 플레이어는 소 고르기·붓기·꺼내기만 한다. 건네기는 저절로 된다.
  */
 export function PlayScreen({
   shift,
@@ -113,23 +112,9 @@ export function PlayScreen({
 }) {
   const [state, dispatch] = useReducer(reduce, null, () => createSession(shift, shop, { practice }));
   const endedRef = useRef(false);
-  // 거치대에서 눌러 고른 붕어빵(화면 상태라 입력 로그에 남기지 않는다). 거치대에서 사라지면 풀린다.
-  const [picked, setPicked] = useState<number | null>(null);
-  const selected = state.rack.some((item) => item.id === picked) ? picked : null;
-  const toggle = (itemId: number) => setPicked((current) => (current === itemId ? null : itemId));
-
-  const { drag, bind } = useRackDrag(toggle, (itemId, target) => {
-    setPicked(null);
-    dispatch(
-      target.kind === 'trash'
-        ? { type: 'discard', itemId }
-        : { type: 'give', itemId, orderId: target.orderId },
-    );
-  });
-
-  const live = useRef({ state, selected, onQuit });
+  const live = useRef({ state, onQuit });
   useEffect(() => {
-    live.current = { state, selected, onQuit };
+    live.current = { state, onQuit };
   });
 
   // 키보드 단축키(물리 키 기준이라 한글 입력 상태에서도 먹는다). 튜토리얼은 Esc로 나간다.
@@ -138,26 +123,17 @@ export function PlayScreen({
       if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) {
         return;
       }
-      const { state: current, selected: held, onQuit: quit } = live.current;
+      const { state: current, onQuit: quit } = live.current;
       if (event.code === 'Escape') {
-        if (held !== null) {
-          setPicked(null);
-        } else {
-          quit?.();
-        }
+        quit?.();
         return;
       }
-      const action = actionForKey(event.code, current, held);
-      if (!action) {
+      const input = actionForKey(event.code, current);
+      if (!input) {
         return;
       }
       event.preventDefault();
-      if (action.type === 'select') {
-        setPicked(action.itemId);
-      } else {
-        setPicked(null);
-        dispatch(action.input);
-      }
+      dispatch(input);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -186,9 +162,6 @@ export function PlayScreen({
   const secondsLeft = Math.ceil((shift.durationMs - state.elapsedMs) / 1000);
   const { score, streak } = state.tally;
   const ghostScore = ghost ? scoreAt(ghost, state.elapsedMs) : null;
-  const heldId = drag?.itemId ?? selected;
-  const heldItem = state.rack.find((item) => item.id === heldId) ?? null;
-  const dragItem = drag ? (state.rack.find((item) => item.id === drag.itemId) ?? null) : null;
   const lead = ghostScore === null ? 0 : score - ghostScore;
   const pop = noticePoints(state.notice);
 
@@ -254,26 +227,9 @@ export function PlayScreen({
 
         <section className="station" aria-labelledby="orders-title">
           <h2 id="orders-title" className="station__title">
-            손님 <span className="station__hint">누르면 봉투에 담아 건네요 · 붕어빵을 끌어 놓아도 돼요</span>
+            손님 <span className="station__hint">꺼낸 붕어빵이 그 소를 기다리는 손님에게 바로 가요</span>
           </h2>
-          <OrderQueue
-            orders={state.orders}
-            elapsedMs={state.elapsedMs}
-            rack={state.rack}
-            shop={state.shop}
-            disabled={state.over}
-            hotkeys={ORDER_KEYS}
-            heldFilling={heldItem?.filling ?? null}
-            overOrderId={drag?.over?.kind === 'order' ? drag.over.orderId : null}
-            onServe={(orderId) => {
-              setPicked(null);
-              dispatch(
-                selected === null
-                  ? { type: 'serve', orderId }
-                  : { type: 'give', itemId: selected, orderId },
-              );
-            }}
-          />
+          <OrderQueue orders={state.orders} elapsedMs={state.elapsedMs} />
         </section>
 
         {practice ? (
@@ -287,30 +243,14 @@ export function PlayScreen({
         <section className="station" aria-labelledby="rack-title">
           <h2 id="rack-title" className="station__title">
             거치대{' '}
-            <span className="station__keys" aria-hidden="true">
-              <kbd>Z</kbd> <kbd>←</kbd>
-              <kbd>→</kbd>
-            </span>{' '}
-            <span className="station__hint">
-              {selected === null
-                ? '끌어서 손님에게 · 휴지통에 놓으면 버려요'
-                : '골랐어요! 손님이나 휴지통을 눌러요'}
-            </span>
+            <span className="station__hint">기다리는 손님이 없을 때 · 그 소 손님이 오면 저절로 건네요</span>
           </h2>
           <Rack
             rack={state.rack}
             shop={state.shop}
             elapsedMs={state.elapsedMs}
             disabled={state.over}
-            selected={selected}
-            drag={drag}
-            bind={bind}
-            onTrash={() => {
-              if (selected !== null) {
-                setPicked(null);
-                dispatch({ type: 'discard', itemId: selected });
-              }
-            }}
+            onDiscard={(itemId) => dispatch({ type: 'discard', itemId })}
           />
         </section>
 
@@ -347,23 +287,15 @@ export function PlayScreen({
           />
         </section>
 
-        {drag && dragItem && (
-          <div className="drag-ghost" style={{ left: drag.x, top: drag.y }} aria-hidden="true">
-            <BbangFish
-              className="drag-ghost__fish"
-              fill={gradeColor(rackGrade(dragItem, state.elapsedMs, state.shop))}
-            />
-          </div>
-        )}
-
-        {/* 흰 플래시는 게임 시간으로 잠깐만 그린다(애니메이션이 멈춘 환경에서도 화면을 덮지 않게). */}
+        {/* 흰 플래시는 게임 시간으로 잠깐만 그린다(애니메이션이 멈춘 환경에서도 화면을 덮지 않게).
+            알림과 같은 부모 아래라 key에 접두어를 붙인다: seq가 같아지면 React가 노드를 겹쳐 쌓는다. */}
         {burst?.grade === 'perfect' && state.elapsedMs - burst.atMs < FLASH_MS && (
-          <div key={burst.seq} className="hitflash" aria-hidden="true" />
+          <div key={`flash-${burst.seq}`} className="hitflash" aria-hidden="true" />
         )}
 
         {state.notice && (
           <p
-            key={state.notice.seq}
+            key={`notice-${state.notice.seq}`}
             className={`flash flash--${noticeTone(state.notice)}`}
             role="status"
           >
@@ -373,10 +305,13 @@ export function PlayScreen({
         <p className="play__keys">
           ⌨️ 단축키 · <kbd>1</kbd>
           <kbd>2</kbd>
-          <kbd>3</kbd> 소 · <kbd>Q</kbd>~<kbd>R</kbd> 틀 · <kbd>A</kbd>~<kbd>F</kbd> 손님 ·{' '}
-          <kbd>Z</kbd>
-          <kbd>←</kbd>
-          <kbd>→</kbd> 거치대 고르기 · <kbd>Del</kbd> 버리기 · <kbd>Esc</kbd> 취소
+          <kbd>3</kbd> 소 · <kbd>Q</kbd>~<kbd>R</kbd> 틀 · <kbd>Z</kbd> 거치대 맨 앞 버리기
+          {practice && (
+            <>
+              {' '}
+              · <kbd>Esc</kbd> 나가기
+            </>
+          )}
         </p>
       </main>
     </div>

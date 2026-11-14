@@ -3,7 +3,7 @@ import type { SessionState } from './session';
 
 /**
  * 튜토리얼 판. 팥 손님 하나, 슈크림 손님 하나. 연습 판(practice)으로 돌려서
- * 손님이 떠나지 않고 목숨도 줄지 않으며, 둘 다 건네면 끝난다.
+ * 손님이 떠나지 않고 목숨도 줄지 않으며, 둘 다 받으면 끝난다.
  */
 export const TUTORIAL_SHIFT: Shift = {
   seed: 0,
@@ -26,11 +26,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
     done: (state) => cooking(state, 'red-bean') || state.rack.length > 0 || state.tally.served > 0,
   },
   {
-    title: '게이지 표시가 초록 구간에 들어오면 틀을 눌러 꺼내요',
-    done: (state) => state.rack.length > 0 || state.tally.served > 0,
-  },
-  {
-    title: '반짝이는 팥 손님을 눌러 봉투에 담아 건네요',
+    title: '게이지 표시가 초록 구간에 들어오면 틀을 눌러 꺼내요 · 팥 손님에게 바로 가요',
     done: (state) => state.tally.served > 0,
   },
   {
@@ -39,7 +35,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
       cooking(state, 'custard') || state.rack.some((item) => item.filling === 'custard') || state.tally.served > 1,
   },
   {
-    title: '다 익으면 꺼내서 슈크림 손님에게 건네요',
+    title: '다 익으면 꺼내요 · 슈크림 손님에게 가면 끝!',
     done: (state) => state.tally.served > 1,
   },
 ];

@@ -21,11 +21,12 @@ function botPlay(seed: number): SessionState {
       (pan) => pan.status === 'cooking' && panDoneness(pan, state.elapsedMs, state.shop) !== 'raw',
     );
     const order = state.orders[0];
-    if (order && order.filling !== state.selected) {
+    // 가끔 엉뚱한 소를 구워 거치대에 쌓이게 한다(손님이 오면 거치대에서 저절로 건네지는 길도 지나게).
+    if (rng.chance(0.2)) {
+      state = reduce(state, { type: 'select', filling: rng.pick(['red-bean', 'custard'] as const) });
+    } else if (order && order.filling !== state.selected && rng.chance(0.6)) {
       state = reduce(state, { type: 'select', filling: order.filling });
-    } else if (state.rack.length > 0 && order && rng.chance(0.7)) {
-      state = reduce(state, { type: 'serve', orderId: order.id });
-    } else if (state.rack.length > 0 && rng.chance(0.2)) {
+    } else if (state.rack.length > 0 && rng.chance(0.05)) {
       state = reduce(state, { type: 'discard', itemId: state.rack[0].id });
     } else if (readyPan >= 0) {
       state = reduce(state, { type: 'take-out', panIndex: readyPan });
@@ -46,6 +47,7 @@ describe('replay', () => {
       expect(again.burnt).toBe(played.burnt);
       expect(again.discarded).toBe(played.discarded);
       expect(again.missedOrders).toBe(played.missedOrders);
+      expect(again.rack).toEqual(played.rack);
       expect(again.revenue).toBe(played.revenue);
       expect(again.cost).toBe(played.cost);
     }

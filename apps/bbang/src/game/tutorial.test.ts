@@ -16,14 +16,12 @@ describe('tutorial', () => {
 
     state = reduce(state, { type: 'pour', panIndex: 0 });
     expect(tutorialStep(state)).toBe(1);
-    state = run(state, at(3000), { type: 'take-out', panIndex: 0 });
+    state = run(state, at(3000), { type: 'take-out', panIndex: 0 }); // 팥 손님에게 바로
     expect(tutorialStep(state)).toBe(2);
-    state = reduce(state, { type: 'serve', orderId: 0 });
-    expect(tutorialStep(state)).toBe(3);
 
     state = run(state, { type: 'select', filling: 'custard' }, { type: 'pour', panIndex: 1 });
-    expect(tutorialStep(state)).toBe(4);
-    state = run(state, at(6000), { type: 'take-out', panIndex: 1 }, { type: 'serve', orderId: 1 });
+    expect(tutorialStep(state)).toBe(3);
+    state = run(state, at(6000), { type: 'take-out', panIndex: 1 });
     expect(tutorialStep(state)).toBe(TUTORIAL_STEPS.length);
     expect(state.over).toBe(true);
   });

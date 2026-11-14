@@ -11,7 +11,6 @@ import {
 import {
   createSession,
   panDoneness,
-  packFor,
   panWindow,
   reduce,
   type Action,
@@ -20,13 +19,13 @@ import {
 
 /**
  * 밸런스 봇. 반응 간격(reactMs)마다 한 번 움직이고, 꺼내는 타이밍은 Perfect 한가운데에서
- * 대략 ±jitterMs만큼 어긋난다. 우선순위: 익은 틀 꺼내기(탄 건 꺼내면 바로 버려진다) →
- * 거치대에 준비된 주문 카드 누르기(봉투 포장) → 모자란 소를 빈 틀에 붓기.
+ * 대략 ±jitterMs만큼 어긋난다. 우선순위: 익은 틀 꺼내기(손님에게 바로 가거나 거치대로, 탄 건 바로
+ * 버려진다) → 모자란 소를 빈 틀에 붓기.
  *
- * 5단계 측정(30판 평균, 표준 가게, 조작 개편·목숨 5개 반영):
- *   초보(0.6초·±0.5초) 약 2,900점 · 244P · 대개 70초쯤 목숨을 다 잃음
- *   보통(0.4초·±0.25초) 약 7,500점 · 468P · 최고 콤보 12
- *   고수(0.25초·±0.12초) 약 12,000점 · 522P · 놓친 손님 0
+ * 5단계 측정(30판 평균, 표준 가게, 꺼내면 손님에게 바로 가는 규칙):
+ *   초보(0.6초·±0.5초) 약 3,800점 · 320P · 대개 77초쯤 목숨을 다 잃음
+ *   보통(0.4초·±0.25초) 약 8,100점 · 499P · 최고 콤보 15 · 놓친 손님 0
+ *   고수(0.25초·±0.12초) 약 12,700점 · 527P · 최고 콤보 39
  * 이 표로 Perfect 폭(초록의 40%)·막판 주문 간격(2.2초)·상점 값(다 사면 3,600P)·밈 기준을 정했다.
  */
 function bot(seed: number, shop: ShopConfig, reactMs: number, jitterMs: number): SessionState {
@@ -62,12 +61,6 @@ function bot(seed: number, shop: ShopConfig, reactMs: number, jitterMs: number):
           return;
         }
       }
-    }
-    const ready = s.orders.find(
-      (order) => packFor(order, s.rack, s.elapsedMs, s.shop).length > 0,
-    );
-    if (ready && act({ type: 'serve', orderId: ready.id })) {
-      return;
     }
     const empty = s.pans.findIndex((pan) => pan.status === 'empty');
     if (empty < 0) {

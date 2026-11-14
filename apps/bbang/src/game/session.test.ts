@@ -54,7 +54,7 @@ describe('session', () => {
     expect(state.notice?.kind).toBe('raw');
   });
 
-  it('takes a cooked one onto the rack, then bags it for the order with one tap', () => {
+  it('hands a cooked one straight to the customer waiting for it', () => {
     const state = run(
       createSession(shiftWith([{ id: 7, atMs: 0, filling: 'red-bean', count: 1 }]), SHOP),
       at(0),
@@ -63,44 +63,73 @@ describe('session', () => {
       { type: 'take-out', panIndex: 0 },
     );
     expect(state.pans[0].status).toBe('empty');
-    expect(state.rack).toEqual([{ id: 0, filling: 'red-bean', grade: 'perfect', rackedAtMs: PERFECT_MS }]);
-
-    const served = reduce(state, { type: 'serve', orderId: 7 });
-    expect(served.tally.score).toBe(100);
-    expect(served.tally.counts.perfect).toBe(1);
-    expect(served.rack).toHaveLength(0);
-    expect(served.orders).toHaveLength(0);
-    expect(served.notice).toMatchObject({ kind: 'served', grade: 'perfect', count: 1 });
+    expect(state.rack).toHaveLength(0);
+    expect(state.orders).toHaveLength(0);
+    expect(state.tally.score).toBe(100);
+    expect(state.tally.counts.perfect).toBe(1);
+    expect(state.notice).toMatchObject({ kind: 'served', grade: 'perfect', count: 1 });
   });
 
-  it('lets a perfect one cool on the rack before serving', () => {
+  it('gives it to whoever has waited longest for that filling', () => {
     const state = run(
-      createSession(shiftWith([{ id: 0, atMs: 0, filling: 'red-bean', count: 1 }]), SHOP),
+      createSession(
+        shiftWith([
+          { id: 0, atMs: 0, filling: 'custard', count: 1 },
+          { id: 1, atMs: 0, filling: 'red-bean', count: 1 },
+          { id: 2, atMs: 500, filling: 'red-bean', count: 1 },
+        ]),
+        SHOP,
+      ),
+      at(500),
+      { type: 'pour', panIndex: 0 },
+      at(500 + PERFECT_MS),
+      { type: 'take-out', panIndex: 0 },
+    );
+    expect(state.orders.map((order) => order.id)).toEqual([0, 2]);
+  });
+
+  it('racks it when nobody wants that filling, and hands it over when they arrive', () => {
+    const racked = run(
+      createSession(shiftWith([{ id: 0, atMs: 5000, filling: 'red-bean', count: 2 }]), SHOP),
+      at(0),
+      { type: 'pour', panIndex: 0 },
+      at(PERFECT_MS),
+      { type: 'take-out', panIndex: 0 },
+    );
+    expect(racked.rack).toEqual([{ id: 0, filling: 'red-bean', grade: 'perfect', rackedAtMs: PERFECT_MS }]);
+    expect(racked.notice).toMatchObject({ kind: 'racked', filling: 'red-bean' });
+
+    // 손님이 5초에 오면 거치대에서 바로 받는다. 리플레이처럼 tick이 늦게 와도 등급은 온 시각 기준.
+    const arrived = reduce(racked, at(PERFECT_MS + COOL_STEP_MS + 100));
+    expect(arrived.rack).toHaveLength(0);
+    expect(arrived.orders[0].remaining).toBe(1);
+    expect(arrived.tally.counts.perfect).toBe(1);
+  });
+
+  it('lets a perfect one cool on the rack while it waits for a customer', () => {
+    const state = run(
+      createSession(shiftWith([{ id: 0, atMs: PERFECT_MS + COOL_STEP_MS, filling: 'red-bean', count: 1 }]), SHOP),
       at(0),
       { type: 'pour', panIndex: 0 },
       at(PERFECT_MS),
       { type: 'take-out', panIndex: 0 },
       at(PERFECT_MS + COOL_STEP_MS),
-      { type: 'serve', orderId: 0 },
     );
     expect(state.tally.counts.good).toBe(1);
     expect(state.tally.score).toBe(70);
   });
 
-  it('only packs the ordered filling and says so when there is none', () => {
+  it('only hands over the ordered filling', () => {
     const state = run(
       createSession(shiftWith([{ id: 0, atMs: 0, filling: 'custard', count: 1 }]), SHOP),
       at(0),
       { type: 'pour', panIndex: 0 }, // 기본 소는 팥
       at(PERFECT_MS),
       { type: 'take-out', panIndex: 0 },
-      { type: 'serve', orderId: 0 },
     );
-    expect(state.tally.score).toBe(0);
     expect(state.tally.served).toBe(0);
     expect(state.rack).toHaveLength(1);
     expect(state.orders).toHaveLength(1);
-    expect(state.notice).toMatchObject({ kind: 'none-ready', filling: 'custard' });
   });
 
   it('throws a burnt one away straight from the pan, and a rack item on tap', () => {
@@ -124,7 +153,7 @@ describe('session', () => {
     expect(trashed.discarded).toBe(2);
   });
 
-  it('keeps a pan cooking when the rack is full', () => {
+  it('keeps a pan cooking when the rack is full, unless a customer takes it', () => {
     let state = run(createSession(shiftWith([]), { ...SHOP, pans: RACK_SLOTS + 1 }), at(0));
     for (let i = 0; i <= RACK_SLOTS; i += 1) {
       state = reduce(state, { type: 'pour', panIndex: i });
@@ -138,18 +167,18 @@ describe('session', () => {
     expect(state.notice?.kind).toBe('rack-full');
   });
 
-  it('packs the best ones first into one bag, and part of an order if short', () => {
+  it('hands over the best racked ones first, and part of an order if short', () => {
     const state = run(
-      createSession(shiftWith([{ id: 0, atMs: 0, filling: 'red-bean', count: 3 }]), SHOP),
+      createSession(shiftWith([{ id: 0, atMs: 12_000, filling: 'red-bean', count: 3 }]), SHOP),
       at(0),
       { type: 'pour', panIndex: 0 },
       at(PERFECT_MS),
-      { type: 'take-out', panIndex: 0 }, // 0번: 완벽, 아래 시각엔 식어서 좋음
+      { type: 'take-out', panIndex: 0 }, // 0번: 완벽, 손님이 올 땐 식어서 좋음
       at(COOL_STEP_MS),
       { type: 'pour', panIndex: 1 },
       at(COOL_STEP_MS + PERFECT_MS),
       { type: 'take-out', panIndex: 1 }, // 1번: 완벽
-      { type: 'serve', orderId: 0 },
+      at(12_000),
     );
     expect(state.rack).toHaveLength(0);
     expect(state.orders[0].remaining).toBe(1);
@@ -166,11 +195,9 @@ describe('session', () => {
       at(PERFECT_MS),
       { type: 'take-out', panIndex: 0 },
       { type: 'take-out', panIndex: 1 },
-      { type: 'serve', orderId: 0 }, // 완벽 1, 2를 한 봉투에
       { type: 'pour', panIndex: 0 },
       at(PERFECT_MS * 2),
-      { type: 'take-out', panIndex: 0 },
-      { type: 'serve', orderId: 0 }, // 완벽 3 (×2)
+      { type: 'take-out', panIndex: 0 }, // 완벽 3 (×2)
     );
     expect(state.tally.bestStreak).toBe(3);
     expect(state.tally.score).toBe(400);
@@ -201,15 +228,14 @@ describe('session', () => {
     ]);
   });
 
-  it('books revenue on accepted serves and ingredient cost on every pour', () => {
+  it('books revenue on every hand-over and ingredient cost on every pour', () => {
     const state = run(
       createSession(shiftWith([{ id: 0, atMs: 0, filling: 'red-bean', count: 1 }]), SHOP),
       at(0),
       { type: 'pour', panIndex: 0 },
       { type: 'pour', panIndex: 1 },
       at(PERFECT_MS),
-      { type: 'take-out', panIndex: 0 },
-      { type: 'serve', orderId: 0 }, // 완벽: 1,000 + 팁 300
+      { type: 'take-out', panIndex: 0 }, // 완벽: 1,000 + 팁 300
       at(BURNT_MS),
       { type: 'take-out', panIndex: 1 }, // 탄 것: 매출 없이 재료비만
     );
@@ -220,15 +246,17 @@ describe('session', () => {
   it('uses the upgraded shop: more rack slots, wider green, slower cooling, pricier batter', () => {
     const shop = shopConfig({ rack: 1, pans: 0, batter: 2, warmer: 1 });
     // 표준이면 4,200ms에 초록이 끝나지만, 초록 +20%면 아직 좋음이다.
-    // 손님은 늦게 와서 거치대에서 오래 기다린 붕어빵을 받는다(인내 시간 안).
     const state = run(
-      createSession(shiftWith([{ id: 0, atMs: 5000, filling: 'red-bean', count: 1 }]), shop),
+      createSession(
+        // 표준이면 한 단계 식었을 시각에 손님이 온다. 보온 거치대(11초)면 그대로 좋음.
+        shiftWith([{ id: 0, atMs: 4500 + COOL_STEP_MS, filling: 'red-bean', count: 1 }]),
+        shop,
+      ),
       at(0),
       { type: 'pour', panIndex: 0 },
       at(4500),
       { type: 'take-out', panIndex: 0 },
-      at(4500 + COOL_STEP_MS), // 표준이면 한 단계 식었을 시간, 보온 거치대(11초)면 그대로
-      { type: 'serve', orderId: 0 },
+      at(4500 + COOL_STEP_MS),
     );
     expect(state.shop.rackSlots).toBe(4);
     expect(state.tally.counts.good).toBe(1);
@@ -282,30 +310,6 @@ describe('lives', () => {
   });
 });
 
-describe('give', () => {
-  it('gives one chosen rack item to an order, and hands back a wrong filling for free', () => {
-    const state = run(
-      createSession(shiftWith([{ id: 0, atMs: 0, filling: 'red-bean', count: 2 }]), SHOP),
-      at(0),
-      { type: 'pour', panIndex: 0 },
-      { type: 'select', filling: 'custard' },
-      { type: 'pour', panIndex: 1 },
-      at(PERFECT_MS),
-      { type: 'take-out', panIndex: 0 }, // 0: 팥
-      { type: 'take-out', panIndex: 1 }, // 1: 슈크림
-    );
-    const wrong = reduce(state, { type: 'give', itemId: 1, orderId: 0 });
-    expect(wrong.notice?.kind).toBe('mismatch');
-    expect(wrong.tally.score).toBe(0);
-    expect(wrong.rack).toHaveLength(2);
-
-    const given = reduce(state, { type: 'give', itemId: 0, orderId: 0 });
-    expect(given.tally.score).toBe(100);
-    expect(given.orders[0].remaining).toBe(1);
-    expect(given.rack.map((item) => item.id)).toEqual([1]);
-  });
-});
-
 describe('session feedback', () => {
   it('marks the take-out moment and reports score changes on notices', () => {
     const base = run(
@@ -316,9 +320,7 @@ describe('session feedback', () => {
       { type: 'take-out', panIndex: 1 },
     );
     expect(base.burst).toEqual({ seq: 1, panIndex: 1, grade: 'perfect', atMs: PERFECT_MS });
-
-    const served = reduce(base, { type: 'serve', orderId: 0 });
-    expect(served.notice).toMatchObject({ kind: 'served', points: 100 });
+    expect(base.notice).toMatchObject({ kind: 'served', points: 100 });
   });
 
   it('bursts smoke when a burnt one is thrown away', () => {
@@ -345,7 +347,6 @@ describe('session feedback', () => {
       { type: 'pour', panIndex: 0 },
       at(PERFECT_MS),
       { type: 'take-out', panIndex: 0 },
-      { type: 'serve', orderId: 0 },
     );
     expect(state.tally.streak).toBe(1);
     const left = reduce(state, at(1000 + ORDER_PATIENCE_MS + 1));
