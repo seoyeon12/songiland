@@ -74,7 +74,7 @@ export const appHosts = {
   lotto: { subdomain: 'lotto', devPort: 5174, previewPort: 4174 },
   'ko-en': { subdomain: 'ko-en', devPort: 5175, previewPort: 4175 },
   dog: { subdomain: 'dog', devPort: 5176, previewPort: 4176 },
-  bbang: { subdomain: 'bbang', devPort: 5177, previewPort: 4177 },
+  bbang: { subdomain: 'bunguppang', devPort: 5177, previewPort: 4177 },
 } as const satisfies Record<AppId, AppHost>;
 
 /**

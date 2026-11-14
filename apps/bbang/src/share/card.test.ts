@@ -99,7 +99,7 @@ describe('shareCardFor', () => {
     });
     expect(card.grades.map((grade) => grade.value)).toEqual(['9', '5', '2', '1']);
     expect(card.facts).toContainEqual({ label: '매출', value: '19,800원' });
-    expect(card.footer).toContain('bbang.arosys.kr');
+    expect(card.footer).toContain('bunguppang.arosys.kr');
   });
 
   it('has no date for 내 가게', () => {
@@ -127,7 +127,7 @@ describe('drawShareCard', () => {
     expect(ys('최고 콤보')).toBeLessThan(ys('완벽'));
     expect(ys('완벽')).toBeLessThan(ys('매출'));
     expect(ys('매출')).toBeLessThan(ys('“'));
-    expect(ys('“')).toBeLessThan(ys('bbang.arosys.kr'));
+    expect(ys('“')).toBeLessThan(ys('bunguppang.arosys.kr'));
   });
 
   it('shrinks or trims huge numbers instead of overflowing', () => {

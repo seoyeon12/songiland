@@ -66,7 +66,7 @@ export function shareCardFor(
     ],
     copy: memeCopy(tally.score),
     footer:
-      mode === 'daily' ? '오늘 같은 판으로 겨뤄 보세요 · bbang.arosys.kr' : 'bbang.arosys.kr',
+      mode === 'daily' ? '오늘 같은 판으로 겨뤄 보세요 · bunguppang.arosys.kr' : 'bunguppang.arosys.kr',
   };
 }
 

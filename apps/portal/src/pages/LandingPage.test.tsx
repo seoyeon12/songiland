@@ -41,7 +41,7 @@ it('lists 붕어빵 랭킹전 under games', () => {
   const games = screen.getByRole('region', { name: '게임' });
   expect(within(games).getByRole('link', { name: /붕어빵 랭킹전/ })).toHaveAttribute(
     'href',
-    'https://bbang.arosys.kr/',
+    'https://bunguppang.arosys.kr/',
   );
 });
 
