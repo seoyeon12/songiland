@@ -182,7 +182,7 @@ export function PlayScreen({
         <header className="play__hud">
           {practice ? (
             <span className="play__practice">
-              🎓 튜토리얼
+              <span className="play__badge">튜토리얼</span>
               {onQuit && (
                 <button type="button" className="btn play__quit" onClick={onQuit}>
                   나가기
@@ -238,7 +238,7 @@ export function PlayScreen({
 
         <section className="station" aria-labelledby="orders-title">
           <h2 id="orders-title" className="station__title">
-            손님 <span className="station__hint">꺼낸 붕어빵이 그 소를 기다리는 손님에게 바로 가요</span>
+            손님 {practice && <span className="station__hint">꺼내면 그 소 손님에게 바로 가요</span>}
           </h2>
           <OrderQueue orders={state.orders} elapsedMs={state.elapsedMs} />
         </section>
@@ -254,7 +254,7 @@ export function PlayScreen({
         <section className="station" aria-labelledby="rack-title">
           <h2 id="rack-title" className="station__title">
             거치대{' '}
-            <span className="station__hint">기다리는 손님이 없을 때 · 그 소 손님이 오면 저절로 건네요</span>
+            {practice && <span className="station__hint">손님이 없으면 여기서 기다려요</span>}
           </h2>
           <Rack
             rack={state.rack}
@@ -267,7 +267,7 @@ export function PlayScreen({
 
         <section className="station" aria-labelledby="pans-title">
           <h2 id="pans-title" className="station__title">
-            화로 <span className="station__hint">빈 틀 → 반죽 붓기 · 초록일 때 → 꺼내기</span>
+            화로 {practice && <span className="station__hint">빈 틀 → 붓기 · 초록일 때 → 꺼내기</span>}
           </h2>
           <div className={`pans ${state.pans.length > 4 ? 'pans--wide' : ''}`}>
             {state.pans.map((pan, index) => (
@@ -340,20 +340,34 @@ export function PlayScreen({
 /** 튜토리얼 단계 안내. 지금 단계를 크게, 끝낸 단계는 체크로 보여 준다. */
 function Coach({ state }: { state: SessionState }) {
   const current = tutorialStep(state);
+  const total = TUTORIAL_STEPS.length;
   return (
-    <ol className="coach" aria-label="튜토리얼 단계">
-      {TUTORIAL_STEPS.map((step, index) => (
-        <li
-          key={step.title}
-          className={`coach__step ${index < current ? 'coach__step--done' : ''} ${index === current ? 'coach__step--now' : ''}`}
-          aria-current={index === current ? 'step' : undefined}
-        >
-          <span className="coach__mark" aria-hidden="true">
-            {index < current ? '✓' : index + 1}
-          </span>
-          {step.title}
-        </li>
-      ))}
-    </ol>
+    <div className="coach">
+      <p className="coach__progress" aria-hidden="true">
+        <span className="coach__count">
+          {Math.min(current + 1, total)}/{total}
+        </span>
+        {TUTORIAL_STEPS.map((step, index) => (
+          <span
+            key={step.title}
+            className={`coach__dot ${index < current ? 'coach__dot--done' : ''} ${index === current ? 'coach__dot--now' : ''}`}
+          />
+        ))}
+      </p>
+      <ol className="coach__steps" aria-label="튜토리얼 단계">
+        {TUTORIAL_STEPS.map((step, index) => (
+          <li
+            key={step.title}
+            className={
+              // 다 끝내면 마지막 단계 글을 그대로 둔다(코치 칸이 비지 않게).
+              index === Math.min(current, total - 1) ? 'coach__step' : 'coach__step coach__step--hidden'
+            }
+            aria-current={index === current ? 'step' : undefined}
+          >
+            {step.title}
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }

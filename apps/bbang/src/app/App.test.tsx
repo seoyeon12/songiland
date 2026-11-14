@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NO_UPGRADES } from '../engine';
 import { App } from './App';
 import { createBbangStore } from './storage';
@@ -20,6 +20,8 @@ function memoryStorage(): Storage {
 
 beforeEach(() => {
   window.history.replaceState(null, '', '/');
+  // jsdom에는 scrollTo가 없다. 화면이 바뀔 때 맨 위로 올리는지만 본다.
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
 });
 
 describe('App shop', () => {
@@ -53,8 +55,10 @@ describe('App history', () => {
     expect(await screen.findByRole('button', { name: /튜토리얼부터/ })).toBeInTheDocument();
     expect(window.location.pathname).toBe('/');
 
+    vi.mocked(window.scrollTo).mockClear();
     fireEvent.click(screen.getByRole('button', { name: '오늘의 장사 시작' }));
     expect(window.location.pathname).toBe('/play');
+    expect(window.scrollTo).toHaveBeenCalledWith(0, 0); // 시작 화면을 내려서 눌러도 장사는 맨 위부터
     expect(screen.getAllByRole('button', { name: /반죽 붓기/ })).toHaveLength(4);
 
     // 장사 중 뒤로가기는 바로 나가지 않고 묻는다. 계속하면 주소·판이 그대로다.

@@ -134,6 +134,19 @@ test('asks before the back button throws away a running shift, with the clock st
   await expect(page.getByText('아직 없음')).toBeVisible();
 });
 
+test('a shift starts at the top even when the start screen was scrolled down on a phone', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.goto('/');
+  const own = page.getByRole('button', { name: /내 가게 영업/ });
+  await own.scrollIntoViewIfNeeded();
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+
+  await own.click();
+  await expect(page.getByRole('button', { name: /반죽 붓기/ }).first()).toBeVisible();
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await expect(page.locator('.play__hud')).toBeInViewport();
+});
+
 test('the browser back button walks between the start screen, the shop and the tutorial', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: /상점/ }).click();

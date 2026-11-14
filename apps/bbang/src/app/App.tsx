@@ -107,6 +107,13 @@ export function App({ store: injected }: { store?: BbangStore } = {}) {
     phaseRef.current = phase;
   });
 
+  // 화면이 바뀌면 맨 위에서 시작한다. 시작 화면을 내려서 누른 버튼의 스크롤이 남으면 장사 화면의
+  // 머리판(시간·목숨)이 화면 위로 밀려 안 보인다. 같은 화면 안의 변화(튜토리얼 완료 안내 등)는 그대로 둔다.
+  const screenKey = `${phase.name}:${'attempt' in phase ? phase.attempt : ''}`;
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [screenKey]);
+
   // 뒤로·앞으로가기: 기록 칸의 화면을 연다. 판 상태가 필요한 화면이면 한 칸 더 뒤(시작 화면)로 간다.
   useEffect(() => {
     const onPop = (event: PopStateEvent) => {

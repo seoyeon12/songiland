@@ -26,16 +26,16 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
     done: (state) => cooking(state, 'red-bean') || state.rack.length > 0 || state.tally.served > 0,
   },
   {
-    title: '게이지 표시가 초록 구간에 들어오면 틀을 눌러 꺼내요 · 팥 손님에게 바로 가요',
+    title: '눈금이 초록에 들어오면 틀을 눌러 꺼내요',
     done: (state) => state.tally.served > 0,
   },
   {
-    title: '아래에서 🍮 슈크림을 고르고 빈 틀을 눌러요',
+    title: '아래에서 🍮 슈크림을 고르고 빈 틀에 부어요',
     done: (state) =>
       cooking(state, 'custard') || state.rack.some((item) => item.filling === 'custard') || state.tally.served > 1,
   },
   {
-    title: '다 익으면 꺼내요 · 슈크림 손님에게 가면 끝!',
+    title: '초록일 때 꺼내서 슈크림 손님에게 팔면 끝!',
     done: (state) => state.tally.served > 1,
   },
 ];
