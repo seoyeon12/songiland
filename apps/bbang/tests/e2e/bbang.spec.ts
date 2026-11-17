@@ -71,22 +71,23 @@ test('spends shop points on upgrades that apply only to 내 가게', async ({ pa
   await expect(page.getByRole('list', { name: '거치대 (0/4)' })).toBeVisible();
 });
 
-test('a newcomer finishes the tutorial with keyboard shortcuts', async ({ page }) => {
+test('a newcomer finishes the tutorial, clicking pans and picking fillings by key', async ({ page }) => {
   await page.clock.install();
   await page.goto('/');
   await page.getByRole('button', { name: /튜토리얼부터/ }).click();
   const coach = page.getByRole('list', { name: '튜토리얼 단계' });
   await expect(coach.locator('[aria-current="step"]')).toContainText('팥 반죽');
 
-  await page.keyboard.press('q'); // 1번 틀에 팥
+  const pans = page.locator('.pan');
+  await pans.nth(0).click(); // 1번 틀에 팥
   await page.clock.runFor(3000);
-  await page.keyboard.press('q'); // 꺼내면 팥 손님에게 바로 간다
+  await pans.nth(0).click(); // 꺼내면 팥 손님에게 바로 간다
   await expect(coach.locator('[aria-current="step"]')).toContainText('슈크림');
 
-  await page.keyboard.press('2'); // 슈크림
-  await page.keyboard.press('w');
+  await page.keyboard.press('2'); // 슈크림(소는 키로 고른다)
+  await pans.nth(1).click();
   await page.clock.runFor(3000);
-  await page.keyboard.press('w');
+  await pans.nth(1).click();
   // 다 끝내도 판에서 튕겨 나가지 않고, 판 위에 완료 안내가 뜬다.
   const done = page.getByRole('dialog', { name: '튜토리얼 완료!' });
   await expect(done).toBeVisible();
@@ -172,16 +173,17 @@ test('racks a fish nobody is waiting for, throws it away, and leaves the tutoria
   await page.clock.install();
   await page.goto('/');
   await page.getByRole('button', { name: /튜토리얼부터/ }).click();
-  await page.keyboard.press('q');
-  await page.keyboard.press('w'); // 팥 두 개: 팥 손님은 하나뿐
+  const pans = page.locator('.pan');
+  await pans.nth(0).click();
+  await pans.nth(1).click(); // 팥 두 개: 팥 손님은 하나뿐
   await page.clock.runFor(3000);
-  await page.keyboard.press('q');
+  await pans.nth(0).click();
   await expect(page.getByRole('status')).toContainText('완벽');
   // 완벽 플래시는 잠깐만: 알림과 key가 겹쳐 플래시가 쌓이던 버그가 없어야 한다.
   await page.clock.runFor(500);
   await expect(page.locator('.hitflash')).toHaveCount(0);
   await expect(page.getByRole('listitem', { name: /^팥 1개 주문/ })).toHaveCount(0);
-  await page.keyboard.press('w');
+  await pans.nth(1).click();
   await expect(page.getByRole('status')).toContainText('거치대로');
   await expect(page.getByRole('list', { name: '거치대 (1/3)' })).toBeVisible();
 

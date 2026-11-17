@@ -163,7 +163,7 @@ export function StartScreen({
             <li>기다리는 손님이 없으면 거치대에 올라가요. 오래 두면 식고, 누르면 버려요.</li>
             <li>완벽을 이어 내면 콤보! 점수가 커져요.</li>
             <li>번 돈은 포인트가 되고, 상점에서 내 가게를 키워요.</li>
-            <li>PC 단축키: 1·2·3 소, Q~R 틀, Z 거치대 맨 앞 버리기.</li>
+            <li>PC에서는 틀을 마우스로 누르고, 1·2·3으로 소를 고르고, Z로 거치대 맨 앞을 버려요.</li>
           </ul>
         </details>
         <p className="start__daily">

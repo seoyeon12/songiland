@@ -20,7 +20,6 @@ export function Pan({
   elapsedMs,
   onClick,
   disabled,
-  hotkey,
   children,
 }: {
   pan: PanState;
@@ -28,20 +27,12 @@ export function Pan({
   elapsedMs: number;
   onClick: () => void;
   disabled: boolean;
-  /** 단축키 이름(없으면 표시 안 함). */
-  hotkey?: string;
   /** 꺼낸 순간의 효과(Burst). 틀이 비어도 위에 겹쳐 그린다. */
   children?: ReactNode;
 }) {
-  const key = hotkey && (
-    <kbd className="hotkey" aria-hidden="true">
-      {hotkey}
-    </kbd>
-  );
   if (pan.status === 'empty') {
     return (
       <button type="button" className="pan pan--empty" onClick={onClick} disabled={disabled}>
-        {key}
         <span className="pan__hint">＋ 반죽 붓기</span>
         {children}
       </button>
@@ -69,7 +60,6 @@ export function Pan({
             : `${label} 붕어빵 꺼내기`
       }
     >
-      {key}
       <BbangFish className="pan__fish" fill={gradeColor(doneness)} />
       <span className="pan__filling">
         <Icon name={FILLING_ICON[pan.filling]} /> {label}

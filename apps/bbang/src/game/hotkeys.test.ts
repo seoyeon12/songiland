@@ -10,17 +10,13 @@ const shift = {
 };
 
 describe('hotkeys', () => {
-  it('maps physical keys to fillings and pans', () => {
+  it('maps physical keys to fillings', () => {
     const state = reduce(createSession(shift, STANDARD_SHOP), { type: 'tick', nowMs: 0 });
     expect(actionForKey('Digit2', state)).toEqual({ type: 'select', filling: 'custard' });
     expect(actionForKey('Numpad1', state)).toMatchObject({ filling: 'red-bean' });
-    expect(actionForKey('KeyQ', state)).toEqual({ type: 'pour', panIndex: 0 });
-    expect(actionForKey('KeyQ', reduce(state, { type: 'pour', panIndex: 0 }))).toEqual({
-      type: 'take-out',
-      panIndex: 0,
-    });
-    // 없는 칸(틀 5번째, 빈 거치대)과 관계없는 키는 무시한다.
-    expect(actionForKey('KeyT', state)).toBeNull();
+    // 틀은 마우스로만 누른다(예전 틀 키 Q~R은 아무 일도 안 한다). 빈 거치대·관계없는 키도 무시한다.
+    expect(actionForKey('KeyQ', state)).toBeNull();
+    expect(actionForKey('KeyR', reduce(state, { type: 'pour', panIndex: 3 }))).toBeNull();
     expect(actionForKey('KeyZ', state)).toBeNull();
     expect(actionForKey('KeyA', state)).toBeNull();
     expect(actionForKey('Space', state)).toBeNull();

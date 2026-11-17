@@ -7,7 +7,7 @@ import { Icon } from '../components/Icon';
 import { OrderQueue } from '../components/OrderQueue';
 import { Pan } from '../components/Pan';
 import { Rack } from '../components/Rack';
-import { actionForKey, PAN_KEYS } from '../game/hotkeys';
+import { actionForKey } from '../game/hotkeys';
 import { scoreAt, type ScorePoint } from '../game/replay';
 import {
   createSession,
@@ -292,7 +292,6 @@ export function PlayScreen({
               <Pan
                 key={index}
                 pan={pan}
-                hotkey={PAN_KEYS[index]}
                 shop={state.shop}
                 elapsedMs={state.elapsedMs}
                 disabled={state.over}
@@ -342,7 +341,7 @@ export function PlayScreen({
         <p className="play__keys">
           ⌨️ 단축키 · <kbd>1</kbd>
           <kbd>2</kbd>
-          <kbd>3</kbd> 소 · <kbd>Q</kbd>~<kbd>R</kbd> 틀 · <kbd>Z</kbd> 거치대 맨 앞 버리기
+          <kbd>3</kbd> 소 · <kbd>Z</kbd> 거치대 맨 앞 버리기 · 틀은 마우스로
           {practice && (
             <>
               {' '}
