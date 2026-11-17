@@ -20,7 +20,7 @@ test("plays today's shift, saves the share card and races its ghost next time", 
   await expect(page.getByRole('status')).toHaveText('아직 덜 익었어요');
   await page.clock.runFor(2500);
   await page.getByRole('button', { name: /붕어빵 꺼내기/ }).click();
-  await expect(page.getByRole('status')).toHaveText(/🛍️|거치대로/);
+  await expect(page.getByRole('status')).toHaveText(/완벽|좋음|식음|거치대로/);
   await expect(page.getByRole('listitem', { name: /개 주문/ }).first()).toBeVisible();
 
   await page.clock.fastForward(90_000);
@@ -28,7 +28,7 @@ test("plays today's shift, saves the share card and races its ghost next time", 
   // 손님을 계속 놓치면 목숨 5개를 다 잃고 일찍 문을 닫는다.
   await expect(page.getByRole('heading', { name: '목숨을 다 썼어요' })).toBeVisible();
   await expect(page.getByText(/놓친 손님 5팀/)).toBeVisible();
-  await expect(page.getByText('🎉 첫 기록!')).toBeVisible();
+  await expect(page.getByText('첫 기록!')).toBeVisible();
   await expect(page.getByLabel('오늘의 영수증')).toContainText('재료비');
 
   // 공유 카드는 이 브라우저의 캔버스로 그린 1080×1350 PNG다.
@@ -42,7 +42,7 @@ test("plays today's shift, saves the share card and races its ghost next time", 
 
   // 다시 도전하면 오늘 최고 기록 판이 고스트로 같이 달린다.
   await page.getByRole('button', { name: '다시 도전' }).click();
-  await expect(page.getByText('👻 오늘 최고 기록')).toBeVisible();
+  await expect(page.getByText('오늘 최고 기록')).toBeVisible();
 });
 
 test('spends shop points on upgrades that apply only to 내 가게', async ({ page }) => {
@@ -60,7 +60,7 @@ test('spends shop points on upgrades that apply only to 내 가게', async ({ pa
   );
   await page.reload();
 
-  await page.getByRole('button', { name: /상점 · 600P/ }).click();
+  await page.getByRole('button', { name: /상점 600P/ }).click();
   await page.getByRole('button', { name: '틀 늘리기 300P에 사기' }).click();
   await page.getByRole('button', { name: '거치대 넓히기 250P에 사기' }).click();
   await expect(page.getByText('50P', { exact: true })).toBeVisible();
@@ -88,7 +88,7 @@ test('a newcomer finishes the tutorial with keyboard shortcuts', async ({ page }
   await page.clock.runFor(3000);
   await page.keyboard.press('w');
   // 다 끝내도 판에서 튕겨 나가지 않고, 판 위에 완료 안내가 뜬다.
-  const done = page.getByRole('dialog', { name: '🎉 튜토리얼 완료!' });
+  const done = page.getByRole('dialog', { name: '튜토리얼 완료!' });
   await expect(done).toBeVisible();
   await expect(coach).toBeVisible();
 

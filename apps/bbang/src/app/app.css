@@ -41,6 +41,13 @@
   --songi-focus: 0 0 0 3px var(--bb-focus);
 }
 
+/* 게임 글꼴(index.html에서 불러온다). 못 받으면 공통 글꼴 순서로 돌아간다. */
+body {
+  font-family:
+    'Noto Sans KR', 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+    'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+}
+
 .app__main {
   width: 100%;
   max-width: 30rem;
@@ -405,6 +412,41 @@
   font-size: 0.8125rem;
 }
 
+/* Flaticon 출처 표시(라이선스 조건: 화면에 보이는 링크) */
+.start__credit {
+  margin: 0;
+  color: var(--songi-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.start__credit a {
+  color: inherit;
+}
+
+/* 아이콘: 이모지처럼 글자 크기를 따라간다. 원본은 144px이라 3배 화면의 48px까지 선명하다. */
+.icon {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 1.25em;
+  height: 1.25em;
+  object-fit: contain;
+  vertical-align: -0.25em;
+  user-select: none;
+}
+
+/* 선 아이콘(카트·고스트)은 크림색 동그라미에 담아 색칠된 아이콘과 무게를 맞춘다. */
+.icon--badge {
+  box-sizing: border-box;
+  width: 1.5em;
+  height: 1.5em;
+  padding: 0.18em;
+  border: 2px solid var(--bb-ink);
+  border-radius: 50%;
+  background: #fff6e0;
+  vertical-align: -0.4em;
+}
+
 @media (min-width: 48rem) {
   .app__main {
     max-width: 32rem;
@@ -583,7 +625,9 @@
 
 .order__filling {
   grid-row: span 2;
-  font-size: 1.5rem;
+  align-self: center;
+  width: 1.875rem;
+  height: 1.875rem;
 }
 
 .order__label {
@@ -786,7 +830,8 @@
 }
 
 .picker__emoji {
-  font-size: 1.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
 }
 
 .picker__lock {
@@ -903,9 +948,10 @@
 
 .rack__x {
   position: absolute;
-  top: 0.125rem;
-  right: 0.3125rem;
-  font-size: 0.625rem;
+  top: 0.1875rem;
+  right: 0.25rem;
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .rack__item--burnt {
@@ -1211,13 +1257,14 @@
 
 /* 목숨 */
 .play__lives {
-  color: var(--songi-danger);
+  display: inline-flex;
+  gap: 0.125rem;
   font-size: 1.0625rem;
-  letter-spacing: 0.0625rem;
 }
 
 .play__life--lost {
-  opacity: 0.2;
+  opacity: 0.25;
+  filter: grayscale(1);
 }
 
 .play__practice {

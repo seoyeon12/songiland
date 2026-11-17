@@ -1,6 +1,20 @@
 import type { DailyBest } from '../app/storage';
 import { BbangFish } from '../components/BbangFish';
 import { gradeColor } from '../components/gradeColor';
+import { Icon } from '../components/Icon';
+
+/** Flaticon 무료 라이선스는 화면에 보이는 출처 표시를 요구한다: 아이콘 작가(이름, 작가 주소 끝부분). */
+const ICON_AUTHORS: readonly (readonly [string, string])[] = [
+  ['Kiranshastry', 'kiranshastry'],
+  ['Magnific', 'magnific'],
+  ['SBTS2018', 'sbts2018'],
+  ['justicon', 'justicon'],
+  ['LAFS', 'lafs'],
+  ['Hasan Hridoy', 'hasan-hridoy'],
+  ['dDara', 'ddara'],
+  ['Ghozi Muhtarom', 'ghozi-muhtarom'],
+  ['dreamicons', 'dreamicons'],
+];
 
 /** 오늘의 장사(랭킹, 표준 가게) · 내 가게(무작위 장사, 업그레이드 적용). */
 export type StartMode = 'daily' | 'own';
@@ -100,7 +114,9 @@ export function StartScreen({
           <div className="start__record">
             <span className="start__record-label">오늘 내 최고</span>
             <strong className="start__record-score">{best}</strong>
-            {dailyBest && <span className="start__ghost">👻 고스트와 함께 달려요</span>}
+            {dailyBest && <span className="start__ghost">
+                <Icon name="ghost" /> 고스트와 함께 달려요
+              </span>}
           </div>
 
           <div className="start__actions">
@@ -121,7 +137,7 @@ export function StartScreen({
                 내 가게 영업{ownBest !== null ? ` · 최고 ${ownBest.toLocaleString('ko-KR')}점` : ''}
               </button>
               <button type="button" className="btn" onClick={onShop}>
-                상점 · {points.toLocaleString('ko-KR')}P
+                상점 <Icon name="coin" /> {points.toLocaleString('ko-KR')}P
               </button>
             </div>
             {tutorialDone && (
@@ -142,7 +158,7 @@ export function StartScreen({
           <summary>규칙 더 보기</summary>
           <ul>
             <li>
-              목숨은 <strong>♥ 5개</strong>. 태우거나 손님이 기다리다 떠나면 하나씩 잃어요.
+              목숨은 <strong><Icon name="heart" /> 5개</strong>. 태우거나 손님이 기다리다 떠나면 하나씩 잃어요.
             </li>
             <li>기다리는 손님이 없으면 거치대에 올라가요. 오래 두면 식고, 누르면 버려요.</li>
             <li>완벽을 이어 내면 콤보! 점수가 커져요.</li>
@@ -152,6 +168,21 @@ export function StartScreen({
         </details>
         <p className="start__daily">
           오늘의 장사 · {day} (UTC) · 전 세계 같은 판 · 모두 같은 기본 가게
+        </p>
+        <p className="start__credit">
+          아이콘:{' '}
+          {ICON_AUTHORS.map(([name, slug], index) => (
+            <span key={slug}>
+              {index > 0 && ', '}
+              <a href={`https://www.flaticon.com/authors/${slug}`} target="_blank" rel="noreferrer">
+                {name}
+              </a>
+            </span>
+          ))}{' '}
+          from{' '}
+          <a href="https://www.flaticon.com/" target="_blank" rel="noreferrer">
+            Flaticon
+          </a>
         </p>
       </main>
     </div>

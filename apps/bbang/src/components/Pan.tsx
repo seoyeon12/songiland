@@ -3,6 +3,8 @@ import { FILLINGS, judge, type Doneness, type ShopConfig } from '../engine';
 import { panWindow, type Pan as PanState } from '../game/session';
 import { BbangFish } from './BbangFish';
 import { gradeColor } from './gradeColor';
+import { Icon } from './Icon';
+import { FILLING_ICON } from './icons';
 
 const STATUS: Record<Doneness, string> = {
   raw: '굽는 중…',
@@ -70,7 +72,7 @@ export function Pan({
       {key}
       <BbangFish className="pan__fish" fill={gradeColor(doneness)} />
       <span className="pan__filling">
-        {FILLINGS[pan.filling].emoji} {label}
+        <Icon name={FILLING_ICON[pan.filling]} /> {label}
       </span>
       <span className={`pan__status pan__status--${doneness}`}>{STATUS[doneness]}</span>
       <span className="pan__gauge" aria-hidden="true">

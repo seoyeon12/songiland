@@ -30,7 +30,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
     done: (state) => state.tally.served > 0,
   },
   {
-    title: '아래에서 🍮 슈크림을 고르고 빈 틀에 부어요',
+    title: '아래에서 슈크림을 고르고 빈 틀에 부어요',
     done: (state) =>
       cooking(state, 'custard') || state.rack.some((item) => item.filling === 'custard') || state.tally.served > 1,
   },

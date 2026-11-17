@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { pointsFor, type ServedGrade } from '../engine';
 import type { RecordResult } from '../app/storage';
 import { GRADE_LABEL } from '../components/gradeColor';
+import { Icon } from '../components/Icon';
 import { ShareActions } from '../components/ShareActions';
 import type { SessionState } from '../game/session';
 import { shareCardFor, type ShareMode } from '../share/card';
@@ -52,13 +53,13 @@ export function ResultScreen({
           </h1>
           {state.lives <= 0 && (
             <p className="result__early">
-              ♥ 5개를 모두 잃어 {Math.floor(state.elapsedMs / 1000)}초에 가게 문을 닫았어요
+              <Icon name="heart" /> 5개를 모두 잃어 {Math.floor(state.elapsedMs / 1000)}초에 가게 문을 닫았어요
             </p>
           )}
           <p className="result__score">{tally.score.toLocaleString('ko-KR')}점</p>
           {isNewBest ? (
             <p className="result__best result__best--new">
-              🎉 {previousBest === null ? '첫 기록!' : `최고 기록 경신! (+${diff!.toLocaleString('ko-KR')})`}
+              <Icon name="party" /> {previousBest === null ? '첫 기록!' : `최고 기록 경신! (+${diff!.toLocaleString('ko-KR')})`}
             </p>
           ) : (
             <p className="result__best">
@@ -102,7 +103,7 @@ export function ResultScreen({
             <div className="receipt__points">
               <dt>포인트</dt>
               <dd>
-                +{earned.toLocaleString('ko-KR')}P{' '}
+                <Icon name="coin" /> +{earned.toLocaleString('ko-KR')}P{' '}
                 <span className="receipt__wallet">(보유 {points.toLocaleString('ko-KR')}P)</span>
               </dd>
             </div>

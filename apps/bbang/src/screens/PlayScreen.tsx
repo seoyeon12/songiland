@@ -1,8 +1,9 @@
-import { useEffect, useReducer, useRef } from 'react';
+import { type ReactNode, useEffect, useReducer, useRef } from 'react';
 import { comboMultiplier, FILLINGS, type Grade, type ShopConfig } from '../engine';
 import { Burst } from '../components/Burst';
 import { FillingPicker } from '../components/FillingPicker';
 import { GRADE_LABEL } from '../components/gradeColor';
+import { Icon } from '../components/Icon';
 import { OrderQueue } from '../components/OrderQueue';
 import { Pan } from '../components/Pan';
 import { Rack } from '../components/Rack';
@@ -34,20 +35,33 @@ function noticePoints(notice: Notice | null): number | null {
   return notice.points;
 }
 
-function noticeText(notice: Notice): string {
+function noticeText(notice: Notice): ReactNode {
   switch (notice.kind) {
     case 'served': {
       const count = notice.count > 1 ? `${notice.count}개 ` : '';
-      return notice.grade === 'perfect'
-        ? `🛍️ ${count}완벽!${notice.multiplier > 1 ? ` 콤보 ×${notice.multiplier}` : ''}`
-        : `🛍️ ${count}${GRADE_LABEL[notice.grade]}`;
+      return (
+        <>
+          <Icon name="cart" />{' '}
+          {notice.grade === 'perfect'
+            ? `${count}완벽!${notice.multiplier > 1 ? ` 콤보 ×${notice.multiplier}` : ''}`
+            : `${count}${GRADE_LABEL[notice.grade]}`}
+        </>
+      );
     }
     case 'racked':
       return `🧺 거치대로 · ${FILLINGS[notice.filling].label} 손님 오면 드려요`;
     case 'burnt':
-      return '탔어요… ♥ −1';
+      return (
+        <>
+          탔어요… <Icon name="heart" /> −1
+        </>
+      );
     case 'missed':
-      return `손님이 떠났어요… ♥ −${notice.count} · 콤보 끊김`;
+      return (
+        <>
+          손님이 떠났어요… <Icon name="heart" /> −{notice.count} · 콤보 끊김
+        </>
+      );
     case 'raw':
       return '아직 덜 익었어요';
     case 'rack-full':
@@ -65,7 +79,7 @@ function noticeTone(notice: Notice): string {
 }
 
 /** 지금 해야 할 일 한 줄. 꺼내기가 먼저, 그다음 붓기. 거치대가 꽉 차 막혔으면 비우기. */
-function nextStep(state: SessionState): string {
+function nextStep(state: SessionState): ReactNode {
   const { shop, elapsedMs } = state;
   const pans = state.pans.filter((pan) => pan.status === 'cooking');
   if (pans.some((pan) => panDoneness(pan, elapsedMs, shop) !== 'raw')) {
@@ -75,7 +89,11 @@ function nextStep(state: SessionState): string {
         !state.orders.some((order) => order.filling === pan.filling),
     );
     return waiting && state.rack.length >= shop.rackSlots
-      ? '🗑️ 거치대가 꽉 찼어요 · 붕어빵을 눌러 버려요'
+      ? (
+          <>
+            <Icon name="trash" /> 거치대가 꽉 찼어요 · 붕어빵을 눌러 버려요
+          </>
+        )
       : '👇 다 익은 틀을 눌러 꺼내요 · 손님에게 바로 가요';
   }
   if (state.pans.some((pan) => pan.status === 'empty')) {
@@ -201,9 +219,7 @@ export function PlayScreen({
             {!practice && (
               <span className="play__lives" aria-label={`목숨 ${state.lives}개`}>
                 {Array.from({ length: START_LIVES }, (_, index) => (
-                  <span key={index} className={index < state.lives ? '' : 'play__life--lost'}>
-                    ♥
-                  </span>
+                  <Icon key={index} name="heart" className={index < state.lives ? '' : 'play__life--lost'} />
                 ))}
               </span>
             )}
@@ -221,14 +237,16 @@ export function PlayScreen({
             </span>
             {streak > 0 && <span className="play__combo">콤보 ×{comboMultiplier(streak)}</span>}
             <span className="play__revenue" aria-label="매출">
-              💰 {state.revenue.toLocaleString('ko-KR')}원
+              <Icon name="money-bag" /> {state.revenue.toLocaleString('ko-KR')}원
             </span>
           </div>
         </header>
 
         {ghostScore !== null && (
           <p className="ghost" aria-label="오늘 최고 기록과 비교">
-            <span className="ghost__label">👻 오늘 최고 기록</span>
+            <span className="ghost__label">
+              <Icon name="ghost" /> 오늘 최고 기록
+            </span>
             <span className="ghost__score">{ghostScore.toLocaleString('ko-KR')}점</span>
             <span className={`ghost__lead ${lead >= 0 ? 'ghost__lead--ahead' : 'ghost__lead--behind'}`}>
               {lead >= 0 ? `+${lead.toLocaleString('ko-KR')} 앞섬` : `${lead.toLocaleString('ko-KR')} 뒤짐`}

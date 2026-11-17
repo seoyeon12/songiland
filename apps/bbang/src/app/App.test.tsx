@@ -31,7 +31,7 @@ describe('App shop', () => {
     store.saveWallet({ points: 300, totalRevenue: 0, upgrades: NO_UPGRADES });
     render(<App store={store} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /상점 · 300P/ }));
+    fireEvent.click(screen.getByRole('button', { name: /상점 300P/ }));
     expect(screen.getByRole('button', { name: '틀 늘리기 300P에 사기' })).toBeEnabled();
     expect(screen.getByRole('button', { name: '비싼 반죽 400P에 사기' })).toBeDisabled();
 
@@ -40,7 +40,7 @@ describe('App shop', () => {
     expect(createBbangStore(storage).wallet()).toMatchObject({ points: 50, upgrades: { rack: 1 } });
 
     fireEvent.click(screen.getByRole('button', { name: '돌아가기' }));
-    expect(await screen.findByRole('button', { name: /상점 · 50P/ })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /상점 50P/ })).toBeInTheDocument();
   });
 });
 

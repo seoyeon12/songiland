@@ -1,4 +1,6 @@
 import { FILLINGS } from '../engine';
+import { Icon } from './Icon';
+import { FILLING_ICON } from './icons';
 import { ORDER_PATIENCE_MS, type OpenOrder } from '../game/session';
 
 /**
@@ -25,7 +27,7 @@ export function OrderQueue({
             className={`order ${left < 0.25 ? 'order--urgent' : ''}`}
             aria-label={`${label} ${order.remaining}개 주문`}
           >
-            <span className="order__filling">{FILLINGS[order.filling].emoji}</span>
+            <Icon name={FILLING_ICON[order.filling]} className="order__filling" />
             <span className="order__label">{label}</span>
             <span className="order__count">×{order.remaining}</span>
             <span className="order__patience" aria-hidden="true">

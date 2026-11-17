@@ -24,3 +24,6 @@ skills-lock.json
 test-results
 playwright-report
 playwright/.cache
+
+# Flaticon 원본·라이선스 (재배포 금지라 저장소에 올리지 않음)
+apps/bbang/design/flaticon/

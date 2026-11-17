@@ -20,7 +20,7 @@ describe('StartScreen', () => {
     expect(screen.getByText('1,840점')).toBeInTheDocument();
     expect(screen.getByText(/고스트와 함께/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /내 가게 영업 · 최고 900점/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /상점 · 320P/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /상점 320P/ })).toBeInTheDocument();
   });
 
   it('warns when records cannot be kept', () => {
