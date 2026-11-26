@@ -2,6 +2,7 @@ import { appUrl, domains, type DomainKind } from '@songiland/catalog';
 
 const KIND_SECTIONS: ReadonlyArray<{ kind: DomainKind; title: string }> = [
   { kind: 'game', title: '게임' },
+  { kind: 'study', title: '학습' },
   { kind: 'tool', title: '도구' },
 ];
 
@@ -25,8 +26,8 @@ export function LandingPage({
           </span>
           <h1 className="app__title">송이랜드</h1>
           <p className="app__subtitle">
-            보송한 비숑 송이가 진행하는 작은 놀이터예요. 가볍게 즐기는 게임과
-            쓸모 있는 도구를 모아 두었어요.
+            보송한 비숑 송이가 진행하는 작은 놀이터예요. 가볍게 즐기는 게임,
+            조금씩 익히는 학습, 쓸모 있는 도구를 모아 두었어요.
           </p>
         </header>
 

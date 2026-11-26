@@ -1,5 +1,5 @@
 /** 송이랜드 도메인 앱의 종류. 포털에서 카드를 묶는 기준이다. */
-export type DomainKind = 'game' | 'tool';
+export type DomainKind = 'game' | 'tool' | 'study';
 
 export interface DomainEntry {
   /** 앱 식별자. 앱 폴더 이름(`apps/<id>`)과 같다. */
@@ -41,6 +41,13 @@ export const domains = [
     description: '손님 주문대로 붕어빵을 제 타이밍에 구워 내는 90초 장사, 매일 전 세계 같은 판',
     emoji: '🐟',
   },
+  {
+    id: 'aiueo',
+    kind: 'study',
+    title: '아이우에오',
+    description: '보고 듣고 쓰는 일본어 첫 글자',
+    emoji: '🗾',
+  },
 ] as const satisfies readonly DomainEntry[];
 
 export type DomainId = (typeof domains)[number]['id'];
@@ -75,6 +82,7 @@ export const appHosts = {
   'ko-en': { subdomain: 'ko-en', devPort: 5175, previewPort: 4175 },
   dog: { subdomain: 'dog', devPort: 5176, previewPort: 4176 },
   bbang: { subdomain: 'bunguppang', devPort: 5177, previewPort: 4177 },
+  aiueo: { subdomain: 'aiueo', devPort: 5178, previewPort: 4178 },
 } as const satisfies Record<AppId, AppHost>;
 
 /**

@@ -22,6 +22,10 @@ describe('catalog', () => {
     expect(getDomain('lotto')).toMatchObject({ kind: 'game' });
   });
 
+  it('files 아이우에오 under study apps', () => {
+    expect(getDomain('aiueo')).toMatchObject({ kind: 'study', title: '아이우에오' });
+  });
+
   it('gives every app a host entry', () => {
     for (const domain of domains) {
       expect(appHosts).toHaveProperty(domain.id);
@@ -55,5 +59,7 @@ describe('catalog', () => {
     expect(appUrl('dog', 'local')).toBe('http://localhost:5176/');
     expect(appUrl('bbang')).toBe('https://bunguppang.arosys.kr/');
     expect(appUrl('bbang', 'local')).toBe('http://localhost:5177/');
+    expect(appUrl('aiueo')).toBe('https://aiueo.arosys.kr/');
+    expect(appUrl('aiueo', 'local')).toBe('http://localhost:5178/');
   });
 });

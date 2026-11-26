@@ -45,6 +45,15 @@ it('lists 붕어빵 랭킹전 under games', () => {
   );
 });
 
+it('lists 아이우에오 under study apps', () => {
+  render(<LandingPage linkTarget="production" />);
+  const study = screen.getByRole('region', { name: '학습' });
+  expect(within(study).getByRole('link', { name: /아이우에오/ })).toHaveAttribute(
+    'href',
+    'https://aiueo.arosys.kr/',
+  );
+});
+
 it('links to local dev servers during development', () => {
   render(<LandingPage linkTarget="local" />);
   expect(
@@ -65,5 +74,8 @@ it('groups domains by kind and hides empty sections', () => {
   );
   expect(screen.queryByRole('heading', { name: '도구' }) !== null).toBe(
     kinds.has('tool'),
+  );
+  expect(screen.queryByRole('heading', { name: '학습' }) !== null).toBe(
+    kinds.has('study'),
   );
 });
