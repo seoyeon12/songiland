@@ -1,0 +1,175 @@
+/* 문자카드 넘기기. 휴대폰 한 화면에 카드와 버튼이 모두 들어가야 한다. */
+.deck {
+  min-height: 100dvh;
+}
+
+.deck__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: min(100%, var(--songi-content-width));
+  margin: 0 auto;
+  padding: max(0.75rem, env(safe-area-inset-top)) 1rem 0;
+}
+
+.deck__back {
+  padding-left: 0.5rem;
+  color: var(--songi-text);
+}
+
+.deck__progress {
+  color: var(--songi-text-muted);
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.deck__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: min(100%, 28rem);
+  margin: 0 auto;
+  padding: 1rem 1rem max(1.25rem, env(safe-area-inset-bottom));
+}
+
+.deck__stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  /* 세로 스크롤은 브라우저에 맡기고, 가로 밀기만 카드 넘기기로 받는다. */
+  touch-action: pan-y;
+}
+
+.card {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  max-height: 62dvh;
+  padding: 1.5rem;
+  border: 1px solid var(--songi-border);
+  border-radius: var(--songi-radius-lg);
+  background: var(--songi-surface);
+  box-shadow: var(--songi-shadow-lg);
+  color: var(--songi-text);
+  font: inherit;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  animation: card-flip 180ms ease-out;
+}
+
+.card:focus-visible {
+  outline: none;
+  box-shadow:
+    var(--songi-focus),
+    var(--songi-shadow-lg);
+}
+
+.card--back {
+  background: linear-gradient(180deg, var(--songi-surface) 0%, var(--songi-accent-soft) 100%);
+}
+
+@keyframes card-flip {
+  from {
+    opacity: 0.4;
+    transform: perspective(60rem) rotateY(-70deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.card__kana {
+  font-family: var(--aiueo-kana-font);
+  font-size: clamp(6rem, 42vw, 10rem);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.card--back .card__kana {
+  font-size: clamp(4.5rem, 30vw, 7rem);
+}
+
+.card__reading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.card__romaji {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.card__hangul {
+  color: var(--songi-text-muted);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.card__note {
+  max-width: 20rem;
+  color: var(--songi-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-wrap: balance;
+}
+
+.deck__hint {
+  margin: 0;
+  color: var(--songi-text-muted);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.deck__actions {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr auto;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.deck__actions .btn {
+  min-height: 3.25rem;
+  padding-inline: 0.75rem;
+}
+
+.deck__nav {
+  min-width: 3.25rem;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.deck__bookmark--on {
+  border-color: var(--songi-accent);
+  background: var(--songi-accent-soft);
+  color: var(--songi-accent-text);
+}
+
+.deck__message {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.deck__message p {
+  margin: 0;
+  color: var(--songi-text-muted);
+}
