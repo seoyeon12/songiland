@@ -1,42 +1,171 @@
+import {
+  applyAnswer,
+  DAY_KEY_PATTERN,
+  EMPTY_MASTERY,
+  MAX_BOX,
+  RECENT_LIMIT,
+  SKILLS,
+  type MasteryBook,
+  type MasteryRecord,
+  type Skill,
+} from './mastery';
+
 /**
  * 학습 기록 저장소. 이 브라우저의 localStorage에 버전 붙은 JSON 하나로 저장하고 서버로 보내지 않는다.
- * 1단계는 북마크("내 문자")만 담는다. 숙련도·설정은 다음 단계에서 같은 문서에 더한다.
+ *
+ * - version 1(1단계): 북마크만.
+ * - version 2(2단계): 북마크 + 숙련도(읽기·쓰기 따로) + 설정.
+ *
+ * 저장 칸 이름(`STORE_KEY`)은 1단계 그대로 두고, 안의 `version`으로 형식을 가린다. 예전 형식은
+ * 읽을 때 `migrate`로 올리고, 다음에 저장할 때 새 형식으로 덮어쓴다. 그래서 1단계에서 담은 북마크가
+ * 그대로 이어진다.
  */
 export const STORE_KEY = 'songiland:aiueo:v1';
 const PROBE_KEY = 'songiland:aiueo:probe';
 
+/** 학습 탭에서 고른 방식. 카드 넘기기, 문자 보고 발음 고르기, 소리 듣고 문자 고르기. */
+export type StudyMode = 'cards' | 'read' | 'listen';
+
+/** 문자→발음 퀴즈의 보기 표기. 로마자 글자 또는 표기 없는 소리 버튼. */
+export type ChoiceStyle = 'romaji' | 'sound';
+
+export type Settings = {
+  /** 학습 탭에서 마지막으로 고른 방식. 퀴즈를 마치고 돌아와도 그대로다. */
+  studyMode: StudyMode;
+  /** 문자→발음 퀴즈 보기 표기. 퀴즈 시작 화면에서 고르고 다음에도 그대로 쓴다. */
+  quizChoices: ChoiceStyle;
+};
+
+export const DEFAULT_SETTINGS: Settings = { studyMode: 'cards', quizChoices: 'romaji' };
+
 export type SavedState = {
-  version: 1;
+  version: 2;
   /** 북마크한 문자 id. 담은 순서대로 둔다. */
+  bookmarks: string[];
+  mastery: MasteryBook;
+  settings: Settings;
+};
+
+/** 1단계가 남긴 형식. */
+export type SavedStateV1 = {
+  version: 1;
   bookmarks: string[];
 };
 
-const EMPTY: SavedState = { version: 1, bookmarks: [] };
+const EMPTY: SavedState = {
+  version: 2,
+  bookmarks: [],
+  mastery: EMPTY_MASTERY,
+  settings: DEFAULT_SETTINGS,
+};
 
 /** 문자 id 형식(`hiragana-ka`). 다른 앱 버전이 남긴 모르는 id도 형식만 맞으면 지우지 않는다. */
 const ID_PATTERN = /^[a-z]+-[a-z]+$/;
 
-/** 저장된 문자열을 읽는다. 깨졌거나 모르는 버전이면 빈 기록으로 시작한다. */
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function parseBookmarks(value: unknown): string[] | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const valid = value.filter((id): id is string => typeof id === 'string' && ID_PATTERN.test(id));
+  return [...new Set(valid)];
+}
+
+function parseRecord(value: unknown): MasteryRecord | null {
+  if (!isObject(value)) {
+    return null;
+  }
+  const { box, due, recent } = value;
+  if (
+    typeof box !== 'number' ||
+    !Number.isInteger(box) ||
+    box < 1 ||
+    box > MAX_BOX ||
+    typeof due !== 'string' ||
+    !DAY_KEY_PATTERN.test(due) ||
+    !Array.isArray(recent)
+  ) {
+    return null;
+  }
+  const answers = recent.filter((answer): answer is 0 | 1 => answer === 0 || answer === 1);
+  return { box, due, recent: answers.slice(-RECENT_LIMIT) };
+}
+
+function parseMastery(value: unknown): MasteryBook {
+  if (!isObject(value)) {
+    return EMPTY_MASTERY;
+  }
+  const book = { reading: {}, writing: {} } as Record<Skill, Record<string, MasteryRecord>>;
+  for (const skill of SKILLS) {
+    const map = value[skill];
+    if (!isObject(map)) {
+      continue;
+    }
+    for (const [id, raw] of Object.entries(map)) {
+      const record = ID_PATTERN.test(id) ? parseRecord(raw) : null;
+      if (record) {
+        book[skill][id] = record;
+      }
+    }
+  }
+  return book;
+}
+
+function parseSettings(value: unknown): Settings {
+  if (!isObject(value)) {
+    return DEFAULT_SETTINGS;
+  }
+  const { studyMode, quizChoices } = value;
+  return {
+    studyMode:
+      studyMode === 'cards' || studyMode === 'read' || studyMode === 'listen'
+        ? studyMode
+        : DEFAULT_SETTINGS.studyMode,
+    quizChoices:
+      quizChoices === 'romaji' || quizChoices === 'sound'
+        ? quizChoices
+        : DEFAULT_SETTINGS.quizChoices,
+  };
+}
+
+/** version 1 → 2. 북마크는 그대로, 숙련도는 빈 기록, 설정은 기본값으로 시작한다. */
+export function migrate(saved: SavedStateV1): SavedState {
+  return { ...EMPTY, bookmarks: [...saved.bookmarks] };
+}
+
+/** 저장된 문자열을 읽는다. 예전 형식은 지금 형식으로 올리고, 깨졌거나 모르는 버전이면 빈 기록이다. */
 export function parseSaved(raw: string | null): SavedState {
   if (!raw) {
     return EMPTY;
   }
+  let data: unknown;
   try {
-    const data: unknown = JSON.parse(raw);
-    if (typeof data !== 'object' || data === null || (data as { version?: unknown }).version !== 1) {
-      return EMPTY;
-    }
-    const bookmarks = (data as { bookmarks?: unknown }).bookmarks;
-    if (!Array.isArray(bookmarks)) {
-      return EMPTY;
-    }
-    const valid = bookmarks.filter(
-      (id): id is string => typeof id === 'string' && ID_PATTERN.test(id),
-    );
-    return { version: 1, bookmarks: [...new Set(valid)] };
+    data = JSON.parse(raw);
   } catch {
     return EMPTY;
   }
+  if (!isObject(data)) {
+    return EMPTY;
+  }
+  const bookmarks = parseBookmarks(data.bookmarks);
+  if (!bookmarks) {
+    return EMPTY;
+  }
+  if (data.version === 1) {
+    return migrate({ version: 1, bookmarks });
+  }
+  if (data.version === 2) {
+    return {
+      version: 2,
+      bookmarks,
+      mastery: parseMastery(data.mastery),
+      settings: parseSettings(data.settings),
+    };
+  }
+  return EMPTY;
 }
 
 export interface ProgressStore {
@@ -45,6 +174,12 @@ export interface ProgressStore {
   /** 북마크한 id 집합. 바뀔 때마다 새 객체라 React가 변화를 알아챈다. */
   bookmarks(): ReadonlySet<string>;
   toggleBookmark(id: string): void;
+  /** 기술별 숙련도. 바뀔 때마다 새 객체다. */
+  mastery(): MasteryBook;
+  /** 답 하나를 숙련도에 반영한다. `now`는 화면이 넣는다(테스트는 고정 시각). */
+  recordAnswer(skill: Skill, id: string, correct: boolean, now: Date): void;
+  settings(): Settings;
+  updateSettings(patch: Partial<Settings>): void;
   subscribe(listener: () => void): () => void;
 }
 
@@ -89,8 +224,10 @@ export function createProgressStore(
   const listeners = new Set<() => void>();
 
   function commit(next: SavedState) {
+    if (next.bookmarks !== state.bookmarks) {
+      bookmarkSet = new Set(next.bookmarks);
+    }
     state = next;
-    bookmarkSet = new Set(next.bookmarks);
     try {
       target?.setItem(STORE_KEY, JSON.stringify(next));
     } catch {
@@ -109,6 +246,16 @@ export function createProgressStore(
         ? state.bookmarks.filter((saved) => saved !== id)
         : [...state.bookmarks, id];
       commit({ ...state, bookmarks });
+    },
+    mastery: () => state.mastery,
+    recordAnswer(skill, id, correct, now) {
+      const map = state.mastery[skill];
+      const record = applyAnswer(map[id], correct, now);
+      commit({ ...state, mastery: { ...state.mastery, [skill]: { ...map, [id]: record } } });
+    },
+    settings: () => state.settings,
+    updateSettings(patch) {
+      commit({ ...state, settings: { ...state.settings, ...patch } });
     },
     subscribe(listener) {
       listeners.add(listener);

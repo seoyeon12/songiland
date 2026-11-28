@@ -333,3 +333,94 @@
   font-size: 0.875rem;
   font-weight: 600;
 }
+
+/* --- 학습 탭: 방식·보기 고르기 --- */
+.study__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.study__legend {
+  margin-bottom: 0.5rem;
+  padding: 0 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+
+.study__note {
+  margin: 0;
+  padding-inline: 0.25rem;
+  color: var(--songi-danger);
+  font-size: 0.8125rem;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+
+.segmented--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.segmented__option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  min-height: 3.5rem;
+  padding: 0.5rem 0.25rem;
+  border: 2px solid var(--songi-border);
+  border-radius: var(--songi-radius);
+  background: var(--songi-surface);
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 라디오 단추는 숨기고 칸 전체를 누르게 한다. 키보드 포커스는 칸 테두리로 보여 준다. */
+.segmented__option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented__option:has(input:checked) {
+  border-color: var(--songi-primary);
+  background: var(--songi-surface-muted);
+}
+
+.segmented__option:has(input:focus-visible) {
+  box-shadow: var(--songi-focus);
+}
+
+.segmented__option--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.segmented__label {
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+
+.segmented__detail {
+  color: var(--songi-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.mine__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}

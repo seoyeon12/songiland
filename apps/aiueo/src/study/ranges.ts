@@ -1,8 +1,9 @@
 import { HIRAGANA_SEION, HIRAGANA_SEION_ROWS, type KanaChar } from '../data/kana';
+import { isDue, isWeak, type MasteryMap } from '../progress/mastery';
 
 /**
  * 학습 범위. 카드(그리고 다음 단계의 퀴즈·쓰기)가 모두 같은 범위를 쓴다(기획서 6장).
- * id는 화면 주소에 들어간다: `seion`, `row-ka`, `mine`.
+ * id는 화면 주소에 들어간다: `seion`, `row-ka`, `mine`, `review`, `weak`.
  */
 export type StudyRange = {
   id: string;
@@ -11,6 +12,10 @@ export type StudyRange = {
 };
 
 export const MINE_RANGE_ID = 'mine';
+/** 복습일이 된 문자(읽기 숙련도). */
+export const REVIEW_RANGE_ID = 'review';
+/** 최근 오답률이 높은 문자(읽기 숙련도). */
+export const WEAK_RANGE_ID = 'weak';
 const SEION_RANGE_ID = 'seion';
 
 /** ん은 혼자 한 행이라 카드가 한 장뿐이다. わ행에 붙여 "わ행·ん"으로 묶는다. */
@@ -48,10 +53,47 @@ export function bookmarkedKana(bookmarks: ReadonlySet<string>): KanaChar[] {
   return HIRAGANA_SEION.filter((kana) => bookmarks.has(kana.id));
 }
 
-/** 범위 id를 문자 목록으로 푼다. 모르는 id면 `null`. */
-export function resolveRange(id: string, bookmarks: ReadonlySet<string>): StudyRange | null {
+/** 숙련도로 정하는 범위에 필요한 것. `today`는 `YYYY-MM-DD`. */
+export type StudyProgress = {
+  mastery: MasteryMap;
+  today: string;
+};
+
+/** 복습일이 된 문자를 오십음도 순서로. 풀어 본 적 없는 문자는 넣지 않는다. */
+export function reviewKana({ mastery, today }: StudyProgress): KanaChar[] {
+  return HIRAGANA_SEION.filter((kana) => {
+    const record = mastery[kana.id];
+    return record !== undefined && isDue(record, today);
+  });
+}
+
+/** 최근 오답률이 높은 문자를 오십음도 순서로. */
+export function weakKana({ mastery }: StudyProgress): KanaChar[] {
+  return HIRAGANA_SEION.filter((kana) => {
+    const record = mastery[kana.id];
+    return record !== undefined && isWeak(record);
+  });
+}
+
+const NO_PROGRESS: StudyProgress = { mastery: {}, today: '0000-00-00' };
+
+/**
+ * 범위 id를 문자 목록으로 푼다. 모르는 id면 `null`.
+ * `progress`가 없으면 복습할·약한 문자는 빈 범위다.
+ */
+export function resolveRange(
+  id: string,
+  bookmarks: ReadonlySet<string>,
+  progress: StudyProgress = NO_PROGRESS,
+): StudyRange | null {
   if (id === MINE_RANGE_ID) {
     return { id, label: '내 문자', kana: bookmarkedKana(bookmarks) };
+  }
+  if (id === REVIEW_RANGE_ID) {
+    return { id, label: '복습할 문자', kana: reviewKana(progress) };
+  }
+  if (id === WEAK_RANGE_ID) {
+    return { id, label: '약한 문자', kana: weakKana(progress) };
   }
   return FIXED_RANGES.find((range) => range.id === id) ?? null;
 }

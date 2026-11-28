@@ -1,4 +1,13 @@
-import { bookmarkedKana, FIXED_RANGES, MINE_RANGE_ID, resolveRange, shuffled } from './ranges';
+import type { MasteryMap } from '../progress/mastery';
+import {
+  bookmarkedKana,
+  FIXED_RANGES,
+  MINE_RANGE_ID,
+  resolveRange,
+  REVIEW_RANGE_ID,
+  shuffled,
+  WEAK_RANGE_ID,
+} from './ranges';
 
 const chars = (range: { kana: readonly { char: string }[] } | null) =>
   range?.kana.map((kana) => kana.char).join('');
@@ -18,6 +27,19 @@ describe('study ranges', () => {
     const bookmarks = new Set(['hiragana-n', 'katakana-a', 'hiragana-ka', 'hiragana-a']);
     expect(bookmarkedKana(bookmarks).map((kana) => kana.char)).toEqual(['あ', 'か', 'ん']);
     expect(resolveRange(MINE_RANGE_ID, bookmarks)).toMatchObject({ label: '내 문자' });
+  });
+
+  it('builds 복습할 문자 and 약한 문자 from reading mastery', () => {
+    const mastery: MasteryMap = {
+      'hiragana-ro': { box: 1, due: '2026-11-28', recent: [1, 0] },
+      'hiragana-ka': { box: 3, due: '2026-11-27', recent: [1, 1, 1] },
+      'hiragana-a': { box: 2, due: '2026-11-29', recent: [0, 1] },
+      'hiragana-ki': { box: 4, due: '2026-12-09', recent: [1, 1, 1, 1] },
+    };
+    const progress = { mastery, today: '2026-11-28' };
+    expect(chars(resolveRange(REVIEW_RANGE_ID, new Set(), progress))).toBe('かろ');
+    expect(chars(resolveRange(WEAK_RANGE_ID, new Set(), progress))).toBe('あろ');
+    expect(resolveRange(REVIEW_RANGE_ID, new Set())?.kana).toEqual([]);
   });
 
   it('returns null for an unknown range', () => {

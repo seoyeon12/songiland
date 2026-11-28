@@ -1,13 +1,24 @@
 import { HIRAGANA_SEION, HIRAGANA_SEION_ROWS, type KanaChar } from '../data/kana';
 import { KanaChart } from '../features/chart/KanaChart';
+import { MAX_BOX, masteryLevel, type MasteryMap } from '../progress/mastery';
 
 export type ChartScreenProps = {
   bookmarks: ReadonlySet<string>;
+  /** 읽기 숙련도. 칸 색으로 보여 준다(기획서 7장). */
+  mastery: MasteryMap;
   onSelect: (kana: KanaChar) => void;
 };
 
+const LEVELS = Array.from({ length: MAX_BOX }, (_, index) => index + 1);
+
 /** 첫 화면: 히라가나 청음 오십음도. 글자를 누르면 소리가 나고 그 글자 카드가 열린다. */
-export function ChartScreen({ bookmarks, onSelect }: ChartScreenProps) {
+export function ChartScreen({ bookmarks, mastery, onSelect }: ChartScreenProps) {
+  const levels = new Map(
+    HIRAGANA_SEION.map((kana) => [kana.id, masteryLevel(mastery[kana.id])] as const).filter(
+      ([, level]) => level > 0,
+    ),
+  );
+
   return (
     <>
       <header className="app__header">
@@ -32,8 +43,23 @@ export function ChartScreen({ bookmarks, onSelect }: ChartScreenProps) {
           caption="히라가나 청음 오십음도"
           rows={HIRAGANA_SEION_ROWS}
           bookmarks={bookmarks}
+          levels={levels}
           onSelect={onSelect}
         />
+        {levels.size > 0 && (
+          <ul className="chart-legend" aria-label="숙련도 색">
+            <li className="chart-legend__item">
+              <span className="chart-legend__swatch" aria-hidden />
+              아직
+            </li>
+            {LEVELS.map((level) => (
+              <li key={level} className="chart-legend__item">
+                <span className={`chart-legend__swatch chart-legend__swatch--${level}`} aria-hidden />
+                {level}단계
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <p className="aiueo__note">

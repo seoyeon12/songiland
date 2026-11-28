@@ -69,6 +69,22 @@ describe('kana audio', () => {
   });
 });
 
+describe('canPlay', () => {
+  it('says yes for a reviewed file or a Japanese voice, and while voices are loading', () => {
+    expect(createKanaAudio({ fileIds: new Set([KA.id]), speech: undefined }).canPlay(KA)).toBe(true);
+    const withJa = createKanaAudio({ fileIds: new Set(), speech: fakeSpeech([voice('ja-JP')]) });
+    expect(withJa.canPlay(KA)).toBe(true);
+    const loading = createKanaAudio({ fileIds: new Set(), speech: fakeSpeech([]) });
+    expect(loading.canPlay(KA)).toBe(true);
+  });
+
+  it('says no without speech synthesis or without a Japanese voice', () => {
+    expect(createKanaAudio({ fileIds: new Set(), speech: undefined }).canPlay(KA)).toBe(false);
+    const noJa = createKanaAudio({ fileIds: new Set(), speech: fakeSpeech([voice('en-US')]) });
+    expect(noJa.canPlay(KA)).toBe(false);
+  });
+});
+
 describe('pickJapaneseVoice', () => {
   it('prefers ja-JP, accepts other ja tags, and tells loading apart from missing', () => {
     expect(pickJapaneseVoice([])).toBeUndefined();

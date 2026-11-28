@@ -3,7 +3,7 @@ import { routeUrl, type Tab } from '../app/router';
 
 const TABS: ReadonlyArray<{ tab: Tab; label: string; icon: string }> = [
   { tab: 'chart', label: '문자표', icon: 'あ' },
-  { tab: 'cards', label: '카드', icon: '🎴' },
+  { tab: 'study', label: '학습', icon: '📖' },
   { tab: 'mine', label: '내 문자', icon: '★' },
 ];
 

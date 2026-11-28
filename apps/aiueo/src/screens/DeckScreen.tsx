@@ -1,12 +1,14 @@
 import { useEffect, useEffectEvent, useId, useRef, useState, type PointerEvent } from 'react';
 import type { DeckRoute } from '../app/router';
 import type { KanaChar } from '../data/kana';
-import { resolveRange, shuffled } from '../study/ranges';
+import { MINE_RANGE_ID, resolveRange, shuffled, type StudyProgress } from '../study/ranges';
 import './deck.css';
 
 export type DeckScreenProps = {
   route: DeckRoute;
   bookmarks: ReadonlySet<string>;
+  /** 복습할·약한 문자 범위를 풀 때 쓴다. 연 순간에 한 번만 읽는다. */
+  progress: StudyProgress;
   onToggleBookmark: (id: string) => void;
   /** 소리 재생. 터치·클릭 처리 안에서만 부른다. */
   onPlay: (kana: KanaChar) => void;
@@ -24,6 +26,7 @@ type Side = 'front' | 'back';
 export function DeckScreen({
   route,
   bookmarks,
+  progress,
   onToggleBookmark,
   onPlay,
   onMove,
@@ -31,7 +34,7 @@ export function DeckScreen({
 }: DeckScreenProps) {
   // 카드 목록은 연 순간에 고정한다. 내 문자 묶음을 보다가 ★를 꺼도 카드가 사라지지 않는다.
   const [deck] = useState(() => {
-    const range = resolveRange(route.range, bookmarks);
+    const range = resolveRange(route.range, bookmarks, progress);
     if (!range) {
       return null;
     }
@@ -140,7 +143,11 @@ export function DeckScreen({
         {!deck && <DeckMessage text="없는 카드 묶음이에요." onBack={onBack} />}
         {deck && !card && (
           <DeckMessage
-            text="담은 문자가 없어요. 문자표나 카드에서 ☆를 눌러 담아 보세요."
+            text={
+              route.range === MINE_RANGE_ID
+                ? '담은 문자가 없어요. 문자표나 카드에서 ☆를 눌러 담아 보세요.'
+                : '이 범위에는 지금 문자가 없어요.'
+            }
             onBack={onBack}
           />
         )}

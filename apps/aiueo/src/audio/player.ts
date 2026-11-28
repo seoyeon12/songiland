@@ -13,6 +13,11 @@ export type PlayResult = 'file' | 'speech' | 'unavailable';
 export interface KanaAudio {
   /** 반드시 터치·클릭 처리 안에서 부른다. iOS는 그 밖의 재생을 막는다. */
   play(kana: KanaChar): PlayResult;
+  /**
+   * 이 문자의 소리를 낼 수 있을 것 같은가. 소리 보기·듣고 고르기를 켜기 전에 확인한다.
+   * 목소리 목록을 아직 받지 못했으면 낼 수 있다고 본다. 그때는 `play` 결과로 다시 판단한다.
+   */
+  canPlay(kana: KanaChar): boolean;
 }
 
 /** 음원 파일 주소. 앱이 서브도메인 루트에서 동작하므로 절대 경로로 둔다. */
@@ -98,6 +103,12 @@ export function createKanaAudio({
   return {
     play(kana) {
       return fileIds.has(kana.id) ? playFile(kana.id) : speak(kana);
+    },
+    canPlay(kana) {
+      if (fileIds.has(kana.id)) {
+        return true;
+      }
+      return speech !== undefined && pickJapaneseVoice(speech.getVoices()) !== null;
     },
   };
 }

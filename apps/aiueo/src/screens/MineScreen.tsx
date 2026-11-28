@@ -6,11 +6,20 @@ export type MineScreenProps = {
   /** 저장이 막힌 브라우저면 `memory`. 새로 고치면 사라진다고 알린다. */
   persistence: 'local' | 'memory';
   onSelect: (kana: KanaChar) => void;
+  /** 담은 문자로 카드 넘기기. */
   onStart: () => void;
+  /** 담은 문자로 퀴즈(문자 보고 발음 고르기). */
+  onQuiz: () => void;
 };
 
 /** 내 문자 탭: ★로 담은 문자만 모아 본다(기획서 7장). */
-export function MineScreen({ bookmarks, persistence, onSelect, onStart }: MineScreenProps) {
+export function MineScreen({
+  bookmarks,
+  persistence,
+  onSelect,
+  onStart,
+  onQuiz,
+}: MineScreenProps) {
   const kana = bookmarkedKana(bookmarks);
 
   return (
@@ -29,7 +38,7 @@ export function MineScreen({ bookmarks, persistence, onSelect, onStart }: MineSc
           <span className="aiueo__empty-icon" aria-hidden>
             ☆
           </span>
-          <p>카드에서 ☆ 내 문자 버튼을 누르면 여기에 모여요.</p>
+          <p>카드나 퀴즈 결과에서 ☆를 누르면 여기에 모여요.</p>
         </div>
       ) : (
         <>
@@ -45,9 +54,14 @@ export function MineScreen({ bookmarks, persistence, onSelect, onStart }: MineSc
               </li>
             ))}
           </ul>
-          <button type="button" className="btn btn--primary btn--large" onClick={onStart}>
-            카드로 보기
-          </button>
+          <div className="mine__actions">
+            <button type="button" className="btn btn--primary btn--large" onClick={onQuiz}>
+              퀴즈 풀기
+            </button>
+            <button type="button" className="btn btn--large" onClick={onStart}>
+              카드로 보기
+            </button>
+          </div>
         </>
       )}
 
